@@ -19,3 +19,4 @@ plt.title("Hierarchical Clustering Dendrogram")
 plt.xlabel("Keywords")
 plt.ylabel("Distance")
 plt.show()
+# check sample

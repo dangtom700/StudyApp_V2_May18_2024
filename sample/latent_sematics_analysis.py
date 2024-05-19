@@ -15,3 +15,4 @@ X_lsa = lsa.fit_transform(X)
 # Print LSA components
 print("LSA Components:")
 print(lsa.components_)
+#check sample

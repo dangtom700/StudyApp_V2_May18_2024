@@ -9,7 +9,7 @@ vectorizer = TfidfVectorizer()
 X = vectorizer.fit_transform(keywords)
 
 # Perform agglomerative clustering
-agg_cluster = AgglomerativeClustering(n_clusters=2)
+agg_cluster = AgglomerativeClustering(n_clusters=3)
 agg_cluster.fit(X.toarray())
 
 # Print clusters
@@ -22,3 +22,4 @@ for i, label in enumerate(agg_cluster.labels_):
 print("Clusters:")
 for cluster in clusters.values():
     print(cluster)
+# check sample
