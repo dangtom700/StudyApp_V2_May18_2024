@@ -119,7 +119,8 @@ def split_text_into_chunks(text, chunk_size):
     text_splitter = RecursiveCharacterTextSplitter(chunk_size=chunk_size, chunk_overlap=0)
     try:
         chunks = text_splitter.split_text(text)
-        logging.debug(f"First chunk of {text[:50]}...")  # Log first 50 characters of the first chunk
+        # Log first 50 characters of the first chunk
+        logging.debug(f"First chunk of {text[:50]}...")
     except Exception as e:
         logging.error(f"Error splitting text: {e}")
         chunks = []
@@ -162,8 +163,7 @@ def process_files_in_parallel(pdf_files, reset_db, chunk_size, db_name):
                 logging.error(f"Error processing {pdf_file}: {e}")
 
 # Batch processing for merging chunks and cleaning text
-def process_chunks_in_batches(db_name='chunks.db', batch_size=1000):
-    logging.info("Starting batch processing of chunks...")
+def process_chunks_in_batches(db_name, batch_size=1000):
     # Function to retrieve chunks in batches
     def retrieve_chunks_in_batches():
         conn = sqlite3.connect(db_name)
@@ -219,18 +219,7 @@ def process_chunks_in_batches(db_name='chunks.db', batch_size=1000):
     conn.commit()
     conn.close()
 
-    logging.info("Batch processing complete.")
-    print("Batch processing complete.")
-
     return word_frequencies
-
-def processing_database(pdf_files, RESET_DATABASE, DB_NAME, CHUNK_SIZE):
-    setup_database(reset_db=RESET_DATABASE, db_name=DB_NAME)
-    logging.info(f"Starting processing of {len(pdf_files)} PDF files...")
-    print(f"Starting processing of {len(pdf_files)} PDF files...")
-    process_files_in_parallel(pdf_files, reset_db=RESET_DATABASE, chunk_size=CHUNK_SIZE, db_name=DB_NAME)
-    logging.info("Processing complete.")
-    print("Processing complete.")
 
 if __name__ == '__main__':
     FOLDER_PATH = BOOKS_folder_path
@@ -243,7 +232,18 @@ if __name__ == '__main__':
                         if file.lower().endswith('.pdf')])
     
     # Reset the database before processing
-    processing_database(pdf_files, RESET_DATABASE, DB_NAME, CHUNK_SIZE)
+    setup_database(reset_db=RESET_DATABASE, db_name=DB_NAME)
+    logging.info(f"Starting processing of {len(pdf_files)} PDF files...")
+    print(f"Starting processing of {len(pdf_files)} PDF files...")
+    process_files_in_parallel(pdf_files, 
+                              reset_db=RESET_DATABASE, 
+                              chunk_size=CHUNK_SIZE, 
+                              db_name=DB_NAME)
+    logging.info("Processing complete.")
+    print("Processing complete.")
     
     # Now process the chunks in batches and store word frequencies
+    logging.info("Starting batch processing of chunks...")
     word_frequencies = process_chunks_in_batches(DB_NAME)
+    logging.info("Batch processing complete.")
+    print("Batch processing complete.")
