@@ -1,0 +1,58 @@
+[
+    {
+        "Property": "Title Length (char)",
+        "Minimum": 7,
+        "Maximum": 131,
+        "Total": 13632,
+        "Avarage": 52.23,
+        "Harmonic Mean": 39.103,
+        "Median": 49,
+        "Mode": 45,
+        "Population Standard Deviation": 24.584,
+        "Standard Deviation": 24.631,
+        "Population Variance": 604.353,
+        "Variance": 606.678
+    },
+    {
+        "Property": "Title Length (word)",
+        "Minimum": 1,
+        "Maximum": 18,
+        "Total": 1847,
+        "Avarage": 7.077,
+        "Harmonic Mean": 5.27,
+        "Median": 7,
+        "Mode": 4,
+        "Population Standard Deviation": 3.471,
+        "Standard Deviation": 3.478,
+        "Population Variance": 12.048,
+        "Variance": 12.094
+    },
+    {
+        "Property": "Tag Number",
+        "Minimum": 0,
+        "Maximum": 11,
+        "Total": 1279,
+        "Avarage": 4.9,
+        "Harmonic Mean": 0,
+        "Median": 5,
+        "Mode": 3,
+        "Population Standard Deviation": 2.209,
+        "Standard Deviation": 2.213,
+        "Population Variance": 4.879,
+        "Variance": 4.898
+    },
+    {
+        "Property": "File Size (Kb)",
+        "Minimum": 699,
+        "Maximum": 529171,
+        "Total": 5918500,
+        "Avarage": 22676.245,
+        "Harmonic Mean": 6349.245,
+        "Median": 11819,
+        "Mode": 5764,
+        "Population Standard Deviation": 42286.237,
+        "Standard Deviation": 42367.478,
+        "Population Variance": 1788125802.683,
+        "Variance": 1795003209.617
+    }
+]

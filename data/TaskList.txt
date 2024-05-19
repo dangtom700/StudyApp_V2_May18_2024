@@ -1,0 +1,49 @@
+# Day-by-Day Reading Activities
+
+Thu, May 10, 2024
+
+- [x] Read a chapter of [[internet afterlife virtual salvation in the 21st century.pdf|internet afterlife virtual salvation in the 21st century]]
+- [x] Read a chapter of [[information science.pdf|information science]]
+- [x] Read a chapter of [[media and development.pdf|media and development]]
+
+Sat, May 11, 2024
+
+- [x] Read a chapter of [[the chemistry of milk and milk products physicochemical properties therapeutic characteristics.pdf|the chemistry of milk and milk products physicochemical properties therapeutic characteristics]]
+- [x] Read a chapter of [[math numeric and programming for mechanical engineer.pdf|math numeric and programming for mechanical engineer]]
+- [x] Read a chapter of [[PowerShell essential guide mastering the fundamentals of scripting and automation.pdf|PowerShell essential guide mastering the fundamentals of scripting and automation]]
+
+Sun, May 12, 2024
+
+- [x] Read a chapter of [[BOOKS/intelligent transportation system and advanced technology energy environment and sustainability.pdf|intelligent transportation system and advanced technology energy environment and sustainability]]
+- [x] Read a chapter of [[BOOKS/game design tools cognitive psychological and practical approach.pdf|game design tools cognitive psychological and practical approach]]
+- [x] Read a chapter of [[BOOKS/statics and mechanics of material.pdf|statics and mechanics of material]]
+
+Mon, May 13, 2024
+
+- [x] Read a chapter of [[BOOKS/measurement and sensor systems a comprehensive guide to principles practical issues and applications.pdf|measurement and sensor systems a comprehensive guide to principles practical issues and applications]]
+- [x] Read a chapter of [[BOOKS/Qt6 C++ GUI programming cookbook.pdf|Qt6 C++ GUI programming cookbook]]
+- [x] Read a chapter of [[BOOKS/data structure using C theory and program.pdf|data structure using C theory and program]]
+
+Tue, May 14, 2024
+
+- [x] Read a chapter of [[BOOKS/novelty information and surprise.pdf|novelty information and surprise]]
+- [x] Read a chapter of [[BOOKS/engineering mathematics and computing.pdf|engineering mathematics and computing]]
+- [x] Read a chapter of [[BOOKS/probability statistics and stimulation with applications program written in R.pdf|probability statistics and stimulation with applications program written in R]]
+
+Wed, May 15, 2024
+
+- [ ] Read a chapter of [[BOOKS/real time simulation technology for modern power electronics.pdf|real time simulation technology for modern power electronics]]
+- [ ] Read a chapter of [[BOOKS/essential of biology.pdf|essential of biology]]
+- [ ] Read a chapter of [[BOOKS/pro Git.pdf|pro Git]]
+
+Fri, May 16, 2024
+
+- [ ] Read a chapter of [[BOOKS/innovative social science teaching and learning facilitating students personal growth and career success.pdf|innovative social science teaching and learning facilitating students personal growth and career success]]
+- [ ] Read a chapter of [[BOOKS/everything you should know about Matlab for economic analysis.pdf|everything you should know about Matlab for economic analysis]]
+- [ ] Read a chapter of [[BOOKS/the game of life and how to play it.pdf|the game of life and how to play it]]
+
+Fri, May 17, 2024
+
+- [ ] Read a chapter of [[BOOKS/introduction to autonomous robots mechanisms sensors actuators and algorithms.pdf|introduction to autonomous robots mechanisms sensors actuators and algorithms]]
+- [ ] Read a chapter of [[BOOKS/basic engineering science.pdf|basic engineering science]]
+- [ ] Read a chapter of [[BOOKS/small signal audio design.pdf|small signal audio design]]
