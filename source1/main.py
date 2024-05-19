@@ -1,8 +1,10 @@
-import colorama
 import argparse
+from modules.DataProcess import get_banned_words
+import modules.Export as Export
+import modules.path as path
 
-def app():
-
+def app(): 
+    
     parser = argparse.ArgumentParser(prog="Study Logging and Database",
                                      description="This project is to meant to store record of learning activities. The files and record of activities are then transfer into database that show user the timeline and activities done in that day.",
                                      add_help=True,
@@ -20,29 +22,46 @@ def app():
     args = parser.parse_args()
 
     if args.exportTagSet:
-        pass
+        banned_word = get_banned_words(path.ban_path)
+        Export.exportTagSet(path.BOOKS_folder_path, banned_word)
+        Export.AnnounceFinish()
 
     if args.exportPDF_info:
-        pass
+        banned_word = get_banned_words(path.ban_path)
+        Export.exportPDF_info(path.BOOKS_folder_path, banned_word)
+        Export.AnnounceFinish()
 
     if args.exportPDF_index:
-        pass
+        Export.exportPDF_index(path.BOOKS_folder_path)
+        Export.AnnounceFinish()
 
     if args.updateStat:
-        pass
+        Export.updateStat(path.PDF_info_path)
+        Export.AnnounceFinish()
 
     if args.exportPDF_tokens:
-        pass
+        Export.exportPDF_tokens(path.PDF_info_path)
+        Export.AnnounceFinish()
 
     if args.updateData:
-        pass
+        banned_word = get_banned_words(path.ban_path)
+        Export.exportTagSet(path.BOOKS_folder_path, banned_word)
+        Export.exportPDF_index(path.BOOKS_folder_path)
+
+        Export.exportPDF_info(path.BOOKS_folder_path, banned_word)
+        Export.updateStat(path.PDF_info_path)
+        Export.exportPDF_tokens(path.PDF_info_path)
+
+        Export.rewrite_ban_file(banned_word)
+        
+        Export.AnnounceFinish()
 
     if args.getTaskList:
-        pass
+        Export.pick_number_random_book_to_read()
+        Export.AnnounceFinish()
 
     if args.searchFile:
-        pass
+        Export.search_file(args.searchFile)
 
-
-if __name__ == "__main__":
+if __name__ == '__main__':
     app()

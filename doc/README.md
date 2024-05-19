@@ -52,6 +52,7 @@ The CLI application's structure has 3 components. First is the Automated Word Fi
 ![Automated Word Filter](img\AutomatedWordFilter.png)
 
 The automated word filter collect the raw set of words from a file or a folder from the BOOKS folder that store reading material in PDF format and Study Note folder that store study note in Markdown format. There are 2 layers for filtering.
+
 The first layer is the presetted rules for filtering. The second layer is the Natural Language Processing (for beta testing). The goal is to reduce the keywords that has to search for down to no more than 5. The filter word is then update itself for readablity and for better searching.
 
 ![Note Tagging System](img\NoteTagging.png)
@@ -61,6 +62,8 @@ The note tagging system also start off with create a list of word of a chosen no
 Priority in this case is understand as that is representing as a topic, a subject, a level heading or a word in a paragraph.
 
 After the filter is done, there is a suggestion of 10 different keywords that can be chosen to append into the note. The note is then saved and execution is done.
+
+Similar mechanism is used when extracting context of a book. By first extract and split chunks of text, filter the text and then calculate the keywords density and implement models to find suitable keywords. No limit on the number of keywords that can be extracted.
 
 ![Book Title Tagging](img\BookTitleTagging.png)
 
@@ -74,3 +77,4 @@ The book title tagging system also start off with create a list of word, that wa
 - [Tag Studio](https://github.com/dangtom700/TagStudio)
 - [CLI File Generator](https://github.com/dangtom700/CLI_File_Generator)
 - [Study Assistant](https://www.figma.com/board/2t8iiGnpg0lOEtNSdyTOQr/Study-Assistance?node-id=0%3A1&t=tTyT190h3s1lvM1c-1)
+- [Text Extractor](https://github.com/dangtom700/extract_text)
