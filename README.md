@@ -9,9 +9,13 @@ This project creates a CLI application that can keep track of my study progress 
 The aim of this project is to create:
 
 - Study habit and time management skills when learning new material
+![study time](https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExdThmNGc2OG84bGpxaDF6Z3A0YnluZzVzNTJ3eHl3bWo5MzhnZ2x6MCZlcD12MV9naWZzX3NlYXJjaCZjdD1n/KZBS6EjcaFB2BxwLVV/giphy.gif)
 - Improve study performance through retrieving old record of learning material
+![library](https://media.giphy.com/media/KFH29iIiBK9DlgmZEY/giphy.gif?cid=790b7611u8f4g68o8ljqh1zgp4byng5s52wxywmj938gglz0&ep=v1_gifs_search&rid=giphy.gif&ct=g)
 - A text-based chat bot with pre-built command lines to perform certain tasks such as look up what activities are done in a given date
+![chat bot](https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExc3Q3ZmduZ3pmanZkaG5pM3doaHBhOXZxdnlwc3d4dGptaDhmd2pzaiZlcD12MV9naWZzX3NlYXJjaCZjdD1n/0lGd2OXXHe4tFhb7Wh/giphy.gif)
 - A search engine to look up for the keyword in related context
+![search engine](https://media.giphy.com/media/cnFKWocUtPg0EXgWeJ/giphy.gif)
 
 ## Scope and Deliverables
 
@@ -68,6 +72,10 @@ Similar mechanism is used when extracting context of a book. By first extract an
 ![Book Title Tagging](img\BookTitleTagging.png)
 
 The book title tagging system also start off with create a list of word, that was splitted from a BOOKS folder that feed into the filter. After the filter is done, there is a suggestion of 10 different keywords that can be chosen to append into the note. The note is then saved and execution is done.
+
+## Interactive Application Mapping
+
+<iframe style="border: 1px solid rgba(0, 0, 0, 0.1);" width="800" height="450" src="https://www.figma.com/embed?embed_host=share&url=https%3A%2F%2Fwww.figma.com%2Fboard%2F2t8iiGnpg0lOEtNSdyTOQr%2FStudy-Assistance%3Fnode-id%3D0%253A1%26t%3D0bfndQhaixxBi9YP-1" allowfullscreen></iframe>
 
 ## References
 
