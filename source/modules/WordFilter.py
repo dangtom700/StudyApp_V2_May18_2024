@@ -7,10 +7,10 @@ import time
 import os
 import re
 from collections import defaultdict
-from modules.path import BOOKS_folder_path, DB_name
+from modules.path import database_log
 
 # Setup logging to log messages to a file, with the option to reset the log file
-def setup_logging(log_file='process.log'):
+def setup_logging(log_file= database_log):
     logging.basicConfig(
         filename=log_file,
         level=logging.INFO,
@@ -221,29 +221,78 @@ def process_chunks_in_batches(db_name, batch_size=1000):
 
     return word_frequencies
 
-if __name__ == '__main__':
-    FOLDER_PATH = BOOKS_folder_path
-    CHUNK_SIZE = 8000
-    RESET_DATABASE = True
-    DB_NAME = DB_name
+def get_file_list(folder_path: str) -> list[str]:
+    """
+    Returns a sorted list of file paths for all PDF files in the given folder path.
 
-    pdf_files = sorted([os.path.join(FOLDER_PATH, file) 
-                        for file in os.listdir(FOLDER_PATH) 
+    Args:
+        folder_path (str): The path to the folder containing the PDF files.
+
+    Returns:
+        list[str]: A sorted list of file paths for all PDF files in the given folder path.
+    """
+    return sorted([os.path.join(folder_path, file) 
+                        for file in os.listdir(folder_path) 
                         if file.lower().endswith('.pdf')])
+
+def update_database(BOOKS_folder_path:str, DB_name:str, reset_db=True, chunk_size=8000) -> list[tuple[str, int]]:
+    """
+    Update the database with PDF files from the specified folder path.
+
+    Args:
+        BOOKS_folder_path (str): The path to the folder containing the PDF files.
+        DB_name (str): The name of the database.
+        reset_db (bool, optional): Whether to reset the database before processing. Defaults to True.
+        chunk_size (int, optional): The number of files to process in parallel. Defaults to 8000.
+
+    Returns:
+        list[tuple[str, int]]: A list of tuples containing the word and its frequency.
+
+    This function updates the database with PDF files from the specified folder path. 
+    It first retrieves the list of PDF files from the folder, resets the database if specified, 
+    and then processes the files in parallel using the specified chunk size. After processing is complete, 
+    it processes the chunks in batches and stores the word frequencies in the database. The function 
+    returns the word frequencies as a list of tuples.
+    """
+    pdf_files = get_file_list(BOOKS_folder_path)
     
     # Reset the database before processing
-    setup_database(reset_db=RESET_DATABASE, db_name=DB_NAME)
+    setup_database(reset_db=reset_db, db_name=DB_name)
     logging.info(f"Starting processing of {len(pdf_files)} PDF files...")
+
     print(f"Starting processing of {len(pdf_files)} PDF files...")
     process_files_in_parallel(pdf_files, 
-                              reset_db=RESET_DATABASE, 
-                              chunk_size=CHUNK_SIZE, 
-                              db_name=DB_NAME)
+                              reset_db=reset_db, 
+                              chunk_size=chunk_size, 
+                              db_name=DB_name)
+    
     logging.info("Processing complete.")
     print("Processing complete.")
     
     # Now process the chunks in batches and store word frequencies
     logging.info("Starting batch processing of chunks...")
-    word_frequencies = process_chunks_in_batches(DB_NAME)
+
+    word_frequencies = process_chunks_in_batches(db_name=DB_name)
+
     logging.info("Batch processing complete.")
     print("Batch processing complete.")
+
+    return word_frequencies
+
+def retrive_word_frequencies(DB_name: str) -> list[tuple[str, int]]:
+    """
+    Retrieve the word frequencies from the specified database.
+
+    Args:
+        DB_name (str): The name of the database.
+
+    Returns:
+        list[tuple[str, int]]: A list of tuples containing the word and its frequency.
+    """
+    DB_NAME = DB_name
+    conn = sqlite3.connect(DB_NAME)
+    cursor = conn.cursor()
+    cursor.execute("SELECT word, frequency FROM word_frequencies")
+    word_frequencies = cursor.fetchall()
+    conn.close()
+    return word_frequencies

@@ -1,6 +1,8 @@
 from os import getcwd
 
 DB_name = "data\\StudyLogDB.db"
+database_log = "data\\application.log"
+application_log = "data\\application.log"
 
 StudyApp_root_path = getcwd() + "\\"
 StudyLog_root_path = "F:\\project\\StudyLog\\"

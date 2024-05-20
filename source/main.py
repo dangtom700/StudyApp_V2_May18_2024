@@ -1,5 +1,10 @@
-import colorama
 import argparse
+import modules.ExportResult as er
+import modules.WordFilter as wf
+import logging
+import modules.path as path
+
+wf.setup_logging(path.application_log)
 
 def app():
 
@@ -20,28 +25,44 @@ def app():
     args = parser.parse_args()
 
     if args.exportTagSet:
-        pass
+        logging.info("Exporting tag set to 'tags.md' in the specified folder path...")
+        # process here
+        er.AnnounceFinished("--exportTagSet")
 
     if args.exportPDF_info:
-        pass
+        logging.info("Exporting PDF info to 'PDF_info.csv' in the specified folder path...")
+        # process here
+        er.AnnounceFinished("--exportPDF_info")
 
     if args.exportPDF_index:
-        pass
+        logging.info("Exporting PDF index to 'PDF_index.md' in the specified folder path...")
+        # process here
+        er.AnnounceFinished("--exportPDF_index")
 
     if args.updateStat:
-        pass
+        logging.info("Updating statistics of PDF files...")
+        # process here
+        er.AnnounceFinished("--updateStat")
 
     if args.exportPDF_tokens:
-        pass
+        logging.info("Exporting PDF tokens to 'PDF_tokens.csv' in the specified folder path...")
+        # process here
+        er.AnnounceFinished("--exportPDF_tokens")
 
     if args.updateData:
-        pass
+        logging.info("Updating all statistics of PDF files...")
+        # process here
+        er.AnnounceFinished("--updateData")
 
     if args.getTaskList:
-        pass
+        logging.info("Exporting task list to 'task_list.md' in the specified folder path...")
+        # process here
+        er.AnnounceFinished("--getTaskList")
 
     if args.searchFile:
-        pass
+        logging.info("Searching for files in the specified folder path...")
+        # process here
+        er.AnnounceFinished("--searchFile")
 
 
 if __name__ == "__main__":
