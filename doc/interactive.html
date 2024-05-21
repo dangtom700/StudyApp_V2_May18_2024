@@ -3,7 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <title>Study Tracker</title>
+    <link rel="icon" href="https://th.bing.com/th/id/OIP.JBlEwFEGnOPhnB7JVqyHSwHaH_?pid=ImgDet&w=179&h=193&c=7&dpr=1.5">
 </head>
 <link rel="stylesheet" href="interactive.css">
 <body>
@@ -22,28 +23,54 @@
 </div>
 <div class = "ProjectObjectives">
     <h2>Project Objectives</h2>
-    <p>The aim of this project is to create:</p>
-
-    <ul>
-        <li>Study habit and time management skills when learning new material</li>
-        <img src="https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExdThmNGc2OG84bGpxaDF6Z3A0YnluZzVzNTJ3eHl3bWo5MzhnZ2x6MCZlcD12MV9naWZzX3NlYXJjaCZjdD1n/KZBS6EjcaFB2BxwLVV/giphy.gif" alt="study habit and time management skills when learning new material">
-        <li>Improve study performance through retrieving old record of learning material</li>
-        <img src="https://media.giphy.com/media/KFH29iIiBK9DlgmZEY/giphy.gif?cid=790b7611u8f4g68o8ljqh1zgp4byng5s52wxywmj938gglz0&ep=v1_gifs_search&rid=giphy.gif&ct=g" 
-        alt="Improve study performance through retrieving old record of learning material">
-        <li>A search engine to look up for the keyword in related context</li>
-        <img src="https://media.giphy.com/media/cnFKWocUtPg0EXgWeJ/giphy.gif" 
-        alt="A search engine to look up for the keyword in related context">
-        <li>Text-based chat bot to perform certain tasks such as look up what activities are done in a given date</li>
-        <img src="https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExc3Q3ZmduZ3pmanZkaG5pM3doaHBhOXZxdnlwc3d4dGptaDhmd2pzaiZlcD12MV9naWZzX3NlYXJjaCZjdD1n/0lGd2OXXHe4tFhb7Wh/giphy.gif" 
-        alt="Text-based chat bot to perform certain tasks such as look up what activities are done in a given date">
-    </ul>
+    <p>The aim of this project is to create</p>
+    <div class="Cards">
+    <div class="flip">
+        <div class="front" style="background-image: 
+        url(https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExdThmNGc2OG84bGpxaDF6Z3A0YnluZzVzNTJ3eHl3bWo5MzhnZ2x6MCZlcD12MV9naWZzX3NlYXJjaCZjdD1n/KZBS6EjcaFB2BxwLVV/giphy.gif)">
+        </div>
+        <div class="back">
+           <h2>Study Engagement</h2>
+           <p>Improve study habit and time management skills when learning new material. Stay on track with study activities</p>
+        </div>
+    </div>
+    <div class="flip">
+        <div class="front" style="background-image: 
+        url(https://media.giphy.com/media/KFH29iIiBK9DlgmZEY/giphy.gif?cid=790b7611u8f4g68o8ljqh1zgp4byng5s52wxywmj938gglz0&ep=v1_gifs_search&rid=giphy.gif&ct=g)">
+        </div>
+        <div class="back">
+           <h2>Document Retrival</h2>
+           <p>Improve study performance through retrieving old record of learning material. Storing effectively every learning material</p>
+        </div>
+    </div>
+    <div class="flip">
+        <div class="front" style="background-image: 
+        url(https://media.giphy.com/media/cnFKWocUtPg0EXgWeJ/giphy.gif)">
+        </div>
+        <div class="back">
+           <h2>Search Engine</h2>
+           <p>A modern way to look up not just book title and note, but also text chunks and reading excerpts</p>
+        </div>
+    </div>
+    <div class="flip">
+        <div class="front" style="background-image: 
+        url(https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExc3Q3ZmduZ3pmanZkaG5pM3doaHBhOXZxdnlwc3d4dGptaDhmd2pzaiZlcD12MV9naWZzX3NlYXJjaCZjdD1n/0lGd2OXXHe4tFhb7Wh/giphy.gif)">
+        </div>
+        <div class="back">
+           <h2>Chat bot</h2>
+           <p>Text-based chat bot to perform certain tasks including request data tokens, retrieval of study materials and checking study progress</p>
+        </div>
+    </div>
+    </div>
 </div>
 <div class = "ScopeAndDeliverables">
     <h2>Scope and Deliverables</h2>
-    <p>The data and record are kept inside this Obsidian vault and used for collecting and retrieving data. 
-    Any data that is wanted to executed has to be brought inside this vault.</p>
-    <p>The intended result is a dashboard that can be used to track my learning progress and 
-    also a CLI application that can be used for generating study dashboard and execute primary functions.</p>
+    <ul>
+        <li>The data and record are kept inside this Obsidian vault and used for collecting and retrieving data. 
+        Any data that is wanted to executed has to be brought inside this vault.</li>
+        <li>The intended result is a dashboard that can be used to track my learning progress and 
+        also a CLI application that can be used for generating study dashboard and execute primary functions.</li>
+    </ul>
 </div>
 <div class = "MethodologyAndApproach">
     <h2>Methodology and Approach</h2>
@@ -75,22 +102,26 @@
 </div>
 <div class = "ProjectStructure">
     <h2>Project Structure</h2>
-        <p>The project structure is shown below. There are 3 parts to this project. The first part is the CLI application. The second part is the Obsidian vault. The third part is the template folder.</p>
-        <img src="img\ProjectStructure.png" alt="Project Structure">
-
+        <p>There are 3 parts to this project. The first part is the CLI application. The second part is the Obsidian vault. The third part is the template folder.</p>
+        
         <p>The CLI application's structure has 3 components. First is the Automated Word Filter. Second is the Note Tagging System. Third is the Book Title Tagging.</p>
-        <img src="img\AutomatedWordFilter.png" alt="Automated Word Filter">
+        
+    <ul>
+        <li>The <strong>Automated Word Filter</strong> collect the raw set of words from a file or a folder from the BOOKS folder that store reading material in PDF format and Study Note folder that store study note in Markdown format. 
+        There are 2 layers for filtering. The first layer is the presetted rules for filtering. The second layer is the Natural Language Processing (for beta testing). 
+        The goal is to reduce the keywords that has to search for down to no more than 5. The filter word is then update itself for readablity and for better searching.</li>
+        
 
-        <p>The automated word filter collect the raw set of words from a file or a folder from the BOOKS folder that store reading material in PDF format and Study Note folder that store study note in Markdown format. There are 2 layers for filtering.</p>
-        <p>The first layer is the presetted rules for filtering. The second layer is the Natural Language Processing (for beta testing). The goal is to reduce the keywords that has to search for down to no more than 5. The filter word is then update itself for readablity and for better searching.</p>
-        <img src="img\BookTitleTagging.png" alt="Book Title Tagging">
+        <li>The <strong>Note Tagging System</strong> also start off with create a list of word of a chosen note that feed into the filter. 
+        The list is then used to calculate the keywords density and priority. Priority in this case is understand as that is representing as a topic, a subject, a level heading or a word in a paragraph. 
+        After the filter is done, there is a suggestion of 10 different keywords that can be chosen to append into the note. The note is then saved and execution is done.
+        Similar mechanism is used when extracting context of a book. By first extract and split chunks of text, filter the text and then calculate the keywords density and implement models to find suitable keywords. 
+        No limit on the number of keywords that can be extracted.</li>
+        
 
-        <p>The note tagging system also start off with create a list of word of a chosen note that feed into the filter. The list is then used to calculate the keywords density and priority. Priority in this case is understand as that is representing as a topic, a subject, a level heading or a word in a paragraph.</p>
-        <p>After the filter is done, there is a suggestion of 10 different keywords that can be chosen to append into the note. The note is then saved and execution is done.
-        Similar mechanism is used when extracting context of a book. By first extract and split chunks of text, filter the text and then calculate the keywords density and implement models to find suitable keywords. No limit on the number of keywords that can be extracted.</p>
-        <img src="img\BookTitleTagging.png" alt="Book Title Tagging">
-
-        <p>The book title tagging system also start off with create a list of word, that was splitted from a BOOKS folder that feed into the filter. After the filter is done, there is a suggestion of 10 different keywords that can be chosen to append into the note. The note is then saved and execution is done.</p>    
+        <li>The <strong>Book Title Tagging</strong> also start off with create a list of word, that was splitted from a BOOKS folder that feed into the filter. 
+        After the filter is done, there is a suggestion of 10 different keywords that can be chosen to append into the note. The note is then saved and execution is done.</li>    
+    </ul>
 </div>
 <div class = "Figma">
         <h2>Interactive Application Mapping</h2>
@@ -100,15 +131,15 @@
         allowfullscreen></iframe>
 </div>
 </div>
-<div class = "AdditionalResources">
-    <h1>Additional Resources</h1>
+<div class = "References">
+    <h1>References</h1>
     <ul>
         <li><a href="https://github.com/dangtom700/obsidian_manager">Obsidian Manager</a></li>
         <li><a href="https://github.com/dangtom700/KeywordRanker">Keyword Ranker</a></li>
         <li><a href="https://github.com/dangtom700/StudyLog">Study Log</a></li>
         <li><a href="https://github.com/dangtom700/TagStudio">Tag Studio</a></li>
         <li><a href="https://github.com/dangtom700/CLI_File_Generator">CLI File Generator</a></li>
-        <li><a href="https://www.figma.com/board/2t8iiGnpg0lOEtNSdyTOQr/Study-Assistance?node-id=0%3A1&t=tTyT190h3s1lvM1c-1">Study Assistant</a></li>
+        <li><a href="https://www.figma.com/board/2t8iiGnpg0lOEtNSdyTOQr/Study-Assistance?node-id=0%3A1&t=g9lN4sPsgClpwuXx-1">Study Assistant (Figma desgin)</a></li>
         <li><a href="https://github.com/dangtom700/extract_text">Text Extractor</a></li>
     </ul>
 </div>

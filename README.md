@@ -9,7 +9,7 @@ This project creates a CLI application that can keep track of my study progress 
 The aim of this project is to create:
 
 - Study habit and time management skills when learning new material
-- Improve study performance through retrieving old record of learning materialep=v1_gifs_search&rid=giphy.gif&ct=g)
+- Improve study performance through retrieving old record of learning material
 - A text-based chat bot with pre-built command lines to perform certain tasks such as look up what activities are done in a given date
 - A search engine to look up for the keyword in related context
 
