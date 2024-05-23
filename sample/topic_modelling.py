@@ -16,7 +16,7 @@ lda.fit(X)
 print("Topics and Associated Keywords:")
 for topic_idx, topic in enumerate(lda.components_):
     print(f"Topic {topic_idx}:")
-    top_keywords_idx = topic.argsort()[:-5:-1]  # Get top 5 keywords for each topic
+    top_keywords_idx = topic.argsort()[:-4:-1]  # Get top 5 keywords for each topic
     top_keywords = [vectorizer.get_feature_names_out()[i] for i in top_keywords_idx]
     print(top_keywords)
 #check sample

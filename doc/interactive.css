@@ -146,3 +146,21 @@ h1 {
 .References{
     border: 2px solid rgb(0, 0, 0);
 }
+.SkillAssessment{
+    border: 2px solid rgb(0, 0, 0);
+}
+.skills-list {
+    display: flex;
+    flex-wrap: wrap; /* Ensures items wrap when necessary */
+    list-style-type: circle solid rgb(0, 0, 0); /* Makes the bullets a circle */;
+    list-style-position: inside;
+    /*Make the black bullets appears inside the list*/
+    padding: 0;
+    margin: 0;
+    justify-content: center; /* Centers the list items */
+  }
+  
+  .skills-list li {
+    padding: 10px 20px;
+    margin: 5px;
+  }
