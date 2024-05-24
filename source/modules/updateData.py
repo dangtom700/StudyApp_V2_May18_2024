@@ -44,8 +44,21 @@ def processPDFfilesIntoDB(PDFlist: list[str], db_name: str, chunk_size: int, res
         conn.commit()
         conn.close()
 
+    if __name__ == "__main__":
+        setup_database(db_name, resetDB)
+
 def processNoteFilesIntoDB(noteList: list[str], db_name: str, resetDB: bool) -> None:
     def setup_database(db_name, reset_db):
+        """
+        Set up the database for storing note files.
+        
+        Args:
+            db_name (str): The name of the database file.
+            reset_db (bool): Whether to reset the database by dropping existing tables.
+        
+        Returns:
+            None
+        """
         conn = sqlite3.connect(db_name)
         cursor = conn.cursor()
         if reset_db:
@@ -60,6 +73,9 @@ def processNoteFilesIntoDB(noteList: list[str], db_name: str, resetDB: bool) -> 
             ''')
             conn.commit()
             conn.close()
+    
+    if __name__ == "__main__":
+        setup_database(db_name, resetDB)
 
 def updateData():
     PDFlist = getFileList(path.PDFpath, ".pdf")
