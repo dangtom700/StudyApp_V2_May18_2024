@@ -1,5 +1,7 @@
 # Study Tracker
 
+This document is to introduce the project for more detail and update, refer to the interactive documentation in html the doc folder.
+
 ## Introduction
 
 This project creates a CLI application that can keep track of my study progress through dashboards.
@@ -45,17 +47,11 @@ The intended result is a dashboard that can be used to track my learning progres
 
 The project structure is shown below. There are 3 parts to this project. The first part is the CLI application. The second part is the Obsidian vault. The third part is the template folder.
 
-![Project Structure](img\ProjectStructure.png)
-
 The CLI application's structure has 3 components. First is the Automated Word Filter. Second is the Note Tagging System. Third is the Book Title Tagging.
-
-![Automated Word Filter](img\AutomatedWordFilter.png)
 
 The automated word filter collect the raw set of words from a file or a folder from the BOOKS folder that store reading material in PDF format and Study Note folder that store study note in Markdown format. There are 2 layers for filtering.
 
 The first layer is the presetted rules for filtering. The second layer is the Natural Language Processing (for beta testing). The goal is to reduce the keywords that has to search for down to no more than 5. The filter word is then update itself for readablity and for better searching.
-
-![Note Tagging System](img\NoteTagging.png)
 
 The note tagging system also start off with create a list of word of a chosen note that feed into the filter. The list is then used to calculate the keywords density and priority.
 
@@ -64,8 +60,6 @@ Priority in this case is understand as that is representing as a topic, a subjec
 After the filter is done, there is a suggestion of 10 different keywords that can be chosen to append into the note. The note is then saved and execution is done.
 
 Similar mechanism is used when extracting context of a book. By first extract and split chunks of text, filter the text and then calculate the keywords density and implement models to find suitable keywords. No limit on the number of keywords that can be extracted.
-
-![Book Title Tagging](img\BookTitleTagging.png)
 
 The book title tagging system also start off with create a list of word, that was splitted from a BOOKS folder that feed into the filter. After the filter is done, there is a suggestion of 10 different keywords that can be chosen to append into the note. The note is then saved and execution is done.
 
