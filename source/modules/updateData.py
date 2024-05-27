@@ -180,7 +180,9 @@ def process_note_file(note_file: str, db_name: str) -> tuple:
         log_message(db_name, f"Invalid format in {note_file}.")
         return None
 
-    timestamp, title = lines[0].strip(), lines[2].strip()
+    timestamp = lines[0].strip().split()[2:]
+    timestamp = ' '.join(timestamp)
+    title = lines[2].strip().removeprefix("Topic: [[").removesuffix("]]")
     log_message(db_name, f"Finished processing {note_file}.")
     return (title, note_file, timestamp)
 

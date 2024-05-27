@@ -11,18 +11,11 @@ def app():
                                      add_help=True,
                                      allow_abbrev=True)
     
-    parser.add_argument("--exportPDF_index", action= 'store_true', help="Export a list of PDF file in a given directory in .md format")
     parser.add_argument("--updateData", action= 'store_true', help="Update all statistics of PDF files")
     parser.add_argument("--getTaskList", action= 'store_true', help="Export a list of tasks in .md format")
     parser.add_argument("--searchFileInDatabase", type=str, help="Search for files in the specified folder path")
 
     args = parser.parse_args()
-
-    if args.exportPDF_index:
-        updateData.log_message(path.db_name, f"Exporting PDF index to 'PDF_index.md' in {path.Obsidian_PDF_index_path}...")
-        Export.exportPDF_index(path.pdf_path(), path.Obsidian_PDF_index_path)
-        updateData.log_message(path.db_name, f"Finished exporting PDF index to 'PDF_index.md' in {path.Obsidian_PDF_index_path}.")
-        print(f"Finished exporting PDF index to 'PDF_index.md'.")
 
     if args.updateData:
         updateData.log_message(path.db_name, f"Updating all data of PDF files...")
