@@ -3,17 +3,16 @@ import sqlite3
 import concurrent.futures
 import time
 import fitz  # PyMuPDF
+import re
 from langchain import RecursiveCharacterTextSplitter
-
+from collections import defaultdict
 import modules.path as path
-
 
 def get_file_list(folder_path: str, file_type: str) -> list[str]:
     """Get list of files in a folder with a specific file type."""
     if not os.path.isdir(folder_path):
         raise ValueError(f"The provided folder path does not exist: {folder_path}")
     return [os.path.join(folder_path, f) for f in os.listdir(folder_path) if f.endswith(file_type)]
-
 
 def setup_database(db_name: str, reset_db: bool) -> None:
     """Set up the database for storing PDF chunks and word frequencies."""
@@ -25,6 +24,9 @@ def setup_database(db_name: str, reset_db: bool) -> None:
     if reset_db:
         cursor.execute('DROP TABLE IF EXISTS pdf_chunks')
         cursor.execute('DROP TABLE IF EXISTS log')
+        cursor.execute('DROP TABLE IF EXISTS note_list')
+        cursor.execute('DROP TABLE IF EXISTS pdf_index')
+        cursor.execute('DROP TABLE IF EXISTS word_frequencies')
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS pdf_chunks (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -40,9 +42,28 @@ def setup_database(db_name: str, reset_db: bool) -> None:
             message TEXT
         )
     ''')
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS note_list (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            note_name TEXT NOT NULL,
+            file_name TEXT NOT NULL,
+            timestamp TEXT NOT NULL
+        )
+    ''')
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS pdf_index (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            file_name TEXT NOT NULL
+        )
+    ''')
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS word_frequencies (
+            word TEXT PRIMARY KEY,
+            frequency INTEGER NOT NULL
+        )
+    ''')
     conn.commit()
     conn.close()
-
 
 def log_message(db_name: str, message: str) -> None:
     """Log messages into the database."""
@@ -56,7 +77,6 @@ def log_message(db_name: str, message: str) -> None:
     ''', (message,))
     conn.commit()
     conn.close()
-
 
 def extract_text_from_pdf(pdf_file: str, db_name: str) -> str:
     """Extract text from a PDF file."""
@@ -74,7 +94,7 @@ def extract_text_from_pdf(pdf_file: str, db_name: str) -> str:
             page_text = page.get_text()
             log_message(db_name, f"Extracted text from page {page_num} of {pdf_file}.")
             text += page_text
-    except fitz.fitz_error as e:  # Specific MuPDF error
+    except fitz.fitz_error as e:
         log_message(db_name, f"MuPDF error in {pdf_file}: {e}")
     except Exception as e:
         log_message(db_name, f"Error extracting text from {pdf_file}: {e}")
@@ -83,7 +103,6 @@ def extract_text_from_pdf(pdf_file: str, db_name: str) -> str:
             doc.close()
     log_message(db_name, f"Finished extracting text from {pdf_file}.")
     return text
-
 
 def split_text_into_chunks(text: str, chunk_size: int, db_name: str) -> list[str]:
     """Split text into chunks."""
@@ -102,7 +121,6 @@ def split_text_into_chunks(text: str, chunk_size: int, db_name: str) -> list[str
     log_message(db_name, f"Finished splitting text into chunks.")
     return chunks
 
-
 def store_chunks_in_db(file_name: str, chunks: list[str], db_name: str) -> None:
     """Store text chunks in the database with a retry mechanism."""
     if not db_name:
@@ -112,7 +130,9 @@ def store_chunks_in_db(file_name: str, chunks: list[str], db_name: str) -> None:
     
     attempt = 0
     success = False
-    while attempt < 999 and not success:
+    max_attempts = 999
+
+    while attempt < max_attempts and not success:
         try:
             conn = sqlite3.connect(db_name)
             cursor = conn.cursor()
@@ -133,7 +153,6 @@ def store_chunks_in_db(file_name: str, chunks: list[str], db_name: str) -> None:
     else:
         log_message(db_name, f"Stored {len(chunks)} chunks for {file_name} in the database.")
 
-
 def process_file(pdf_file: str, db_name: str, chunk_size: int) -> None:
     """Process a single PDF file: extract text, split into chunks, and store in database."""
     text = extract_text_from_pdf(pdf_file, db_name)
@@ -141,7 +160,6 @@ def process_file(pdf_file: str, db_name: str, chunk_size: int) -> None:
         chunks = split_text_into_chunks(text, chunk_size, db_name)
         if chunks:
             store_chunks_in_db(pdf_file, chunks, db_name)
-
 
 def process_files(file_list: list[str], db_name: str, chunk_size: int) -> None:
     """Process a list of files in parallel."""
@@ -151,8 +169,7 @@ def process_files(file_list: list[str], db_name: str, chunk_size: int) -> None:
     with concurrent.futures.ThreadPoolExecutor() as executor:
         executor.map(lambda file: process_file(file, db_name, chunk_size), file_list)
 
-
-def extractPDFindexFromTable(db_name: str) -> None:
+def extract_pdf_index_from_table(db_name: str) -> None:
     """Extract distinct file names from pdf_chunks and store them in pdf_index table."""
     if not db_name:
         raise ValueError("Database name cannot be empty")
@@ -174,7 +191,6 @@ def extractPDFindexFromTable(db_name: str) -> None:
     
     conn.commit()
     conn.close()
-
 
 def process_note_files(note_files: list[str], db_name: str) -> None:
     """Process note files and store data in note_list table."""
@@ -198,7 +214,9 @@ def process_note_files(note_files: list[str], db_name: str) -> None:
     def store_data_in_note_table(db_name: str, note_files: list[tuple[str, str, str]]) -> None:
         attempt = 0
         success = False
-        while attempt < 999 and not success:
+        max_attempts = 999
+        
+        while attempt < max_attempts and not success:
             try:
                 conn = sqlite3.connect(db_name)
                 cursor = conn.cursor()
@@ -206,10 +224,7 @@ def process_note_files(note_files: list[str], db_name: str) -> None:
                 if cursor.fetchone():
                     log_message(db_name, "Skipping store_data_in_note_table because the table is not empty.")
                     return
-                conn.close()
-                conn = sqlite3.connect(db_name)
-                cursor = conn.cursor()
-                cursor.executemany('''
+                conn.executemany('''
                     INSERT INTO note_list (note_name, file_name, timestamp) VALUES (?, ?, ?)
                 ''', note_files)
                 conn.commit()
@@ -258,6 +273,128 @@ def process_note_files(note_files: list[str], db_name: str) -> None:
     
     store_data_in_note_table(db_name, valid_notes)
 
+def process_chunks_in_batches(db_name: str, batch_size=1000) -> None:
+    """Process PDF chunks in batches and calculate word frequencies."""
+    def retrieve_chunks_in_batches():
+        conn = sqlite3.connect(db_name)
+        cursor = conn.cursor()
+        cursor.execute("SELECT COUNT(*) FROM pdf_chunks")
+        total_chunks = cursor.fetchone()[0]
+        for offset in range(0, total_chunks, batch_size):
+            cursor.execute("SELECT chunk_text FROM pdf_chunks ORDER BY id LIMIT ? OFFSET ?", (batch_size, offset))
+            yield [row[0] for row in cursor.fetchall()]
+        conn.close()
+
+    def merge_split_words(chunks):
+        merged_chunks = []
+        buffer = ''
+        for chunk in chunks:
+            if buffer:
+                chunk = buffer + chunk
+                buffer = ''
+            if not chunk[-1].isspace() and not chunk[-1].isalpha():
+                buffer = chunk.split()[-1]
+                chunk = chunk.rsplit(' ', 1)[0]
+            merged_chunks.append(chunk)
+        if buffer:
+            merged_chunks.append(buffer)
+        return merged_chunks
+
+    def clean_text(text):
+        text = re.sub(r'[^a-zA-Z\s]', '', text).lower()
+        words = text.split()
+        return words
+
+    word_frequencies = defaultdict(int)
+
+    for chunk_batch in retrieve_chunks_in_batches():
+        merged_chunks = merge_split_words(chunk_batch)
+        for chunk in merged_chunks:
+            cleaned_words = clean_text(chunk)
+            for word in cleaned_words:
+                word_frequencies[word] += 1
+
+    log_message(db_name, "Storing word frequencies in database...")
+    conn = sqlite3.connect(db_name)
+    cursor = conn.cursor()
+    for word, freq in word_frequencies.items():
+        cursor.execute('''
+            INSERT INTO word_frequencies (word, frequency) VALUES (?, ?)
+            ON CONFLICT(word) DO UPDATE SET frequency = frequency + ?
+        ''', (word, freq, freq))
+    conn.commit()
+    log_message(db_name, "Word frequencies stored in database.")
+    conn.close()
+
+import os
+import sqlite3
+import re
+from collections import defaultdict
+
+def create_word_frequencies_per_file(db_name: str) -> None:
+    """Calculate and store word frequencies for each file from text chunks in the database."""
+    
+    if not db_name:
+        raise ValueError("Database name cannot be empty")
+
+    def clean_text(text: str) -> list[str]:
+        """Clean and split text into words."""
+        text = re.sub(r'[^a-zA-Z\s]', '', text).lower()
+        words = text.split()
+        return words
+
+    def get_chunks_by_file(conn) -> dict[str, list[str]]:
+        """Retrieve text chunks from the database grouped by file name."""
+        cursor = conn.cursor()
+        cursor.execute('SELECT file_name, chunk_text FROM pdf_chunks')
+        file_chunks = defaultdict(list)
+        for file_name, chunk_text in cursor.fetchall():
+            file_chunks[file_name].append(chunk_text)
+        return file_chunks
+
+    def calculate_word_frequencies(file_chunks: dict[str, list[str]]) -> dict[str, dict[str, int]]:
+        """Calculate word frequencies for each file."""
+        file_word_frequencies = {}
+        for file_name, chunks in file_chunks.items():
+            word_frequencies = defaultdict(int)
+            for chunk in chunks:
+                words = clean_text(chunk)
+                for word in words:
+                    word_frequencies[word] += 1
+            file_word_frequencies[file_name] = word_frequencies
+        return file_word_frequencies
+
+    def store_word_frequencies(conn, file_word_frequencies: dict[str, dict[str, int]]) -> None:
+        """Store word frequencies in the database."""
+        cursor = conn.cursor()
+        cursor.execute('''
+            CREATE TABLE IF NOT EXISTS word_frequencies_per_file (
+                file_name TEXT NOT NULL,
+                word TEXT NOT NULL,
+                frequency INTEGER NOT NULL,
+                PRIMARY KEY (file_name, word)
+            )
+        ''')
+        for file_name, word_freq in file_word_frequencies.items():
+            for word, frequency in word_freq.items():
+                cursor.execute('''
+                    INSERT INTO word_frequencies_per_file (file_name, word, frequency) VALUES (?, ?, ?)
+                    ON CONFLICT(file_name, word) DO UPDATE SET frequency = frequency + ?
+                ''', (file_name, word, frequency, frequency))
+        conn.commit()
+
+    conn = sqlite3.connect(db_name)
+    try:
+        file_chunks = get_chunks_by_file(conn)
+        file_word_frequencies = calculate_word_frequencies(file_chunks)
+        store_word_frequencies(conn, file_word_frequencies)
+    except sqlite3.Error as e:
+        log_message(db_name, f"Database error: {e}")
+    finally:
+        conn.close()
+
+    log_message(db_name, "Word frequencies per file have been calculated and stored in the database.")
+
 
 def update_data() -> None:
     """Update data by processing PDF files and note files."""
@@ -269,3 +406,4 @@ def update_data() -> None:
     process_files(pdf_files, db_name, chunk_size)
     note_files = get_file_list(path.StudyNote_folder_path, ".md")
     process_note_files(note_files, db_name)
+    process_chunks_in_batches(db_name)
