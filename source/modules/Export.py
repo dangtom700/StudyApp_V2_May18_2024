@@ -9,20 +9,24 @@
 --searchFile
 """
 import modules.path as path
+import sqlite3
+import colorama
 
-def exportTagSet():
+def exportTagSet() -> None:
     pass
-def exportPDFinfo():
+def exportPDFindex() -> None:
     pass
-def exportPDFindex():
+def getTaskList() -> None:
     pass
-def updateStat():
-    pass
-def exportPDFtoken():
-    pass
-def updateData():
-    pass
-def getTaskList():
-    pass
-def searchFile():
-    pass
+    
+def searchFileInDatabase(keyword: str) -> None:
+    conn = sqlite3.connect(path.db_name)
+    cursor = conn.cursor()
+    cursor.execute(f"SELECT file_name FROM pdf_index WHERE file_name LIKE '%{keyword}%'")
+    result = cursor.fetchall()
+    conn.close()
+    
+    colorama.init(autoreset=True)
+    print(f"{colorama.Fore.BLUE}Result:{colorama.Style.RESET_ALL}\n")
+    for file_name in result:
+        print(f"- {colorama.Fore.BLUE}{file_name}{colorama.Style.RESET_ALL}\n")

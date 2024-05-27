@@ -260,5 +260,3 @@ def updateData():
     process_files(pdf_files, db_name, chunk_size)
     process_note_files(note_files, db_name)
     calculate_word_frequencies(db_name)
-
-    log_message(db_name, "Finished updating the database.")
