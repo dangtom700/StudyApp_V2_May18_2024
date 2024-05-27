@@ -14,6 +14,10 @@ def get_file_list(folder_path: str, file_type: str) -> list[str]:
         raise ValueError(f"The provided folder path does not exist: {folder_path}")
     return [os.path.join(folder_path, f) for f in os.listdir(folder_path) if f.endswith(file_type)]
 
+def get_current_timestamp() -> str:
+    """Get the current timestamp in the format "YYYY-MM-DD HH:MM:SS"."""
+    return time.strftime("%Y-%m-%d %H:%M:%S")
+
 def setup_database(db_name: str, reset_db: bool) -> None:
     """Set up the database for storing PDF chunks and word frequencies."""
     if not db_name:
@@ -326,11 +330,6 @@ def process_chunks_in_batches(db_name: str, batch_size=1000) -> None:
     log_message(db_name, "Word frequencies stored in database.")
     conn.close()
 
-import os
-import sqlite3
-import re
-from collections import defaultdict
-
 def create_word_frequencies_per_file(db_name: str) -> None:
     """Calculate and store word frequencies for each file from text chunks in the database."""
     
@@ -371,8 +370,7 @@ def create_word_frequencies_per_file(db_name: str) -> None:
             CREATE TABLE IF NOT EXISTS word_frequencies_per_file (
                 file_name TEXT NOT NULL,
                 word TEXT NOT NULL,
-                frequency INTEGER NOT NULL,
-                PRIMARY KEY (file_name, word)
+                frequency INTEGER NOT NULL
             )
         ''')
         for file_name, word_freq in file_word_frequencies.items():
@@ -395,6 +393,102 @@ def create_word_frequencies_per_file(db_name: str) -> None:
 
     log_message(db_name, "Word frequencies per file have been calculated and stored in the database.")
 
+def process_pdf_info_table(db_name: str) -> None:
+    def get_page_count(file_name: str) -> int:
+        """Get page count from the PDF file."""
+        if not os.path.isfile(file_name):
+            raise ValueError(f"File does not exist: {file_name}")
+        if not file_name.endswith('.pdf'):
+            raise ValueError(f"File is not a PDF: {file_name}")
+        
+        with fitz.open(file_name) as doc:
+            return doc.page_count
+    
+    def get_primary_keys(file_name: str) -> list[str]:
+        """Get primary keys from the file name."""
+        return [word for word in file_name.split() if len(word) > 3]
+    
+    def get_secondary_keys(db_name: str) -> dict[str, list[str]]:
+        """Get secondary keys from the word_frequencies_per_file table."""
+        conn = sqlite3.connect(db_name)
+        cursor = conn.cursor()
+        cursor.execute('SELECT file_name, word FROM word_frequencies_per_file')
+        secondary_keys = defaultdict(list)
+        for file_name, word in cursor.fetchall():
+            secondary_keys[file_name].append(word)
+        conn.close()
+        return secondary_keys
+
+    def get_note_list_corresponding_to_pdf(db_name: str) -> dict[str, list[str]]:
+        """Get note list corresponding to each PDF file from the note_list table."""
+        conn = sqlite3.connect(db_name)
+        cursor = conn.cursor()
+        cursor.execute('SELECT file_name, note_name FROM note_list')
+        note_list = defaultdict(list)
+        for file_name, note_name in cursor.fetchall():
+            note_list[file_name].append(note_name)
+        conn.close()
+        return note_list
+
+    def store_pdf_info_in_table(db_name: str, pdf_info: dict[str, dict[str, list]]) -> None:
+        """Store PDF info in the pdf_info table."""
+        conn = sqlite3.connect(db_name)
+        cursor = conn.cursor()
+        cursor.execute('''
+            CREATE TABLE IF NOT EXISTS pdf_info (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                file_name TEXT NOT NULL,
+                page_count INTEGER NOT NULL,
+                primary_keys TEXT NOT NULL,
+                secondary_keys TEXT NOT NULL,
+                note_list TEXT NOT NULL
+            )
+        ''')
+        
+        for file_name, info in pdf_info.items():
+            cursor.execute('''
+                INSERT INTO pdf_info (file_name, page_count, primary_keys, secondary_keys, note_list)
+                VALUES (?, ?, ?, ?, ?)
+            ''', (
+                file_name,
+                info['page_count'],
+                ','.join(info['primary_keys']),
+                ','.join(info['secondary_keys']),
+                ','.join(info['note_list'])
+            ))
+        
+        conn.commit()
+        conn.close()
+
+    # Main function logic
+    conn = sqlite3.connect(db_name)
+    cursor = conn.cursor()
+    cursor.execute('SELECT DISTINCT file_name FROM pdf_chunks')
+    pdf_files = [row[0] for row in cursor.fetchall()]
+    conn.close()
+
+    secondary_keys = get_secondary_keys(db_name)
+    note_list = get_note_list_corresponding_to_pdf(db_name)
+    pdf_info = {}
+
+    for file_name in pdf_files:
+        try:
+            page_count = get_page_count(file_name)
+            primary_keys = get_primary_keys(file_name)
+            file_secondary_keys = secondary_keys.get(file_name, [])
+            file_note_list = note_list.get(file_name, [])
+            
+            pdf_info[file_name] = {
+                'page_count': page_count,
+                'primary_keys': primary_keys,
+                'secondary_keys': file_secondary_keys,
+                'note_list': file_note_list
+            }
+        except Exception as e:
+            log_message(db_name, f"Error processing {file_name}: {e}")
+
+    store_pdf_info_in_table(db_name, pdf_info)
+    log_message(db_name, "PDF info has been processed and stored in the database.")
 
 def update_data() -> None:
     """Update data by processing PDF files and note files."""
@@ -407,3 +501,5 @@ def update_data() -> None:
     note_files = get_file_list(path.StudyNote_folder_path, ".md")
     process_note_files(note_files, db_name)
     process_chunks_in_batches(db_name)
+    create_word_frequencies_per_file(db_name)
+    process_pdf_info_table(db_name)
