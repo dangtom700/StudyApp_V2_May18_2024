@@ -4,3 +4,7 @@ source/modules/__pycache__/path.cpython-312.pyc
 PDF_analysis.xlsx
 sample/
 source/modules/path.py
+source/modules/__pycache__/updateData.cpython-312.pyc
+data/StudyLogDB.db
+data/StudyLogDB.db-journal
+error_log.txt

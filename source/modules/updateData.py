@@ -4,9 +4,10 @@ import concurrent.futures
 import time
 import fitz  # PyMuPDF
 import re
-from langchain import RecursiveCharacterTextSplitter
+from langchain.text_splitter import RecursiveCharacterTextSplitter
 from collections import defaultdict
 import modules.path as path
+import traceback
 
 # Utility Functions
 def get_file_list(folder_path: str, file_type: str) -> list:
@@ -24,7 +25,7 @@ def execute_query(db_name: str, query: str, params: tuple = ()) -> None:
             cursor.execute(query, params)
             conn.commit()
     except sqlite3.Error as e:
-        log_message(db_name, f"Database error: {e}")
+        log_to_file(f"Database error: {e}")
 
 def execute_many_queries(db_name: str, query: str, params: list) -> None:
     try:
@@ -33,11 +34,23 @@ def execute_many_queries(db_name: str, query: str, params: list) -> None:
             cursor.executemany(query, params)
             conn.commit()
     except sqlite3.Error as e:
-        log_message(db_name, f"Database error: {e}")
+        log_to_file(f"Database error: {e}")
 
 def log_message(db_name: str, message: str) -> None:
     query = 'INSERT INTO log (timestamp, message) VALUES (datetime(\'now\'), ?);'
-    execute_query(db_name, query, (message,))
+    try:
+        with sqlite3.connect(db_name) as conn:
+            cursor = conn.cursor()
+            cursor.execute(query, (message,))
+            conn.commit()
+    except sqlite3.Error as e:
+        log_to_file(f"Logging error: {e}")
+
+def log_to_file(message: str) -> None:
+    timestamp = get_current_timestamp()
+    with open("error_log.txt", "a") as f:
+        f.write(f"{timestamp} - {message}\n")
+        f.write(traceback.format_exc() + "\n")
 
 # Database Setup Functions
 def setup_database(db_name: str, reset_db: bool) -> None:
@@ -124,7 +137,7 @@ def store_chunks_in_db(file_name: str, chunks: list, db_name: str) -> None:
     query = 'INSERT INTO pdf_chunks (file_name, chunk_index, chunk_text) VALUES (?, ?, ?)'
     params = [(os.path.basename(file_name), idx, chunk) for idx, chunk in enumerate(chunks)]
 
-    max_attempts = 5
+    max_attempts = 999
     for attempt in range(max_attempts):
         try:
             execute_many_queries(db_name, query, params)
@@ -188,7 +201,7 @@ def process_note_file(note_file: str, db_name: str) -> tuple:
 
 def store_note_files_in_db(note_files: list, db_name: str) -> None:
     query = 'INSERT INTO note_list (note_name, file_name, timestamp) VALUES (?, ?, ?)'
-    max_attempts = 5
+    max_attempts = 999
 
     for attempt in range(max_attempts):
         try:
@@ -234,7 +247,7 @@ def calculate_word_frequencies(db_name: str) -> None:
             'ON CONFLICT(word) DO UPDATE SET frequency = frequency + excluded.frequency'
     params = [(word, freq) for word, freq in word_frequencies.items()]
 
-    max_attempts = 5
+    max_attempts = 999
     for attempt in range(max_attempts):
         try:
             execute_many_queries(db_name, query, params)
@@ -249,9 +262,9 @@ def calculate_word_frequencies(db_name: str) -> None:
 # Main Execution
 def updateData():
     # Ensure the paths are correctly set according to your project structure
-    db_name = path.database_path()
-    pdf_folder_path = path.pdf_path()
-    note_folder_path = path.notes_path()
+    db_name = path.database_path
+    pdf_folder_path = path.pdf_path
+    note_folder_path = path.note_path
     reset_db = True  # Change this flag as needed
     chunk_size = 1000  # Adjust the chunk size as needed
 

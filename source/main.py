@@ -18,20 +18,20 @@ def app():
     args = parser.parse_args()
 
     if args.updateData:
-        updateData.log_message(path.db_name, f"Updating all data of PDF files...")
+        updateData.log_message(path.database_path, f"Updating all data of PDF files...")
         updateData.updateData()
-        updateData.log_message(path.db_name, f"Finished updating all data of PDF files.")
+        updateData.log_message(path.database_path, f"Finished updating all data of PDF files.")
 
     if args.getTaskList:
-        updateData.log_message(path.db_name, f"Exporting task list to 'Task List.md' in {path.Obsidian_taskList_path}...")
+        updateData.log_message(path.database_path, f"Exporting task list to 'Task List.md' in {path.Obsidian_taskList_path}...")
         Export.getTaskList(path.taskList_path, path.Obsidian_taskList_path)
-        updateData.log_message(path.db_name, f"Finished exporting task list to 'Task List.md' in {path.Obsidian_taskList_path}.")
+        updateData.log_message(path.database_path, f"Finished exporting task list to 'Task List.md' in {path.Obsidian_taskList_path}.")
 
     if args.searchFileInDatabase:
-        updateData.log_message(path.db_name, f"Searching for keyword '{args.searchFileInDatabase}'...")
-        updateData.log_message(path.db_name, f"Searching for files in database...")
+        updateData.log_message(path.database_path, f"Searching for keyword '{args.searchFileInDatabase}'...")
+        updateData.log_message(path.database_path, f"Searching for files in database...")
         Export.searchFileInDatabase(args.searchFileInDatabase)
-        updateData.log_message(path.db_name, f"Finished searching for keyword '{args.searchFileInDatabase}'.")
+        updateData.log_message(path.database_path, f"Finished searching for keyword '{args.searchFileInDatabase}'.")
 
 if __name__ == "__main__":
     app()

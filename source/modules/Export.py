@@ -1,7 +1,7 @@
 import sqlite3
 import colorama
-from modules.path import db_name, taskList_path, Obsidian_taskList_path
-from updateData import log_message
+from modules.path import taskList_path, Obsidian_taskList_path, database_path
+from modules.updateData import log_message
 
 # Function to securely copy contents of source file to destination file
 def mirrorFile_to_destination(source: str, destination: str) -> None:
@@ -12,16 +12,16 @@ def mirrorFile_to_destination(source: str, destination: str) -> None:
 # Function to export task list
 def getTaskList() -> None:
     try:
-        conn = sqlite3.connect(db_name)
+        conn = sqlite3.connect(database_path)
         cursor = conn.cursor()
         cursor.execute("SELECT file_name FROM pdf_index ORDER BY RANDOM() LIMIT 3")
         result = cursor.fetchall()
         
-        log_message(db_name, f"Exporting task list to 'Task List.md' in {taskList_path}...")
+        log_message(database_path, f"Exporting task list to 'Task List.md' in {taskList_path}...")
         with open(taskList_path, 'w', encoding='utf-8') as f:
             for file_name in result:
                 f.write(f"- [ ] Read a chapter in {file_name[0]}\n")
-        log_message(db_name, f"Finished exporting task list to 'Task List.md' in {taskList_path}.")
+        log_message(database_path, f"Finished exporting task list to 'Task List.md' in {taskList_path}.")
         
         mirrorFile_to_destination(taskList_path, Obsidian_taskList_path)
         
@@ -34,7 +34,7 @@ def getTaskList() -> None:
 # Function to search files in database
 def searchFileInDatabase(keyword: str) -> None:
     try:
-        conn = sqlite3.connect(db_name)
+        conn = sqlite3.connect(database_path)
         cursor = conn.cursor()
 
         # Search PDF files
