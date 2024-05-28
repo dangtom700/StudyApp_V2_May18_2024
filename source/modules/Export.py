@@ -1,7 +1,7 @@
 import sqlite3
 import colorama
 from modules.path import taskList_path, Obsidian_taskList_path, database_path
-from modules.updateData import log_message
+from source.modules.updateLog import log_message
 
 # Function to securely copy contents of source file to destination file
 def mirrorFile_to_destination(source: str, destination: str) -> None:

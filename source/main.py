@@ -1,6 +1,6 @@
 import argparse
-import modules.updateData as updateData
-import modules.Export as Export
+import modules.updateLog as updateLog
+import modules.extract_pdf as extract_pdf
 import modules.path as path
 
 
@@ -11,27 +11,33 @@ def app():
                                      add_help=True,
                                      allow_abbrev=True)
     
-    parser.add_argument("--updateData", action= 'store_true', help="Update all statistics of PDF files")
+    parser.add_argument("--extractText", action= 'store_true', help="Extract text from PDF files")
+    parser.add_argument("--updateLog", action= 'store_true', help="Update log of application")
     parser.add_argument("--getTaskList", action= 'store_true', help="Export a list of tasks in .md format")
     parser.add_argument("--searchFileInDatabase", type=str, help="Search for files in the specified folder path")
 
     args = parser.parse_args()
 
-    if args.updateData:
-        updateData.log_message(f"Updating all data of PDF files...")
-        updateData.update_data()
-        updateData.log_message(f"Finished updating all data of PDF files.")
+    if args.extractText:
+        updateLog.log_message(f"Extracting text from PDF files...")
+        extract_pdf.extract_text()
+        updateLog.log_message(f"Finished extracting text from PDF files.")
+
+    if args.updateLog:
+        updateLog.log_message(f"Updating log file...")
+        updateLog.store_log_file_to_database(path.log_file_path)
+        print(f"Finished updating log file.")
 
     if args.getTaskList:
-        updateData.log_message(f"Exporting task list to 'Task List.md' in {path.Obsidian_taskList_path}...")
-        Export.getTaskList(path.taskList_path, path.Obsidian_taskList_path)
-        updateData.log_message(f"Finished exporting task list to 'Task List.md' in {path.Obsidian_taskList_path}.")
+        updateLog.log_message(f"Exporting task list to 'Task List.md' in {path.Obsidian_taskList_path}...")
+        # Process goes here
+        updateLog.log_message(f"Finished exporting task list to 'Task List.md' in {path.Obsidian_taskList_path}.")
 
     if args.searchFileInDatabase:
-        updateData.log_message(f"Searching for keyword '{args.searchFileInDatabase}'...")
-        updateData.log_message(f"Searching for files in database...")
-        Export.searchFileInDatabase(args.searchFileInDatabase)
-        updateData.log_message(f"Finished searching for keyword '{args.searchFileInDatabase}'.")
+        updateLog.log_message(f"Searching for keyword '{args.searchFileInDatabase}'...")
+        updateLog.log_message(f"Searching for files in database...")
+        # Process goes here
+        updateLog.log_message(f"Finished search.")
 
 if __name__ == "__main__":
     app()
