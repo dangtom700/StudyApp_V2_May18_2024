@@ -1,6 +1,8 @@
 import argparse
 import modules.updateLog as updateLog
 import modules.extract_pdf as extract_pdf
+import modules.search as search
+import modules.extract_note as extract_note
 import modules.path as path
 
 
@@ -13,6 +15,8 @@ def app():
     
     parser.add_argument("--extractText", action= 'store_true', help="Extract text from PDF files")
     parser.add_argument("--updateLog", action= 'store_true', help="Update log of application")
+    parser.add_argument("--extractNotes", action= 'store_true', help="Extract notes from PDF files")
+    parser.add_argument("--processWordFrequencies", action= 'store_true', help="Process word frequencies in chunks")
     parser.add_argument("--getTaskList", action= 'store_true', help="Export a list of tasks in .md format")
     parser.add_argument("--searchFileInDatabase", type=str, help="Search for files in the specified folder path")
 
@@ -27,6 +31,16 @@ def app():
         updateLog.log_message(f"Updating log file...")
         updateLog.store_log_file_to_database(path.log_file_path)
         print(f"Finished updating log file.")
+
+    if args.extractNotes:
+        updateLog.log_message(f"Extracting notes from PDF files...")
+        extract_note.extract_notes_with_config_path()
+        updateLog.log_message(f"Finished extracting notes from PDF files.")
+
+    if args.processWordFrequencies:
+        updateLog.log_message(f"Processing word frequencies in chunks...")
+        extract_pdf.process_word_frequencies_in_batches()
+        updateLog.log_message(f"Finished processing word frequencies.")
 
     if args.getTaskList:
         updateLog.log_message(f"Exporting task list to 'Task List.md' in {path.Obsidian_taskList_path}...")

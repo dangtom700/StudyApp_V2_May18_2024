@@ -14,3 +14,5 @@ data/log_message.db
 data/process.log
 source/modules/__pycache__/extract_pdf.cpython-312.pyc
 source/modules/__pycache__/updateLog.cpython-312.pyc
+source/modules/__pycache__/extract_note.cpython-312.pyc
+source/modules/__pycache__/search.cpython-312.pyc

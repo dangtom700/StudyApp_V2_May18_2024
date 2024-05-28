@@ -58,26 +58,29 @@ def split_text_into_chunks(text, chunk_size):
     return chunks
 
 # Setup the SQLite database and create the table, optionally dropping the existing table if it exists
-def setup_database(db_name, reset_db):
+def setup_database(db_name, reset_db, action: str):
     conn = sqlite3.connect(db_name)
     cursor = conn.cursor()
-    if reset_db:
+    if reset_db and action == "extract_text":
         cursor.execute('DROP TABLE IF EXISTS pdf_chunks')
+    if action == "extract_text":
+        cursor.execute('''
+            CREATE TABLE IF NOT EXISTS pdf_chunks (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                file_name TEXT NOT NULL,
+                chunk_index INTEGER NOT NULL,
+                chunk_text TEXT NOT NULL
+            )
+        ''')
+    if reset_db and action == "word_frequency":
         cursor.execute('DROP TABLE IF EXISTS word_frequencies')
-    cursor.execute('''
-        CREATE TABLE IF NOT EXISTS pdf_chunks (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            file_name TEXT NOT NULL,
-            chunk_index INTEGER NOT NULL,
-            chunk_text TEXT NOT NULL
-        )
-    ''')
-    cursor.execute('''
-        CREATE TABLE IF NOT EXISTS word_frequencies (
-            word TEXT PRIMARY KEY,
-            frequency INTEGER
-        )
-    ''')
+    if action == "word_frequency":
+        cursor.execute('''
+            CREATE TABLE IF NOT EXISTS word_frequencies (
+                word TEXT PRIMARY KEY,
+                frequency INTEGER
+            )
+        ''')
     conn.commit()
     conn.close()
 
@@ -160,7 +163,7 @@ def process_files_in_parallel(pdf_files, reset_db, chunk_size, db_name):
                 logging.error(f"Error processing {pdf_file}: {e}")
 
 # Batch processing for merging chunks and cleaning text
-def process_chunks_in_batches(db_name='chunks.db', batch_size=1000):
+def process_chunks_in_batches(db_name: str, batch_size=1000):
     # Function to retrieve chunks in batches
     def retrieve_chunks_in_batches():
         conn = sqlite3.connect(db_name)
@@ -227,16 +230,18 @@ def extract_text() -> None:
     pdf_files = sorted([os.path.join(FOLDER_PATH, file) for file in os.listdir(FOLDER_PATH) if file.lower().endswith('.pdf')])
     
     # Reset the database before processing
-    setup_database(reset_db=RESET_DATABASE, db_name=DB_NAME)
+    setup_database(reset_db=RESET_DATABASE, db_name=DB_NAME, action="extract_text")
     
     logging.info(f"Starting processing of {len(pdf_files)} PDF files...")
     print(f"Starting processing of {len(pdf_files)} PDF files...")
     process_files_in_parallel(pdf_files, reset_db=RESET_DATABASE, chunk_size=CHUNK_SIZE, db_name=DB_NAME)
     logging.info("Processing complete.")
     print("Processing complete.")
-    
+
+def process_word_frequencies_in_batches():
     # Now process the chunks in batches and store word frequencies
+    setup_database(reset_db=False, db_name="data\\chunks.db", action="word_frequency")
     logging.info("Starting batch processing of chunks...")
-    word_frequencies = process_chunks_in_batches()
+    process_chunks_in_batches(db_name="data\\chunks.db")
     logging.info("Batch processing complete.")
     print("Batch processing complete.")

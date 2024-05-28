@@ -26,3 +26,6 @@ def store_log_file_to_database(log_file_path: str) -> None:
     cursor.execute("INSERT INTO messages (timestamp, message_type, message) VALUES (?, ?, ?)", (getCurrentTime(), "PROGRESS", "FINISHED UPDATING LOG FILE"))
     conn.commit()
     conn.close()
+    # empty_log_file
+    with open(log_file_path, 'w') as log_file:
+        pass
