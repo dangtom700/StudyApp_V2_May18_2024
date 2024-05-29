@@ -15,7 +15,7 @@ def app():
     
     parser.add_argument("--extractText", action= 'store_true', help="Extract text from PDF files")
     parser.add_argument("--updateLog", action= 'store_true', help="Update log of application")
-    parser.add_argument("--extractNotes", action= 'store_true', help="Extract notes from PDF files")
+    parser.add_argument("--createIndexTables", action= 'store_true', help="Create index tables for notes and pdf files")
     parser.add_argument("--processWordFrequencies", action= 'store_true', help="Process word frequencies in chunks")
     parser.add_argument("--getTaskList", action= 'store_true', help="Export a list of tasks in .md format")
     parser.add_argument("--searchFileInDatabase", type=str, help="Search for files in the specified folder path")
@@ -32,9 +32,10 @@ def app():
         updateLog.store_log_file_to_database(path.log_file_path)
         print(f"Finished updating log file.")
 
-    if args.extractNotes:
+    if args.createIndexTables:
         updateLog.log_message(f"Extracting notes from PDF files...")
-        extract_note.extract_notes_with_config_path()
+        extract_note.create_type_index_table(path.pdf_path, ".pdf", "pdf")
+        extract_note.create_type_index_table(path.study_notes_folder_path, ".md", "note")
         updateLog.log_message(f"Finished extracting notes from PDF files.")
 
     if args.processWordFrequencies:
