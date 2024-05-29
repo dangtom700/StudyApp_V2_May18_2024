@@ -1,7 +1,7 @@
 import sqlite3
-import os
 import colorama
 
+from datetime import datetime
 from modules.path import taskList_path, Obsidian_taskList_path
 from modules.updateLog import log_message
 
@@ -15,21 +15,15 @@ def searchFileInDatabase(keyword: str) -> None:
         conn = sqlite3.connect('data\\chunks.db')
         cursor = conn.cursor()
 
-        # Search PDF files
-        cursor.execute("SELECT file_name FROM pdf_chunks WHERE file_name LIKE ?", (f'%{keyword}%',))
-        pdf_result = cursor.fetchall()
+        type_search = ["note", "pdf"]
 
-        # Search notes
-        cursor.execute("SELECT note_name FROM note_list WHERE file_name LIKE ?", (f'%{keyword}%',))
-        result = cursor.fetchall()
+        for type in type_search:
+            cursor.execute(f"SELECT {type}_name FROM {type}_list WHERE {type}_name LIKE ?", (f'%{keyword}%',))
+            result = cursor.fetchall()
 
-        print(f"{colorama.Fore.BLUE}PDF files containing '{keyword}':{colorama.Style.RESET_ALL}\n")
-        for file_name in pdf_result:
-            print(f"- {colorama.Fore.BLUE}{file_name[0]}{colorama.Style.RESET_ALL}\n")
-
-        print(f"{colorama.Fore.BLUE}Notes containing '{keyword}':{colorama.Style.RESET_ALL}\n")
-        for note_name in result:
-            print(f"- {colorama.Fore.BLUE}{note_name[0]}{colorama.Style.RESET_ALL}\n")
+            print(f"{colorama.Fore.GREEN}{type.capitalize()} files containing '{keyword}':{colorama.Style.RESET_ALL}\n")
+            for file_name in result:
+                print(f"- {colorama.Fore.BLUE}{file_name[0]}{colorama.Style.RESET_ALL}\n")
 
     except sqlite3.Error as e:
         print(f"Error searching files in database: {e}")
@@ -41,16 +35,20 @@ def getTaskListFromDatabase() -> None:
     try:
         conn = sqlite3.connect('data\\chunks.db')
         cursor = conn.cursor()
-        cursor.execute("SELECT file_name FROM pdf_chunks ORDER BY RANDOM() LIMIT 3")
+        cursor.execute("SELECT pdf_name FROM pdf_list ORDER BY RANDOM() LIMIT 3")
         result = cursor.fetchall()
 
-        log_message('data\\chunks.db', f"Exporting task list to 'Task List.md' in {taskList_path}...")
-        with open(taskList_path, 'w', encoding='utf-8') as f:
-            for file_name in result:
-                f.write(f"- [ ] Read a chapter in {file_name[0]}\n")
-        log_message('data\\chunks.db', f"Finished exporting task list to 'Task List.md' in {taskList_path}.")
+        log_message(f"Exporting task list to 'Task List.md' in {taskList_path}...")
+        with open(Obsidian_taskList_path, 'a', encoding='utf-8') as f:
+            f.write(f"\n{datetime.now().strftime("%a, %b %d, %Y")}\n\n")
+            
+            for task in result:
+                # get value from tuple task
+                file = task[0]
+                f.write(f"- [ ] Read a chapter of [[BOOKS/{file}.pdf|{file}]]\n")
+        log_message(f"Finished exporting task list to 'Task List.md' in {taskList_path}.")
 
-        mirrorFile_to_destination(taskList_path, Obsidian_taskList_path)
+        mirrorFile_to_destination(Obsidian_taskList_path, taskList_path)
 
     except sqlite3.Error as e:
         print(f"Error exporting task list: {e}")

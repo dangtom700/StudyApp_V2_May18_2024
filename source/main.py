@@ -18,7 +18,7 @@ def app():
     parser.add_argument("--createIndexTables", action= 'store_true', help="Create index tables for notes and pdf files")
     parser.add_argument("--processWordFrequencies", action= 'store_true', help="Process word frequencies in chunks")
     parser.add_argument("--getTaskList", action= 'store_true', help="Export a list of tasks in .md format")
-    parser.add_argument("--searchFileInDatabase", type=str, help="Search for files in the specified folder path")
+    parser.add_argument("--searchDatabase", type=str, help="Search for files in the specified folder path")
 
     args = parser.parse_args()
 
@@ -45,13 +45,13 @@ def app():
 
     if args.getTaskList:
         updateLog.log_message(f"Exporting task list to 'Task List.md' in {path.Obsidian_taskList_path}...")
-        # Process goes here
+        search.getTaskListFromDatabase()
         updateLog.log_message(f"Finished exporting task list to 'Task List.md' in {path.Obsidian_taskList_path}.")
 
-    if args.searchFileInDatabase:
-        updateLog.log_message(f"Searching for keyword '{args.searchFileInDatabase}'...")
+    if args.searchDatabase:
+        updateLog.log_message(f"Searching for keyword '{args.searchDatabase}'...")
         updateLog.log_message(f"Searching for files in database...")
-        # Process goes here
+        search.searchFileInDatabase(args.searchDatabase)
         updateLog.log_message(f"Finished search.")
 
 if __name__ == "__main__":
