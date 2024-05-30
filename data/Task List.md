@@ -113,3 +113,9 @@ Tue, May 28, 2024
 - [ ] Read a chapter of [[BOOKS/basic engineering science.pdf|basic engineering science]]
 - [ ] Read a chapter of [[BOOKS/the death of expertise the campaign against established knowledge and why it matters.pdf|the death of expertise the campaign against established knowledge and why it matters]]
 - [ ] Read a chapter of [[BOOKS/introduction to texture analysis macrotexture microtexture and orientation mapping.pdf|introduction to texture analysis macrotexture microtexture and orientation mapping]]
+
+Wed, May 29, 2024
+
+- [ ] Read a chapter of [[BOOKS/mastering large language models.pdf|mastering large language models]]
+- [ ] Read a chapter of [[BOOKS/semiconductor microchips and fabrication a practical guide to theory and manufacturing.pdf|semiconductor microchips and fabrication a practical guide to theory and manufacturing]]
+- [ ] Read a chapter of [[BOOKS/what every engineer should know about the internet of things.pdf|what every engineer should know about the internet of things]]
