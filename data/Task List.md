@@ -119,3 +119,9 @@ Wed, May 29, 2024
 - [ ] Read a chapter of [[BOOKS/mastering large language models.pdf|mastering large language models]]
 - [ ] Read a chapter of [[BOOKS/semiconductor microchips and fabrication a practical guide to theory and manufacturing.pdf|semiconductor microchips and fabrication a practical guide to theory and manufacturing]]
 - [ ] Read a chapter of [[BOOKS/what every engineer should know about the internet of things.pdf|what every engineer should know about the internet of things]]
+
+Thu, May 30, 2024
+
+- [ ] Read a chapter of [[BOOKS/small signal audio design.pdf|small signal audio design]]
+- [ ] Read a chapter of [[BOOKS/ultimate freedom beyond free will.pdf|ultimate freedom beyond free will]]
+- [ ] Read a chapter of [[BOOKS/artificial intelligence and society 5.0 issues opportunities and challenges.pdf|artificial intelligence and society 5.0 issues opportunities and challenges]]

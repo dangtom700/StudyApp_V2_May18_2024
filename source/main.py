@@ -17,6 +17,7 @@ def app():
     parser.add_argument("--updateLog", action= 'store_true', help="Update log of application")
     parser.add_argument("--createIndexTables", action= 'store_true', help="Create index tables for notes and pdf files")
     parser.add_argument("--processWordFrequencies", action= 'store_true', help="Process word frequencies in chunks")
+    parser.add_argument("--updateDatabase", action= 'store_true', help="Process all 4 above steps")
     parser.add_argument("--getTaskList", action= 'store_true', help="Export a list of tasks in .md format")
     parser.add_argument("--searchDatabase", type=str, help="Search for files in the specified folder path")
 
@@ -42,6 +43,29 @@ def app():
         updateLog.log_message(f"Processing word frequencies in chunks...")
         extract_pdf.process_word_frequencies_in_batches()
         updateLog.log_message(f"Finished processing word frequencies.")
+
+    if args.updateDatabase:
+        updateLog.log_message(f"Updating database from log file...")
+        # extract_text
+        updateLog.log_message(f"Extracting text from PDF files...")
+        extract_pdf.extract_text()
+        updateLog.log_message(f"Finished extracting text from PDF files.")
+        # create_index_tables
+        updateLog.log_message(f"Extracting notes from PDF files...")
+        extract_note.create_type_index_table(path.pdf_path, ".pdf", "pdf")
+        extract_note.create_type_index_table(path.study_notes_folder_path, ".md", "note")
+        updateLog.log_message(f"Finished extracting notes from PDF files.")
+        # process_word_frequencies
+        updateLog.log_message(f"Processing word frequencies in chunks...")
+        extract_pdf.process_word_frequencies_in_batches()
+        updateLog.log_message(f"Finished processing word frequencies.")
+        # update_database
+        updateLog.log_message(f"Updating database from log file...")
+        updateLog.store_log_file_to_database(path.log_file_path)
+        updateLog.log_message(f"Finished updating database from log file.")
+
+        print(f"Finished updating database from log file.")
+        updateLog.log_message(f"Finished updating database from log file.")
 
     if args.getTaskList:
         updateLog.log_message(f"Exporting task list to 'Task List.md' in {path.Obsidian_taskList_path}...")
