@@ -157,8 +157,8 @@ def process_files_in_parallel(pdf_files, reset_db, chunk_size, db_name):
             try:
                 future.result()
                 completed_files += 1
-                logging.info(f"Completed {completed_files}/{total_files} files: {pdf_file}")
-                print(f"Completed {completed_files}/{total_files}={completed_files/total_files:.2%} files: {os.path.basename(pdf_file).removesuffix('.pdf')}.")
+                logging.info(f"Completed {completed_files}/{total_files} file: {pdf_file}")
+                print(f"Completed {completed_files}/{total_files}={completed_files/total_files:.2%} file: {os.path.basename(pdf_file).removesuffix('.pdf')}")
             except Exception as e:
                 logging.error(f"Error processing {pdf_file}: {e}")
 
@@ -223,7 +223,7 @@ def process_chunks_in_batches(db_name: str, batch_size=1000):
 from modules.path import pdf_path
 def extract_text() -> None:
     FOLDER_PATH = pdf_path
-    CHUNK_SIZE = 8000
+    CHUNK_SIZE = 5000
     RESET_DATABASE = True
     DB_NAME = "data\\chunks.db"
 

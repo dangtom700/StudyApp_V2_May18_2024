@@ -40,7 +40,7 @@ Fri, May 16, 2024
 
 - [ ] Read a chapter of [[BOOKS/innovative social science teaching and learning facilitating students personal growth and career success.pdf|innovative social science teaching and learning facilitating students personal growth and career success]]
 - [ ] Read a chapter of [[BOOKS/everything you should know about Matlab for economic analysis.pdf|everything you should know about Matlab for economic analysis]]
-- [ ] Read a chapter of [[BOOKS/the game of life and how to play it.pdf|the game of life and how to play it]]
+- [x] Read a chapter of [[BOOKS/the game of life and how to play it.pdf|the game of life and how to play it]]
 
 Fri, May 17, 2024
 
@@ -57,7 +57,7 @@ Sat, May 18, 2024
 Sun, May 19, 2024
 
 - [ ] Read a chapter of [[BOOKS/digital habitus a critique of the imaginaries of artificial intelligence.pdf|digital habitus a critique of the imaginaries of artificial intelligence]]
-- [ ] Read a chapter of [[BOOKS/optimization methods for engineering problems.pdf|optimization methods for engineering problems]]
+- [x] Read a chapter of [[BOOKS/optimization methods for engineering problems.pdf|optimization methods for engineering problems]]
 - [ ] Read a chapter of [[BOOKS/basic engineering science a systems accounting and modelling approach.pdf|basic engineering science a systems accounting and modelling approach]]
 
 Mon, May 20, 2024
@@ -81,7 +81,7 @@ Wed, May 22, 2024
 Thu, May 23, 2024
 
 - [ ] Read a chapter of [[BOOKS/what every engineer should know about data driven analytics.pdf|what every engineer should know about data driven analytics]]
-- [ ] Read a chapter of [[BOOKS/knowledge and systems science enabling systemic knowledge synthesis.pdf|knowledge and systems science enabling systemic knowledge synthesis]]
+- [x] Read a chapter of [[BOOKS/knowledge and systems science enabling systemic knowledge synthesis.pdf|knowledge and systems science enabling systemic knowledge synthesis]]
 - [ ] Read a chapter of [[BOOKS/power electronics converters applications and design.pdf|power electronics converters applications and design]]
 
 Fri, May 24, 2024
@@ -93,8 +93,8 @@ Fri, May 24, 2024
 Sat, May 25, 2024
 
 - [ ] Read a chapter of [[BOOKS/think C.pdf|think C]]
-- [ ] Read a chapter of [[BOOKS/investigating oceanography.pdf|investigating oceanography]]
-- [ ] Read a chapter of [[BOOKS/how AI work from sorcery to science.pdf|how AI work from sorcery to science]]
+- [x] Read a chapter of [[BOOKS/investigating oceanography.pdf|investigating oceanography]]
+- [x] Read a chapter of [[BOOKS/how AI work from sorcery to science.pdf|how AI work from sorcery to science]]
 
 Sun, May 26, 2024
 
@@ -122,6 +122,12 @@ Wed, May 29, 2024
 
 Thu, May 30, 2024
 
-- [ ] Read a chapter of [[BOOKS/small signal audio design.pdf|small signal audio design]]
-- [ ] Read a chapter of [[BOOKS/ultimate freedom beyond free will.pdf|ultimate freedom beyond free will]]
-- [ ] Read a chapter of [[BOOKS/artificial intelligence and society 5.0 issues opportunities and challenges.pdf|artificial intelligence and society 5.0 issues opportunities and challenges]]
+- [x] Read a chapter of [[BOOKS/small signal audio design.pdf|small signal audio design]]
+- [x] Read a chapter of [[BOOKS/ultimate freedom beyond free will.pdf|ultimate freedom beyond free will]]
+- [x] Read a chapter of [[BOOKS/artificial intelligence and society 5.0 issues opportunities and challenges.pdf|artificial intelligence and society 5.0 issues opportunities and challenges]]
+
+Fri, May 31, 2024
+
+- [ ] Read a chapter of [[BOOKS/graph databases applications on social media analytics and smart cities.pdf|graph databases applications on social media analytics and smart cities]]
+- [ ] Read a chapter of [[BOOKS/design thinking understanding how designers think and work.pdf|design thinking understanding how designers think and work]]
+- [ ] Read a chapter of [[BOOKS/fabrication and design of resonant microdevices.pdf|fabrication and design of resonant microdevices]]
