@@ -68,14 +68,14 @@ Mon, May 20, 2024
 
 Tue, May 21, 2024
 
-- [ ] Read a chapter of [[BOOKS/structure of game design.pdf|structure of game design]]
-- [ ] Read a chapter of [[BOOKS/the dictionary of human geography.pdf|the dictionary of human geography]]
+- [x] Read a chapter of [[BOOKS/structure of game design.pdf|structure of game design]]
+- [x] Read a chapter of [[BOOKS/the dictionary of human geography.pdf|the dictionary of human geography]]
 - [ ] Read a chapter of [[BOOKS/internet afterlife virtual salvation in the 21st century.pdf|internet afterlife virtual salvation in the 21st century]]
 
 Wed, May 22, 2024
 
 - [ ] Read a chapter of [[BOOKS/distribution theory principles and applications.pdf|distribution theory principles and applications]]
-- [ ] Read a chapter of [[BOOKS/structure of game design.pdf|structure of game design]]
+- [x] Read a chapter of [[BOOKS/structure of game design.pdf|structure of game design]]
 - [ ] Read a chapter of [[BOOKS/designers guide to Figma.pdf|designers guide to Figma]]
 
 Thu, May 23, 2024
@@ -111,7 +111,7 @@ Mon, May 27, 2024
 Tue, May 28, 2024
 
 - [ ] Read a chapter of [[BOOKS/basic engineering science.pdf|basic engineering science]]
-- [ ] Read a chapter of [[BOOKS/the death of expertise the campaign against established knowledge and why it matters.pdf|the death of expertise the campaign against established knowledge and why it matters]]
+- [x] Read a chapter of [[BOOKS/the death of expertise the campaign against established knowledge and why it matters.pdf|the death of expertise the campaign against established knowledge and why it matters]]
 - [ ] Read a chapter of [[BOOKS/introduction to texture analysis macrotexture microtexture and orientation mapping.pdf|introduction to texture analysis macrotexture microtexture and orientation mapping]]
 
 Wed, May 29, 2024
@@ -129,5 +129,11 @@ Thu, May 30, 2024
 Fri, May 31, 2024
 
 - [ ] Read a chapter of [[BOOKS/graph databases applications on social media analytics and smart cities.pdf|graph databases applications on social media analytics and smart cities]]
-- [ ] Read a chapter of [[BOOKS/design thinking understanding how designers think and work.pdf|design thinking understanding how designers think and work]]
+- [x] Read a chapter of [[BOOKS/design thinking understanding how designers think and work.pdf|design thinking understanding how designers think and work]]
 - [ ] Read a chapter of [[BOOKS/fabrication and design of resonant microdevices.pdf|fabrication and design of resonant microdevices]]
+
+Sat, Jun 01, 2024
+
+- [ ] Read a chapter of [[BOOKS/arguing about tastes modelling how context and experience change economic preference.pdf|arguing about tastes modelling how context and experience change economic preference]]
+- [ ] Read a chapter of [[BOOKS/do the humanities create knowledge.pdf|do the humanities create knowledge]]
+- [ ] Read a chapter of [[BOOKS/game design tools cognitive psychological and practical approach.pdf|game design tools cognitive psychological and practical approach]]

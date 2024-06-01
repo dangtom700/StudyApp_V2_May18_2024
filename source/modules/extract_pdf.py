@@ -223,7 +223,7 @@ def process_chunks_in_batches(db_name: str, batch_size=1000):
 from modules.path import pdf_path
 def extract_text() -> None:
     FOLDER_PATH = pdf_path
-    CHUNK_SIZE = 5000
+    CHUNK_SIZE = 4000
     RESET_DATABASE = True
     DB_NAME = "data\\chunks.db"
 
@@ -235,8 +235,8 @@ def extract_text() -> None:
     logging.info(f"Starting processing of {len(pdf_files)} PDF files...")
     print(f"Starting processing of {len(pdf_files)} PDF files...")
     process_files_in_parallel(pdf_files, reset_db=RESET_DATABASE, chunk_size=CHUNK_SIZE, db_name=DB_NAME)
-    logging.info("Processing complete.")
-    print("Processing complete.")
+    logging.info("Processing complete: create word frequency index.")
+    print("Processing complete: create word frequency index.")
 
 def process_word_frequencies_in_batches():
     # Now process the chunks in batches and store word frequencies

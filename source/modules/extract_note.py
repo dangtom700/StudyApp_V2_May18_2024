@@ -58,4 +58,4 @@ def create_type_index_table(file_path: str, extenstion: str, type: str) -> None:
         log_message(f"Processing {type}: {file_name}...")
         store_files_in_db(file_names=[file_name], file_list=[file_path], db_name="data\\chunks.db", type=type)
     log_message(f"Files: {type} stored in database.")
-    print("Processing complete.")
+    print(f"Processing complete: create {type} index.")
