@@ -64,6 +64,7 @@ Text-based chat bot to perform certain tasks including request data tokens, retr
 - **May 25th, 2024**: Visioning an application that can search for related documents with a searching prompt with Vector Retrieval. Implement text extraction for keyword clusterizer.
 - **May 27th, 2024**: Change in command lines and application structure. Prioritize the static content and searching method to finish the project.
 - **May 29th, 2024**: Finish implementing static part of the project. Begin implementing vector retrieval for related keyword search.
+- **June 6th, 2024**: Mass delay due to school work overload. A proposal for more managable task list generation is created.
 
 ### Current Skill Assessment
 
