@@ -1,19 +1,4 @@
-source/modules/__pycache__/DataProcess.cpython-312.pyc
-source/modules/__pycache__/Export.cpython-312.pyc
-source/modules/__pycache__/path.cpython-312.pyc
-PDF_analysis.xlsx
+data/
 sample/
+source/modules/__pycache__/
 source/modules/path.py
-source/modules/__pycache__/updateData.cpython-312.pyc
-data/StudyLogDB.db
-data/StudyLogDB.db-journal
-error_log.txt
-data/chunks.db
-data/chunks.db-journal
-data/log_message.db
-data/process.log
-source/modules/__pycache__/extract_pdf.cpython-312.pyc
-source/modules/__pycache__/updateLog.cpython-312.pyc
-source/modules/__pycache__/extract_note.cpython-312.pyc
-source/modules/__pycache__/search.cpython-312.pyc
-data/Task List.md
