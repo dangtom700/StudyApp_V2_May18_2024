@@ -1,11 +1,12 @@
 import sqlite3
 import os
 import time
+from modules.path import log_database_path
 
 def getCurrentTime() -> str:
     return time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
 def log_message(message: str) -> None:
-    database_name = os.getcwd() + '\\data\\log_message.db'
+    database_name = log_database_path
     current_time = getCurrentTime()
     conn = sqlite3.connect(database_name)
     cursor = conn.cursor()
@@ -14,7 +15,7 @@ def log_message(message: str) -> None:
     conn.close()
 
 def store_log_file_to_database(log_file_path: str) -> None:
-    database_name = os.getcwd() + '\\data\\log_message.db'
+    database_name = log_database_path
     conn = sqlite3.connect(database_name)
     cursor = conn.cursor()
     cursor.execute("CREATE TABLE IF NOT EXISTS messages (timestamp TEXT, message_type TEXT, message TEXT)")

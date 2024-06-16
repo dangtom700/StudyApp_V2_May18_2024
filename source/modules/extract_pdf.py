@@ -7,9 +7,10 @@ import time
 import os
 import re
 from collections import defaultdict
+from modules.path import log_file_path, chunk_database_path
 
 # Setup logging to log messages to a file, with the option to reset the log file
-def setup_logging(log_file= os.getcwd() + '\\data\\process.log'):
+def setup_logging(log_file= log_file_path):
     logging.basicConfig(
         filename=log_file,
         level=logging.INFO,
@@ -225,7 +226,7 @@ def extract_text() -> None:
     FOLDER_PATH = pdf_path
     CHUNK_SIZE = 4000
     RESET_DATABASE = True
-    DB_NAME = "data\\chunks.db"
+    DB_NAME = chunk_database_path
 
     pdf_files = sorted([os.path.join(FOLDER_PATH, file) for file in os.listdir(FOLDER_PATH) if file.lower().endswith('.pdf')])
     
@@ -240,8 +241,8 @@ def extract_text() -> None:
 
 def process_word_frequencies_in_batches():
     # Now process the chunks in batches and store word frequencies
-    setup_database(reset_db=False, db_name="data\\chunks.db", action="word_frequency")
+    setup_database(reset_db=False, db_name=chunk_database_path, action="word_frequency")
     logging.info("Starting batch processing of chunks...")
-    process_chunks_in_batches(db_name="data\\chunks.db")
+    process_chunks_in_batches(db_name=chunk_database_path)
     logging.info("Batch processing complete.")
     print("Batch processing complete.")

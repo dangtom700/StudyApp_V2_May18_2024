@@ -1,35 +1,22 @@
+""" Distributed random files for task list generation
+# The table name reading_task consists of filename TEXT, count INTEGER default 0
+# Copy the data column that consists of filename from a table to filename column
+#  in reading_task table
+# Read in the task list file and extract the filename and count its frequency
+# Stucture of the task list file (sample):
+'''
+Thu, May 10, 2024
+
+- [x] Read a chapter of [[internet afterlife virtual salvation in the 21st century.pdf|internet afterlife virtual salvation in the 21st century]]
+- [x] Read a chapter of [[information science.pdf|information science]]
+- [x] Read a chapter of [[media and development.pdf|media and development]]
+
+'''
+Note: Exclude the first two lines of the task list file (title and new line),
+the format for the rest of the file is the same as the above example
+"""
 import sqlite3
-import colorama
-
-from datetime import datetime
-from modules.path import taskList_path, Obsidian_taskList_path, chunk_database_path, taskList_path
-from modules.updateLog import log_message
-
-def mirrorFile_to_destination(source: str, destination: str) -> None:
-    with open(source, 'r', encoding='utf-8') as read_obj, open(destination, 'w', encoding='utf-8') as write_obj:
-        for line in read_obj:
-            write_obj.write(line)
-
-def searchFileInDatabase(keyword: str) -> None:
-    try:
-        conn = sqlite3.connect('data\\chunks.db')
-        cursor = conn.cursor()
-
-        type_search = ["note", "pdf"]
-
-        for type in type_search:
-            cursor.execute(f"SELECT {type}_name FROM {type}_list WHERE {type}_name LIKE ?", (f'%{keyword}%',))
-            result = cursor.fetchall()
-
-            print(f"{colorama.Fore.GREEN}{type.capitalize()} files containing '{keyword}':{colorama.Style.RESET_ALL}\n")
-            for file_name in result:
-                print(f"- {colorama.Fore.BLUE}{file_name[0]}{colorama.Style.RESET_ALL}\n")
-
-    except sqlite3.Error as e:
-        print(f"Error searching files in database: {e}")
-    finally:
-        if conn:
-            conn.close()
+from modules.path import chunk_database_path, taskList_path
 
 def setupTableReadingTask() -> None:
     database_name = chunk_database_path
@@ -114,18 +101,5 @@ def randomizeNumberOfFilenameWithLowestCount() -> list[str]:
     
     return filenames
 
-
-def getTaskListFromDatabase() -> None:
-    result = randomizeNumberOfFilenameWithLowestCount()
-    
-    log_message(f"Exporting task list to 'Task List.md' in {taskList_path}...")
-    with open(Obsidian_taskList_path, 'a', encoding='utf-8') as f:
-        f.write(f"\n{datetime.now().strftime("%a, %b %d, %Y")}\n\n")
-        
-        for task in result:
-            # get value from tuple task
-            file = task[0]
-            f.write(f"- [ ] Read a chapter of [[BOOKS/{file}.pdf|{file}]]\n")
-    log_message(f"Finished exporting task list to 'Task List.md' in {taskList_path}.")
-
-    mirrorFile_to_destination(Obsidian_taskList_path, taskList_path)
+processDataFromTaskListFile()
+print(randomizeNumberOfFilenameWithLowestCount())

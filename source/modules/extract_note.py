@@ -4,6 +4,7 @@ from datetime import datetime
 from os.path import getmtime
 from time import ctime
 from modules.updateLog import log_message
+from modules.path import pdf_path, study_notes_folder_path, chunk_database_path
 
 def get_file_list(file_path: str, extenstion: str) -> list[str]:
     return [os.path.join(file_path, file) for file in os.listdir(file_path) if file.endswith(extenstion)]
@@ -52,10 +53,10 @@ def create_type_index_table(file_path: str, extenstion: str, type: str) -> None:
     file_list = get_file_list(file_path=file_path, extenstion=extenstion)
     file_names = extract_names(file_list, extenstion)
 
-    setup_database(reset_db=True, db_name="data\\chunks.db", type=type)
+    setup_database(reset_db=True, db_name=chunk_database_path, type=type)
     log_message("Started storing files in database.")
     for file_name, file_path in zip(file_names, file_list):
         log_message(f"Processing {type}: {file_name}...")
-        store_files_in_db(file_names=[file_name], file_list=[file_path], db_name="data\\chunks.db", type=type)
+        store_files_in_db(file_names=[file_name], file_list=[file_path], db_name=chunk_database_path, type=type)
     log_message(f"Files: {type} stored in database.")
     print(f"Processing complete: create {type} index.")
