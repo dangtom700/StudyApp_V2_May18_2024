@@ -2,8 +2,9 @@ import sqlite3
 import colorama
 
 from datetime import datetime
-from modules.path import taskList_path, Obsidian_taskList_path, chunk_database_path, taskList_path
+import modules.path as path
 from modules.updateLog import log_message
+from modules.extract_note import create_type_index_table
 
 def mirrorFile_to_destination(source: str, destination: str) -> None:
     with open(source, 'r', encoding='utf-8') as read_obj, open(destination, 'w', encoding='utf-8') as write_obj:
@@ -11,6 +12,11 @@ def mirrorFile_to_destination(source: str, destination: str) -> None:
             write_obj.write(line)
 
 def searchFileInDatabase(keyword: str) -> None:
+    # create_index_tables
+    log_message(f"Extracting notes from PDF files...")
+    create_type_index_table(path.pdf_path, ".pdf", "pdf")
+    create_type_index_table(path.study_notes_folder_path, ".md", "note")
+    log_message(f"Finished extracting notes from PDF files.")
     try:
         conn = sqlite3.connect('data\\chunks.db')
         cursor = conn.cursor()
@@ -32,7 +38,7 @@ def searchFileInDatabase(keyword: str) -> None:
             conn.close()
 
 def setupTableReadingTask() -> None:
-    database_name = chunk_database_path
+    database_name = path.chunk_database_path
     conn = sqlite3.connect(database_name)
     cursor = conn.cursor()
     cursor.execute(
@@ -46,7 +52,7 @@ def setupTableReadingTask() -> None:
     conn.close()
 
 def getFilenameFromAnotherTable() -> list[str]:
-    database_name = chunk_database_path
+    database_name = path.chunk_database_path
     conn = sqlite3.connect(database_name)
     cursor = conn.cursor()
     cursor.execute("SELECT pdf_name FROM pdf_list")
@@ -55,14 +61,14 @@ def getFilenameFromAnotherTable() -> list[str]:
     return [filename[0] for filename in filenames]
 
 def processDataFromTaskListFile() -> None:
-    database_name = chunk_database_path
+    database_name = path.chunk_database_path
     setupTableReadingTask()
 
     filenames = getFilenameFromAnotherTable()
     # Initialize a dictionary to store filename as key and a list of [finished, unfinished] as value
     data = {filename: [0, 0] for filename in filenames}
 
-    with open(taskList_path, 'r') as taskList_file:
+    with open(path.taskList_path, 'r') as taskList_file:
         raw_text = taskList_file.readlines()[2:]
         for line in raw_text:
             if line == '\n':
@@ -93,7 +99,7 @@ def processDataFromTaskListFile() -> None:
     conn.close()
 
 def randomizeNumberOfFilenameWithLowestCount() -> list[str]:
-    database_name = chunk_database_path
+    database_name = path.chunk_database_path
     conn = sqlite3.connect(database_name)
     cursor = conn.cursor()
 
@@ -116,16 +122,19 @@ def randomizeNumberOfFilenameWithLowestCount() -> list[str]:
 
 
 def getTaskListFromDatabase() -> None:
+    log_message(f"Processing task list to 'Task List.md' in {path.taskList_path}...")
+    processDataFromTaskListFile()
+    log_message(f"Exporting task list to 'Task List.md' in {path.taskList_path}...")
     result = randomizeNumberOfFilenameWithLowestCount()
     
-    log_message(f"Exporting task list to 'Task List.md' in {taskList_path}...")
-    with open(Obsidian_taskList_path, 'a', encoding='utf-8') as f:
+    log_message(f"Exporting task list to 'Task List.md' in {path.taskList_path}...")
+    with open(path.Obsidian_taskList_path, 'a', encoding='utf-8') as f:
         f.write(f"\n{datetime.now().strftime("%a, %b %d, %Y")}\n\n")
         
         for task in result:
             # get value from tuple task
             file = task[0]
             f.write(f"- [ ] Read a chapter of [[BOOKS/{file}.pdf|{file}]]\n")
-    log_message(f"Finished exporting task list to 'Task List.md' in {taskList_path}.")
+    log_message(f"Finished exporting task list to 'Task List.md' in {path.taskList_path}.")
 
-    mirrorFile_to_destination(Obsidian_taskList_path, taskList_path)
+    mirrorFile_to_destination(path.Obsidian_taskList_path, path.taskList_path)

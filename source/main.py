@@ -36,6 +36,10 @@ def app():
         updateLog.log_message(f"Processing word frequencies in chunks...")
         extract_pdf.process_word_frequencies_in_batches()
         updateLog.log_message(f"Finished processing word frequencies.")
+        # update task list record
+        updateLog.log_message(f"Updating task list record...")
+        search.processDataFromTaskListFile()
+        updateLog.log_message(f"Finished updating task list record.")
         # update_database
         updateLog.log_message(f"Updating database from log file...")
         updateLog.store_log_file_to_database(path.log_file_path)
