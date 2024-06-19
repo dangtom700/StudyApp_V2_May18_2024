@@ -224,7 +224,7 @@ def process_chunks_in_batches(db_name: str, batch_size=1000):
 from modules.path import pdf_path
 def extract_text() -> None:
     FOLDER_PATH = pdf_path
-    CHUNK_SIZE = 4000
+    CHUNK_SIZE = 7000
     RESET_DATABASE = True
     DB_NAME = chunk_database_path
 

@@ -12,11 +12,6 @@ def mirrorFile_to_destination(source: str, destination: str) -> None:
             write_obj.write(line)
 
 def searchFileInDatabase(keyword: str) -> None:
-    # create_index_tables
-    log_message(f"Extracting notes from PDF files...")
-    create_type_index_table(path.pdf_path, ".pdf", "pdf")
-    create_type_index_table(path.study_notes_folder_path, ".md", "note")
-    log_message(f"Finished extracting notes from PDF files.")
     try:
         conn = sqlite3.connect('data\\chunks.db')
         cursor = conn.cursor()
@@ -122,9 +117,6 @@ def randomizeNumberOfFilenameWithLowestCount() -> list[str]:
 
 
 def getTaskListFromDatabase() -> None:
-    log_message(f"Processing task list to 'Task List.md' in {path.taskList_path}...")
-    processDataFromTaskListFile()
-    log_message(f"Exporting task list to 'Task List.md' in {path.taskList_path}...")
     result = randomizeNumberOfFilenameWithLowestCount()
     
     log_message(f"Exporting task list to 'Task List.md' in {path.taskList_path}...")
