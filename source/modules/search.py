@@ -32,10 +32,14 @@ def searchFileInDatabase(keyword: str) -> None:
         if conn:
             conn.close()
 
-def setupTableReadingTask() -> None:
+def setupTableReadingTask(reset_db: bool = True) -> None:
     database_name = path.chunk_database_path
     conn = sqlite3.connect(database_name)
     cursor = conn.cursor()
+    
+    if reset_db:
+        cursor.execute("DROP TABLE IF EXISTS reading_task")
+    
     cursor.execute(
         "CREATE TABLE IF NOT EXISTS reading_task ("
         "filename TEXT PRIMARY KEY, "
@@ -72,7 +76,9 @@ def processDataFromTaskListFile() -> None:
             if line.count(',') == 2:
                 continue
             line = line.strip()
-            filename = line.split('|')[1].removesuffix(']]')
+            filename = line.split('|')[1]
+            filename = filename.removesuffix(']]')
+
             if filename not in data:
                 data[filename] = [0, 0]  # Initialize if not already in data
             if line.startswith('- [x] '):
