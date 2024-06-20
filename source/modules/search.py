@@ -32,16 +32,21 @@ def searchFileInDatabase(keyword: str) -> None:
         if conn:
             conn.close()
 
-def setupTableReadingTask() -> None:
+def setupTableReadingTask(reset_db: bool = True) -> None:
     database_name = path.chunk_database_path
     conn = sqlite3.connect(database_name)
     cursor = conn.cursor()
+    
+    if reset_db:
+        cursor.execute("DROP TABLE IF EXISTS reading_task")
+    
     cursor.execute(
         "CREATE TABLE IF NOT EXISTS reading_task ("
         "filename TEXT PRIMARY KEY, "
         "count INTEGER DEFAULT 0, "
         "Finished INTEGER DEFAULT 0, "
         "Unfished INTEGER DEFAULT 0)"
+        "Finished_Reading BOOLEAN DEFAULT 0" # add this feature and test it later
     )
     conn.commit()
     conn.close()
