@@ -28,6 +28,13 @@ def app():
         updateLog.log_message(f"Extracting text from PDF files...")
         extract_pdf.extract_text()
         updateLog.log_message(f"Finished extracting text from PDF files.")
+        # update_database
+        updateLog.log_message(f"Updating database from log file...")
+        updateLog.store_log_file_to_database(path.log_file_path)
+        updateLog.log_message(f"Finished updating database from log file.")
+        # announce finish
+        print(f"Finished updating database from log file.")
+        updateLog.log_message(f"Finished updating database from log file.")
         # calculate the total time done
         end_time = datetime.now()
         updateLog.log_message(f"Total time taken: {end_time - start_time}")
@@ -49,10 +56,7 @@ def app():
         updateLog.log_message(f"Updating task list record...")
         search.processDataFromTaskListFile()
         updateLog.log_message(f"Finished updating task list record.")
-        # update_database
-        updateLog.log_message(f"Updating database from log file...")
-        updateLog.store_log_file_to_database(path.log_file_path)
-        updateLog.log_message(f"Finished updating database from log file.")
+        # announce finish
         print(f"Finished updating database from log file.")
         updateLog.log_message(f"Finished updating database from log file.")
         # calculate the total time done

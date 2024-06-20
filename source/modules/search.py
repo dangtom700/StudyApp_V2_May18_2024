@@ -46,7 +46,6 @@ def setupTableReadingTask(reset_db: bool = True) -> None:
         "count INTEGER DEFAULT 0, "
         "Finished INTEGER DEFAULT 0, "
         "Unfished INTEGER DEFAULT 0)"
-        "Finished_Reading BOOLEAN DEFAULT 0" # add this feature and test it later
     )
     conn.commit()
     conn.close()
@@ -77,7 +76,9 @@ def processDataFromTaskListFile() -> None:
             if line.count(',') == 2:
                 continue
             line = line.strip()
-            filename = line.split('|')[1].removesuffix(']]')
+            filename = line.split('|')[1]
+            filename = filename.removesuffix(']]')
+
             if filename not in data:
                 data[filename] = [0, 0]  # Initialize if not already in data
             if line.startswith('- [x] '):
