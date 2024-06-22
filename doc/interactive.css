@@ -149,6 +149,9 @@ h1 {
 .SkillAssessment{
     border: 2px solid rgb(0, 0, 0);
 }
+.ProposalNewFeatures{
+    border: 2px solid rgb(0, 0, 0);
+}
 .skills-list {
     display: flex;
     flex-wrap: wrap; /* Ensures items wrap when necessary */
