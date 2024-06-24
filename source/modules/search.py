@@ -124,6 +124,15 @@ def randomizeNumberOfFilenameWithLowestCount() -> list[str]:
 
 def getTaskListFromDatabase() -> None:
     result = randomizeNumberOfFilenameWithLowestCount()
+    conn = sqlite3.connect(path.chunk_database_path)
+
+    cursor = conn.cursor()
+    # increare by 1 in count column for every filename in result
+    for filename in result:
+        cursor.execute("UPDATE reading_task SET count = count + 1 WHERE filename = ?", (filename[0],))
+    conn.commit()
+    conn.close()
+    log_message("Finished updating count in database.")
     
     log_message(f"Exporting task list to 'Task List.md' in {path.taskList_path}...")
     with open(path.Obsidian_taskList_path, 'a', encoding='utf-8') as f:
