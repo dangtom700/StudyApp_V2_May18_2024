@@ -23,11 +23,15 @@ def app():
 
     if args.extractText:
         start_time = datetime.now()
-        updateLog.log_message(f"Updating database from log file...")
+        updateLog.log_message(f"Extracting text from PDF files...")
         # extract_text
         updateLog.log_message(f"Extracting text from PDF files...")
         extract_pdf.extract_text()
         updateLog.log_message(f"Finished extracting text from PDF files.")
+        # process_word_frequencies
+        updateLog.log_message(f"Processing word frequencies in chunks...")
+        extract_pdf.process_word_frequencies_in_batches()
+        updateLog.log_message(f"Finished processing word frequencies.")
         # update_database
         updateLog.log_message(f"Updating database from log file...")
         updateLog.store_log_file_to_database(path.log_file_path)
@@ -48,10 +52,6 @@ def app():
         extract_note.create_type_index_table(path.pdf_path, ".pdf", "pdf")
         extract_note.create_type_index_table(path.study_notes_folder_path, ".md", "note")
         updateLog.log_message(f"Finished extracting notes from PDF files.")
-        # process_word_frequencies
-        updateLog.log_message(f"Processing word frequencies in chunks...")
-        extract_pdf.process_word_frequencies_in_batches()
-        updateLog.log_message(f"Finished processing word frequencies.")
         # update task list record
         updateLog.log_message(f"Updating task list record...")
         search.processDataFromTaskListFile()
