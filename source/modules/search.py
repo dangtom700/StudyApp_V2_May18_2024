@@ -4,7 +4,6 @@ import colorama
 from datetime import datetime
 import modules.path as path
 from modules.updateLog import log_message
-from modules.extract_note import create_type_index_table
 
 def mirrorFile_to_destination(source: str, destination: str) -> None:
     with open(source, 'r', encoding='utf-8') as read_obj, open(destination, 'w', encoding='utf-8') as write_obj:
@@ -146,3 +145,44 @@ def getTaskListFromDatabase() -> None:
     print(f"Finished updating task list record.")
 
     mirrorFile_to_destination(path.Obsidian_taskList_path, path.taskList_path)
+
+def randomizeNoteList():
+    conn = sqlite3.connect(path.chunk_database_path)
+    cursor = conn.cursor()
+    cursor.execute("SELECT note_name FROM note_list ORDER BY RANDOM() LIMIT 3")
+    result = cursor.fetchall()
+    conn.close()
+    # clear up the string in the list
+    # example: [('Note 1',), ('Note 2',), ('Note 3',)]
+    # to: ['Note 1', 'Note 2', 'Note 3']
+    result = [note[0] for note in result]
+    result = [f"[[StudyNotes/{note}.md|{note}.md]]" for note in result]
+    log_message(f"Note list randomized: {result}")
+    return result
+
+def exportNoteReviewTask(note_list: list) -> None:
+    with open (path.Obsidian_noteReview_path, 'a', encoding='utf-8') as f:
+        for note in note_list:
+            f.write(f"- {note}\n")
+    log_message("Note review task exported.")
+    mirrorFile_to_destination(path.Obsidian_noteReview_path, path.noteReview_path)
+
+def exportStudyLogTemplate(note_list: list) -> None:
+    with open (path.Obsidian_template_path, 'rb') as f:
+        # get al content from template
+        content = f.read()
+
+    from datetime import datetime
+    date = datetime.now().strftime("%a, %b %d, %Y, %H_%M_%S")
+    with open (f"{path.Obsidian_noteReview_path}{date}.md", 'w', encoding='utf-8') as f:
+        change_date = content.decode('utf-8').replace("Date: {date}", f"Date: {date}")
+        change_note = change_date.replace("- {note1}\n- {note2}\n- {note3}", f"- {note_list[0]}\n- {note_list[1]}\n- {note_list[2]}")
+
+        f.write(change_note)
+
+    log_message("Modified study log template exported to 'Review' folder.")
+
+def getNoteReviewTask() -> None:
+    note_list = randomizeNoteList()
+    exportNoteReviewTask(note_list)
+    exportStudyLogTemplate(note_list)
