@@ -18,6 +18,7 @@ def app():
     parser.add_argument("--updateDatabase", action= 'store_true', help="Create index tables and analyze word frequencies all in one")
     parser.add_argument("--getTaskList", action= 'store_true', help="Export a list of tasks in .md format")
     parser.add_argument("--searchDatabase", type=str, help="Search for files in the specified folder path")
+    parser.add_argument("--getNoteReview", action= 'store_true', help="Export a list of notes to review in .md format")
 
     args = parser.parse_args()
 
@@ -74,6 +75,11 @@ def app():
         updateLog.log_message(f"Searching for files in database...")
         search.searchFileInDatabase(args.searchDatabase)
         updateLog.log_message(f"Finished search.")
+
+    if args.getNoteReview:
+        updateLog.log_message(f"Exporting notes to 'Note Review.md' in {path.Obsidian_noteReview_path}...")
+        search.getNoteReviewTask()
+        updateLog.log_message(f"Finished exporting notes to 'Note Review.md' in {path.Obsidian_noteReview_path}.")
 
 if __name__ == "__main__":
     app()

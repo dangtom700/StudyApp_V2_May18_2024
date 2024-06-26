@@ -160,21 +160,20 @@ def randomizeNoteList():
     log_message(f"Note list randomized: {result}")
     return result
 
-def exportNoteReviewTask(note_list: list) -> None:
+def exportNoteReviewTask(note_list: list, date: str) -> None:
     with open (path.Obsidian_noteReview_path, 'a', encoding='utf-8') as f:
+        f.write(f"\n{date}\n\n")
         for note in note_list:
             f.write(f"- {note}\n")
     log_message("Note review task exported.")
     mirrorFile_to_destination(path.Obsidian_noteReview_path, path.noteReview_path)
 
-def exportStudyLogTemplate(note_list: list) -> None:
+def exportStudyLogTemplate(note_list: list, date: str) -> None:
     with open (path.Obsidian_template_path, 'rb') as f:
         # get al content from template
         content = f.read()
 
-    from datetime import datetime
-    date = datetime.now().strftime("%a, %b %d, %Y, %H_%M_%S")
-    with open (f"{path.Obsidian_noteReview_path}{date}.md", 'w', encoding='utf-8') as f:
+    with open (f"{path.Obsidian_review_folder_path}{date}.md", 'w', encoding='utf-8') as f:
         change_date = content.decode('utf-8').replace("Date: {date}", f"Date: {date}")
         change_note = change_date.replace("- {note1}\n- {note2}\n- {note3}", f"- {note_list[0]}\n- {note_list[1]}\n- {note_list[2]}")
 
@@ -184,5 +183,6 @@ def exportStudyLogTemplate(note_list: list) -> None:
 
 def getNoteReviewTask() -> None:
     note_list = randomizeNoteList()
-    exportNoteReviewTask(note_list)
-    exportStudyLogTemplate(note_list)
+    date = datetime.now().strftime("%a, %b %d, %Y, %H_%M_%S")
+    exportNoteReviewTask(note_list, date)
+    exportStudyLogTemplate(note_list, date)
