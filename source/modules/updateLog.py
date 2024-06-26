@@ -1,5 +1,4 @@
 import sqlite3
-import os
 import time
 from modules.path import log_database_path
 

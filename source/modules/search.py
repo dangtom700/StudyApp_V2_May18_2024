@@ -143,5 +143,6 @@ def getTaskListFromDatabase() -> None:
             file = task[0]
             f.write(f"- [ ] Read a chapter of [[BOOKS/{file}.pdf|{file}]]\n")
     log_message(f"Finished exporting task list to 'Task List.md' in {path.taskList_path}.")
+    print(f"Finished updating task list record.")
 
     mirrorFile_to_destination(path.Obsidian_taskList_path, path.taskList_path)
