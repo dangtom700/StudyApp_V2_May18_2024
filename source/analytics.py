@@ -1,6 +1,4 @@
 import sqlite3
-from concurrent.futures import ThreadPoolExecutor, as_completed
-from sqlite3 import OperationalError
 import modules.path as path
 
 def getBasicAnalytics(cursor) -> None:
@@ -43,3 +41,12 @@ def TestFrequencyBounds(lower_limit: int, upper_limit: int, cursor) -> None:
         words = [word[0] for word in words if len(word[0]) > 4]
         print(words)
     print(f"Total words: {total_words}")
+
+conn = sqlite3.connect(path.chunk_database_path)
+cursor = conn.cursor()
+getBasicAnalytics(cursor)
+TestFrequencyBounds(1, 20000, cursor)
+TestFrequencyBounds(1, 3000, cursor)
+TestFrequencyBounds(2000, 15000, cursor)
+TestFrequencyBounds(4000, 9000, cursor)
+conn.close()
