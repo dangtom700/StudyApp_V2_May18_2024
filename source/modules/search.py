@@ -69,10 +69,7 @@ def processDataFromTaskListFile() -> None:
     with open(path.taskList_path, 'r') as taskList_file:
         raw_text = taskList_file.readlines()[2:]
         for line in raw_text:
-            if line == '\n':
-                continue
-            # if there are 2 commas in a line, skip this line
-            if line.count(',') == 2:
+            if "|" not in line:
                 continue
             line = line.strip()
             filename = line.split('|')[1]
@@ -156,7 +153,7 @@ def randomizeNoteList():
     # example: [('Note 1',), ('Note 2',), ('Note 3',)]
     # to: ['Note 1', 'Note 2', 'Note 3']
     result = [note[0] for note in result]
-    result = [f"[[StudyNotes/{note}.md|{note}.md]]" for note in result]
+    result = [f"[[StudyNotes/{note}.md|{note}]]" for note in result]
     log_message(f"Note list randomized: {result}")
     return result
 
@@ -183,6 +180,6 @@ def exportStudyLogTemplate(note_list: list, date: str) -> None:
 
 def getNoteReviewTask() -> None:
     note_list = randomizeNoteList()
-    date = datetime.now().strftime("%a, %b %d, %Y, %H_%M_%S")
+    date = datetime.now().strftime("%b_%d_%Y")
     exportNoteReviewTask(note_list, date)
     exportStudyLogTemplate(note_list, date)
