@@ -7,7 +7,35 @@ import time
 import os
 import re
 from collections import defaultdict
+import nltk
+from nltk.corpus import stopwords
+from nltk.stem import PorterStemmer
 from modules.path import log_file_path, chunk_database_path
+
+stemmer = PorterStemmer()
+def has_repeats_regex(word, n=3):
+    pattern = f"([a-zA-Z])\\1{{{n - 1}}}"
+    return bool(re.search(pattern, word))
+# Function to clean the text by removing non-alphabetic characters and converting to lowercase
+def clean_text(text):
+    def pass_conditions(word):
+        alphabetic = word.isalpha()
+        non_repeating = not has_repeats_regex(word)
+        len_pass = len(word) < 12
+        return alphabetic and non_repeating and len_pass
+    """Preprocesses text by lowercasing, removing punctuation, and stop words."""
+    text = re.sub(r'[^\w\s]', '', text)  # Remove punctuation
+    tokens = text.split()
+    stop_words = set(stopwords.words('english'))
+    tokens = [w for w in tokens if not w in stop_words]
+    tokens = [stemmer.stem(item) for item in tokens if pass_conditions(item)]
+    return tokens
+
+def download_nltk():
+    print("Downloading NLTK resources...")
+    nltk.download('punkt')
+    nltk.download('stopwords')
+    print("NLTK resources downloaded.")
 
 # Setup logging to log messages to a file, with the option to reset the log file
 def setup_logging(log_file= log_file_path):
@@ -165,6 +193,7 @@ def process_files_in_parallel(pdf_files, reset_db, chunk_size, db_name):
 
 # Batch processing for merging chunks and cleaning text
 def process_chunks_in_batches(db_name: str, batch_size=1000):
+
     # Function to retrieve chunks in batches
     def retrieve_chunks_in_batches():
         conn = sqlite3.connect(db_name)
@@ -191,12 +220,6 @@ def process_chunks_in_batches(db_name: str, batch_size=1000):
         if buffer:
             merged_chunks.append(buffer)
         return merged_chunks
-
-    # Function to clean the text by removing non-alphabetic characters and converting to lowercase
-    def clean_text(text):
-        text = re.sub(r'[^a-zA-Z\s]', '', text).lower()
-        words = text.split()
-        return words
 
     # Dictionary to store word frequencies
     word_frequencies = defaultdict(int)
@@ -236,13 +259,13 @@ def extract_text() -> None:
     logging.info(f"Starting processing of {len(pdf_files)} PDF files...")
     print(f"Starting processing of {len(pdf_files)} PDF files...")
     process_files_in_parallel(pdf_files, reset_db=RESET_DATABASE, chunk_size=CHUNK_SIZE, db_name=DB_NAME)
-    logging.info("Processing complete: create word frequency index.")
-    print("Processing complete: create word frequency index.")
+    logging.info("Processing complete: Extracting text from PDF files.")
+    print("Processing complete: Extracting text from PDF files.")
 
 def process_word_frequencies_in_batches():
     # Now process the chunks in batches and store word frequencies
-    setup_database(reset_db=False, db_name=chunk_database_path, action="word_frequency")
+    setup_database(reset_db=True, db_name=chunk_database_path, action="word_frequency")
     logging.info("Starting batch processing of chunks...")
     process_chunks_in_batches(db_name=chunk_database_path)
-    logging.info("Batch processing complete.")
-    print("Batch processing complete.")
+    logging.info("Processing word frequencies complete.")
+    print("Processing word frequencies complete.")
