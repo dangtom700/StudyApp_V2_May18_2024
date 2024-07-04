@@ -153,19 +153,19 @@ def randomizeNoteList():
     # example: [('Note 1',), ('Note 2',), ('Note 3',)]
     # to: ['Note 1', 'Note 2', 'Note 3']
     result = [note[0] for note in result]
-    result = [f"[[StudyNotes/{note}.md|{note}]]" for note in result]
     log_message(f"Note list randomized: {result}")
     return result
 
 def exportNoteReviewTask(note_list: list, date: str) -> None:
     with open (path.Obsidian_noteReview_path, 'a', encoding='utf-8') as f:
-        f.write(f"\n{date}\n\n")
+        f.write(f"\n[[{date}]]\n\n")
         for note in note_list:
             f.write(f"- {note}\n")
     log_message("Note review task exported.")
     mirrorFile_to_destination(path.Obsidian_noteReview_path, path.noteReview_path)
 
 def exportStudyLogTemplate(note_list: list, date: str) -> None:
+    note_list = [f"[[StudyNotes/{note}.md|{note}]]" for note in note_list]
     with open (path.Obsidian_template_path, 'rb') as f:
         # get al content from template
         content = f.read()
