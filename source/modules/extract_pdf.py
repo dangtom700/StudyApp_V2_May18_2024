@@ -247,11 +247,11 @@ def process_chunks_in_batches(db_name: str, batch_size=1000):
 from modules.path import pdf_path
 def extract_text() -> None:
     FOLDER_PATH = pdf_path
-    CHUNK_SIZE = 800
+    CHUNK_SIZE = 1000
     RESET_DATABASE = True
     DB_NAME = chunk_database_path
 
-    pdf_files = sorted([os.path.join(FOLDER_PATH, file) for file in os.listdir(FOLDER_PATH) if file.lower().endswith('.pdf')])
+    pdf_files = [os.path.join(FOLDER_PATH, file) for file in os.listdir(FOLDER_PATH) if file.lower().endswith('.pdf')]
     
     # Reset the database before processing
     setup_database(reset_db=RESET_DATABASE, db_name=DB_NAME, action="extract_text")
