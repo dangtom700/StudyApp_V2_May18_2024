@@ -95,3 +95,6 @@ def app():
 
 if __name__ == "__main__":
     app()
+    # updateLog.create_cs_file(path.pdf_path, ".pdf")
+    # updateLog.create_cs_file(path.study_notes_folder_path, ".md")
+    # updateLog.categorize_pdf_files_by_month_year()
