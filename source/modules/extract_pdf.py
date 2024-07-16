@@ -192,7 +192,7 @@ def process_files_in_parallel(pdf_files, reset_db, chunk_size, db_name):
                 logging.error(f"Error processing {pdf_file}: {e}")
 
 # Batch processing for merging chunks and cleaning text
-def process_chunks_in_batches(db_name: str, batch_size=1000):
+def process_chunks_in_batches(db_name: str, batch_size=100):
 
     # Function to retrieve chunks in batches
     def retrieve_chunks_in_batches():
@@ -203,6 +203,7 @@ def process_chunks_in_batches(db_name: str, batch_size=1000):
         for offset in range(0, total_chunks, batch_size):
             cursor.execute("SELECT chunk_text FROM pdf_chunks ORDER BY id LIMIT ? OFFSET ?", (batch_size, offset))
             yield [row[0] for row in cursor.fetchall()]
+            print(f"Retrieved {offset+batch_size} chunks", end=' ')
         conn.close()
 
     # Function to merge split words in the chunks
@@ -247,7 +248,7 @@ def process_chunks_in_batches(db_name: str, batch_size=1000):
 from modules.path import pdf_path
 def extract_text() -> None:
     FOLDER_PATH = pdf_path
-    CHUNK_SIZE = 1000
+    CHUNK_SIZE = 800
     RESET_DATABASE = True
     DB_NAME = chunk_database_path
 
