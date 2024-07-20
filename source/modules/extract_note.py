@@ -4,7 +4,7 @@ from datetime import datetime
 from os.path import getmtime
 from time import ctime
 from modules.updateLog import log_message
-from modules.path import pdf_path, study_notes_folder_path, chunk_database_path
+from data.path import pdf_path, study_notes_folder_path, chunk_database_path
 
 def get_file_list(file_path: str, extenstion: str) -> list[str]:
     return [os.path.join(file_path, file) for file in os.listdir(file_path) if file.endswith(extenstion)]

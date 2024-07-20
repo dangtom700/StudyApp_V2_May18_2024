@@ -2,7 +2,7 @@ import nltk
 from nltk.corpus import stopwords
 from nltk.stem import PorterStemmer
 import sqlite3
-from modules.path import chunk_database_path
+from data.path import chunk_database_path
 
 import re
 from collections import Counter

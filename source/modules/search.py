@@ -2,7 +2,7 @@ import sqlite3
 import colorama
 
 from datetime import datetime
-import modules.path as path
+import data.path as path
 from modules.updateLog import log_message
 
 def mirrorFile_to_destination(source: str, destination: str) -> None:

@@ -10,7 +10,7 @@ from collections import defaultdict
 import nltk
 from nltk.corpus import stopwords
 from nltk.stem import PorterStemmer
-from modules.path import log_file_path, chunk_database_path
+from data.path import log_file_path, chunk_database_path
 
 stemmer = PorterStemmer()
 def has_repeats_regex(word, n=3):
@@ -245,7 +245,7 @@ def process_chunks_in_batches(db_name: str, batch_size=100):
     conn.close()
 
 # Main function
-from modules.path import pdf_path
+from data.path import pdf_path
 def extract_text() -> None:
     FOLDER_PATH = pdf_path
     CHUNK_SIZE = 800
