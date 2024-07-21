@@ -1,5 +1,5 @@
 import sqlite3
-import data.path as path
+import modules.path as path
 
 def getBasicAnalytics(cursor) -> None:
     # sort the frequency in ascending order

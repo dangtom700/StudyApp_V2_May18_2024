@@ -1,6 +1,6 @@
 import sqlite3
 import time
-from data.path import log_database_path, chunk_database_path, pdf_path
+from modules.path import log_database_path, chunk_database_path, pdf_path
 from os import listdir, makedirs
 from os.path import isdir, basename, join, exists
 import shutil
