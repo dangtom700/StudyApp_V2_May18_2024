@@ -1,8 +1,8 @@
 import sqlite3
-import colorama
+#import colorama
 
 from datetime import datetime
-import data.path as path
+import modules.path as path
 from modules.updateLog import log_message
 
 def mirrorFile_to_destination(source: str, destination: str) -> None:
@@ -21,9 +21,11 @@ def searchFileInDatabase(keyword: str) -> None:
             cursor.execute(f"SELECT {type}_name FROM {type}_list WHERE {type}_name LIKE ?", (f'%{keyword}%',))
             result = cursor.fetchall()
 
-            print(f"{colorama.Fore.GREEN}{type.capitalize()} files containing '{keyword}':{colorama.Style.RESET_ALL}\n")
+            #print(f"{colorama.Fore.GREEN}{type.capitalize()} files containing '{keyword}':{colorama.Style.RESET_ALL}\n")
+            print(f"files containing '{keyword}':\n")
             for file_name in result:
-                print(f"- {colorama.Fore.BLUE}{file_name[0]}{colorama.Style.RESET_ALL}\n")
+                #print(f"- {colorama.Fore.BLUE}{file_name[0]}{colorama.Style.RESET_ALL}\n")
+                print(f"- {file_name[0]}\n")
 
     except sqlite3.Error as e:
         print(f"Error searching files in database: {e}")
