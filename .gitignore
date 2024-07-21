@@ -1,3 +1,4 @@
 data/
 sample/
 source/modules/__pycache__/
+source/modules/path.py
