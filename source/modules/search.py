@@ -120,7 +120,7 @@ def randomizeNumberOfFilenameWithLowestCount() -> list[str]:
     return filenames
 
 
-def getTaskListFromDatabase() -> None:
+def getTaskListFromDatabase(date_now = datetime.datetime.now()) -> None:
     result = randomizeNumberOfFilenameWithLowestCount()
     conn = sqlite3.connect(path.chunk_database_path)
 
@@ -134,7 +134,7 @@ def getTaskListFromDatabase() -> None:
     
     log_message(f"Exporting task list to 'Task List.md' in {path.taskList_path}...")
     with open(path.Obsidian_taskList_path, 'a', encoding='utf-8') as f:
-        f.write(f"\n{datetime.datetime.now().strftime("%a, %b %d, %Y")}\n\n")
+        f.write(f"\n{date_now.strftime("%a, %b %d, %Y")}\n\n")
         
         for task in result:
             # get value from tuple task
@@ -186,44 +186,11 @@ def getNoteReviewTask() -> None:
     exportNoteReviewTask(note_list, date)
     exportStudyLogTemplate(note_list, date)
 
-def create_task_list_in_time_range(start_date: datetime, end_date: datetime) -> None:
-    """Create a task list for a given time range."""
-    def log_message_for_time_range(message: str, current_time: datetime) -> None:
-        """Log a message for a given time range."""
-        with sqlite3.connect(path.log_database_path) as conn:
-            cursor = conn.cursor()
-            cursor.execute(
-                "INSERT INTO messages (timestamp, message_type, message) VALUES (?, ?, ?)",
-                (current_time, "PROGRESS", message),
-            )
-    def getTaskListFromDatabase_in_time_range(date_now: datetime.datetime) -> None:
-        result = randomizeNumberOfFilenameWithLowestCount()
-        conn = sqlite3.connect(path.chunk_database_path)
-
-        cursor = conn.cursor()
-        # increare by 1 in count column for every filename in result
-        for filename in result:
-            cursor.execute("UPDATE reading_task SET count = count + 1 WHERE filename = ?", (filename[0],))
-        conn.commit()
-        conn.close()
-        log_message("Finished updating count in database.")
-        
-        log_message(f"Exporting task list to 'Task List.md' in {path.taskList_path}...")
-        with open(path.Obsidian_taskList_path, 'a', encoding='utf-8') as f:
-            f.write(f"\n{date_now.strftime("%a, %b %d, %Y")}\n\n")
-            
-            for task in result:
-                # get value from tuple task
-                file = task[0]
-                f.write(f"- [ ] Read a chapter of [[BOOKS/{file}.pdf|{file}]]\n")
-        log_message(f"Finished exporting task list to 'Task List.md' in {path.taskList_path}.")
-
+def create_task_list_in_time_range(start_date: datetime.datetime, end_date: datetime.datetime) -> None:
     current_date = start_date
     while current_date <= end_date:
-        log_message_for_time_range(f"Exporting task list to 'Task List.md' in {path.Obsidian_taskList_path}...", current_date)
-        getTaskListFromDatabase_in_time_range(current_date)
-        log_message_for_time_range(f"Finished exporting task list to 'Task List.md' in {path.Obsidian_taskList_path} for {current_date}.", current_date)
+        log_message(f"Exporting task list to 'Task List.md' in {path.Obsidian_taskList_path}...")
+        getTaskListFromDatabase(current_date)
+        log_message(f"Finished exporting task list to 'Task List.md' in {path.Obsidian_taskList_path} for {current_date}.")
         current_date += datetime.timedelta(days=1)
-
-    mirrorFile_to_destination(path.Obsidian_taskList_path, path.taskList_path)
     print(f"Finished updating task list record.")
