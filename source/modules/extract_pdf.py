@@ -10,7 +10,7 @@ from collections import defaultdict
 import nltk
 from nltk.corpus import stopwords
 from nltk.stem import PorterStemmer
-from source.modules.path import log_file_path, chunk_database_path
+from modules.path import log_file_path, chunk_database_path, pdf_path
 
 stemmer = PorterStemmer()
 def has_repeats_regex(word, n=3):
@@ -203,7 +203,7 @@ def process_chunks_in_batches(db_name: str, batch_size=100):
         for offset in range(0, total_chunks, batch_size):
             cursor.execute("SELECT chunk_text FROM pdf_chunks ORDER BY id LIMIT ? OFFSET ?", (batch_size, offset))
             yield [row[0] for row in cursor.fetchall()]
-            print(f"Retrieved {offset+batch_size} chunks", end=' ')
+            print(f"Retrived {batch_size + offset} chunks")
         conn.close()
 
     # Function to merge split words in the chunks
@@ -245,7 +245,6 @@ def process_chunks_in_batches(db_name: str, batch_size=100):
     conn.close()
 
 # Main function
-from source.modules.path import pdf_path
 def extract_text() -> None:
     FOLDER_PATH = pdf_path
     CHUNK_SIZE = 800
