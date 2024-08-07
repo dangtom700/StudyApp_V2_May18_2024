@@ -15,6 +15,7 @@ def app():
                                      allow_abbrev=True)
     
     parser.add_argument("--extractText", action= 'store_true', help= 'Extract text from PDF files and store in database')
+    parser.add_argument("--processWordFrequencies", action= 'store_true', help="Create index tables and analyze word frequencies all in one")
     parser.add_argument("--updateDatabase", action= 'store_true', help="Create index tables and analyze word frequencies all in one")
     parser.add_argument("--getTaskList", action= 'store_true', help="Export a list of tasks in .md format")
     parser.add_argument("--searchDatabase", type=str, help="Search for files in the specified folder path")
@@ -24,7 +25,7 @@ def app():
 
     if args.extractText:
         start_time = datetime.now()
-        updateLog.log_message(f"Extracting text from PDF files...")
+        print(f"Extracting text from PDF files...")
         # extract_text
         updateLog.log_message(f"Extracting text from PDF files...")
         extract_pdf.extract_text()
@@ -36,7 +37,13 @@ def app():
         # announce finish
         print(f"Finished updating database from log file.")
         updateLog.log_message(f"Finished updating database from log file.")
-        # start to process word_frequencies
+        # calculate the total time done
+        end_time = datetime.now()
+        updateLog.log_message(f"Total time taken: {end_time - start_time}")
+        print(f"Total time taken: {end_time - start_time}")
+    
+    if args.processWordFrequencies:
+        start_time = datetime.now()
         print(f"Processing word frequencies in chunks...")
         updateLog.log_message(f"Processing word frequencies in chunks...")
         # peoxwss word frequency
