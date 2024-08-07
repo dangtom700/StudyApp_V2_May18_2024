@@ -203,7 +203,7 @@ def process_chunks_in_batches(db_name: str, batch_size=100):
         for offset in range(0, total_chunks, batch_size):
             cursor.execute("SELECT chunk_text FROM pdf_chunks ORDER BY id LIMIT ? OFFSET ?", (batch_size, offset))
             yield [row[0] for row in cursor.fetchall()]
-            print(f"Retrived {batch_size + offset} chunks")
+            # print(f"Retrived {batch_size + offset} chunks")
         conn.close()
 
     # Function to merge split words in the chunks
