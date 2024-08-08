@@ -264,10 +264,6 @@ def getWordFrequencyAnalysis(batch_size = 100, threshold = 0.82):
         # Write the words with the best coverage
         cursor.execute("SELECT * FROM word_frequencies ORDER BY frequency DESC LIMIT ?", (batch_size + offset,))
 
-        # Get temporary Json data from the cursor
-        with open(path.WordFrequencyAnalysis_temp_json_path, 'w', encoding='utf-8') as temp_json_file:
-            json.dump(cursor.fetchall(), temp_json_file)
-
         f.write("### Words of best coverage:\n\n")
         f.write("|Word|Frequency|Word|Frequency|Word|Frequency|Word|Frequency|")
         f.write("\n|---|---|---|---|---|---|---|---|\n")
@@ -283,5 +279,9 @@ def getWordFrequencyAnalysis(batch_size = 100, threshold = 0.82):
 
         f.write("End of report.\n")
         print("Report generated.")
+
+        # Get temporary Json data from the cursor
+        with open(path.WordFrequencyAnalysis_temp_json_path, 'w', encoding='utf-8') as temp_json_file:
+            json.dump(rows, temp_json_file)
 
     conn.close()
