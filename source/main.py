@@ -20,6 +20,8 @@ def app():
     parser.add_argument("--getTaskList", action= 'store_true', help="Export a list of tasks in .md format")
     parser.add_argument("--searchDatabase", type=str, help="Search for files in the specified folder path")
     parser.add_argument("--getNoteReview", action= 'store_true', help="Export a list of notes to review in .md format")
+    parser.add_argument("--getWordFrequencyAnalysis", action= 'store_true', help="Export a list of word frequency analysis in .md format")
+    parser.add_argument("--categorizeReadingMaterial", action= 'store_true', help="Categorize PDF files by month and year")
 
     args = parser.parse_args()
 
@@ -92,10 +94,17 @@ def app():
         search.getNoteReviewTask()
         updateLog.log_message(f"Finished exporting notes to 'Note Review.md' in {path.Obsidian_noteReview_path}.")
 
+    if args.getWordFrequencyAnalysis:
+        updateLog.log_message(f"Exporting word frequency analysis to 'word_frequency_analysis.md' in {path.WordFrequencyAnalysis_path}...")
+        search.getWordFrequencyAnalysis()
+        updateLog.log_message(f"Finished exporting word frequency analysis to 'word_frequency_analysis.md' in {path.WordFrequencyAnalysis_path}.")
+
+    if args.categorizeReadingMaterial:
+        updateLog.log_message(f"Exporting reading material to 'Reading Material.md' in {path.Obsidian_readingMaterial_path}...")
+        search.categorizeReadingMaterial()
+        updateLog.log_message(f"Finished exporting reading material to 'Reading Material.md' in {path.Obsidian_readingMaterial_path}.")
+
 if __name__ == "__main__":
     app()
     # extract_pdf.download_nltk()
-    # updateLog.create_cs_file(path.pdf_path, ".pdf")
-    # updateLog.create_cs_file(path.study_notes_folder_path, ".md")
-    # updateLog.categorize_pdf_files_by_month_year()
     # search.create_task_list_in_time_range(datetime(2024, 8, 1), datetime(2024, 10, 31))
