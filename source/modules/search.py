@@ -194,3 +194,90 @@ def create_task_list_in_time_range(start_date: datetime.datetime, end_date: date
         log_message(f"Finished exporting task list to 'Task List.md' in {path.Obsidian_taskList_path} for {current_date}.")
         current_date += datetime.timedelta(days=1)
     print(f"Finished updating task list record.")
+
+def getWordFrequencyAnalysis(batch_size = 100, threshold = 0.82):
+    conn = sqlite3.connect(path.chunk_database_path)
+    cursor = conn.cursor()
+
+    # Order the table in descending order
+    cursor.execute("SELECT * FROM word_frequencies ORDER BY frequency DESC")
+
+    # get the sum of frequency from the table
+    cursor.execute("SELECT SUM(frequency) FROM word_frequencies")
+    sum_frequency = cursor.fetchone()[0]
+    print(f"Sum of frequency: {sum_frequency}")
+
+    # get the average of frequency from the table
+    cursor.execute("SELECT AVG(frequency) FROM word_frequencies")
+    avg_frequency = cursor.fetchone()[0]
+    print(f"Average of frequency: {avg_frequency}")
+
+    print("Generating report...")
+    with open(path.WordFrequencyAnalysis_path, 'w', encoding='utf-8') as f:
+        # Default parameters
+        counting_frequency = 0
+        offset = 0
+        # Write the header
+        f.write("# Word frequency analysis\n\n")
+        # Write the parameters
+        f.write("Parameters:\n")
+        f.write(f"- Counting frequency: {counting_frequency}\n")
+        f.write(f"- Batch size: {batch_size}\n")
+        f.write(f"- Threshold: {threshold}\n")
+        f.write(f"- Offset: {offset}\n")
+        f.write("\n\n")
+
+        # Write the results
+        f.write(f"Sum of frequency: {sum_frequency}\n")
+        f.write(f"Average of frequency: {avg_frequency}\n")
+        f.write("\n\n")
+
+        # Write the main report
+        f.write("### Word frequency analysis:\n\n")
+        f.write("|Iteration|Counting frequency|Coverage|Frequency gain|Coverage gain|Word count|\n")
+        f.write("|---------|------------------|--------|--------------|-------------|----------|\n")
+        
+        coverage = counting_frequency / sum_frequency
+
+        while coverage < threshold:
+            cursor.execute("SELECT SUM(frequency) FROM (SELECT frequency FROM word_frequencies ORDER BY frequency DESC LIMIT ? OFFSET ?)", (batch_size, offset))
+            batch_sum = cursor.fetchone()[0]
+            
+            if batch_sum is None:  # In case there are no more rows to fetch
+                break
+            
+            counting_frequency += batch_sum
+            offset += batch_size
+
+            previous_coverage = coverage
+            coverage = counting_frequency / sum_frequency
+            coverage_gain = coverage - previous_coverage
+
+            f.write(f"|{int(offset / batch_size)}")
+            f.write(f"|{counting_frequency}")
+            f.write(f"|{coverage:.2%}")
+            f.write(f"|{batch_sum}")
+            f.write(f"|{coverage_gain:.2%}")
+            f.write(f"|{offset}|\n")
+
+        f.write("\n\n")
+
+        # Write the words with the best coverage
+        cursor.execute("SELECT * FROM word_frequencies ORDER BY frequency DESC LIMIT ?", (batch_size + offset,))
+        f.write("### Words of best coverage:\n\n")
+        f.write("|Word|Frequency|Word|Frequency|Word|Frequency|Word|Frequency|")
+        f.write("\n|---|---|---|---|---|---|---|---|\n")
+        
+        # Adjust for four columns per row
+        rows = cursor.fetchall()
+        for i in range(0, len(rows), 4):
+            row_group = rows[i:i+4]
+            f.write("|")
+            for row in row_group:
+                f.write(f"{row[0]}|{row[1]}|")
+            f.write("\n")
+
+        f.write("End of report.\n")
+        print("Report generated.")
+
+    conn.close()
