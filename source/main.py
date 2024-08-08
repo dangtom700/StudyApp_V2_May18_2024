@@ -100,9 +100,9 @@ def app():
         updateLog.log_message(f"Finished exporting word frequency analysis to 'word_frequency_analysis.md' in {path.WordFrequencyAnalysis_path}.")
 
     if args.categorizeReadingMaterial:
-        updateLog.log_message(f"Exporting reading material to 'Reading Material.md' in {path.Obsidian_readingMaterial_path}...")
-        search.categorizeReadingMaterial()
-        updateLog.log_message(f"Finished exporting reading material to 'Reading Material.md' in {path.Obsidian_readingMaterial_path}.")
+        updateLog.log_message(f"Exporting reading material to 'Reading Material.md' in {path.ReadingMaterial_path}...")
+        updateLog.categorize_pdf_files_by_month_year()
+        updateLog.log_message(f"Finished exporting reading material to 'Reading Material.md' in {path.ReadingMaterial_path}.")
 
 if __name__ == "__main__":
     app()
