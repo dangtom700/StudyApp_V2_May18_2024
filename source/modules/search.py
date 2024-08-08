@@ -1,6 +1,6 @@
 import sqlite3
 import colorama
-
+import json
 import datetime
 import modules.path as path
 from modules.updateLog import log_message
@@ -221,15 +221,14 @@ def getWordFrequencyAnalysis(batch_size = 100, threshold = 0.82):
         f.write("# Word frequency analysis\n\n")
         # Write the parameters
         f.write("Parameters:\n")
-        f.write(f"- Counting frequency: {counting_frequency}\n")
         f.write(f"- Batch size: {batch_size}\n")
         f.write(f"- Threshold: {threshold}\n")
-        f.write(f"- Offset: {offset}\n")
         f.write("\n\n")
 
         # Write the results
-        f.write(f"Sum of frequency: {sum_frequency}\n")
-        f.write(f"Average of frequency: {avg_frequency}\n")
+        f.write("Generated results:\n\n")
+        f.write(f"- Sum of frequency: {sum_frequency}\n\n")
+        f.write(f"- Average of frequency: {avg_frequency}\n")
         f.write("\n\n")
 
         # Write the main report
@@ -264,6 +263,11 @@ def getWordFrequencyAnalysis(batch_size = 100, threshold = 0.82):
 
         # Write the words with the best coverage
         cursor.execute("SELECT * FROM word_frequencies ORDER BY frequency DESC LIMIT ?", (batch_size + offset,))
+
+        # Get temporary Json data from the cursor
+        with open(path.WordFrequencyAnalysis_temp_json_path, 'w', encoding='utf-8') as temp_json_file:
+            json.dump(cursor.fetchall(), temp_json_file)
+
         f.write("### Words of best coverage:\n\n")
         f.write("|Word|Frequency|Word|Frequency|Word|Frequency|Word|Frequency|")
         f.write("\n|---|---|---|---|---|---|---|---|\n")
