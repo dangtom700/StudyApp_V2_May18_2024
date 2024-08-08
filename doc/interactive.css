@@ -167,3 +167,17 @@ h1 {
     padding: 10px 20px;
     margin: 5px;
   }
+.ProposalNewFeatures{
+    border: 2px solid rgb(0, 0, 0);
+    ul {
+        list-style-type: none;
+        
+    }
+    ul > li::before {
+        content: counters(item, ".") " ";
+        counter-increment: item;
+    }
+    ul li ul {
+        counter-reset: item;
+    }
+}
