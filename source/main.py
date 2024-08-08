@@ -18,7 +18,7 @@ def app():
     parser.add_argument("--processWordFrequencies", action= 'store_true', help="Create index tables and analyze word frequencies all in one")
     parser.add_argument("--updateDatabase", action= 'store_true', help="Create index tables and analyze word frequencies all in one")
     parser.add_argument("--getTaskList", action= 'store_true', help="Export a list of tasks in .md format")
-    parser.add_argument("--searchDatabase", type=str, help="Search for files in the specified folder path")
+    parser.add_argument("--searchTitle", type=str, help="Search for files in the specified folder path")
     parser.add_argument("--getNoteReview", action= 'store_true', help="Export a list of notes to review in .md format")
     parser.add_argument("--getWordFrequencyAnalysis", action= 'store_true', help="Export a list of word frequency analysis in .md format")
     parser.add_argument("--categorizeReadingMaterial", action= 'store_true', help="Categorize PDF files by month and year")
@@ -83,10 +83,10 @@ def app():
         search.getTaskListFromDatabase()
         updateLog.log_message(f"Finished exporting task list to 'Task List.md' in {path.Obsidian_taskList_path}.")
 
-    if args.searchDatabase:
-        updateLog.log_message(f"Searching for keyword '{args.searchDatabase}'...")
+    if args.searchTitle:
+        updateLog.log_message(f"Searching for keyword '{args.searchTitle}'...")
         updateLog.log_message(f"Searching for files in database...")
-        search.searchFileInDatabase(args.searchDatabase)
+        search.searchFileInDatabase(args.searchTitle)
         updateLog.log_message(f"Finished search.")
 
     if args.getNoteReview:
