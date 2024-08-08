@@ -4,26 +4,37 @@ import modules.path as path
 conn = sqlite3.connect(path.chunk_database_path)
 cursor = conn.cursor()
 
-total_count = cursor.execute("SELECT COUNT(*) FROM word_frequencies").fetchone()[0]
-print(f"Total number of words: {total_count}")
+# Order the table in descending order
+cursor.execute("SELECT * FROM word_frequencies ORDER BY frequency DESC")
 
-# count the number of word that has frequency from 1 to 10
-for i in range(1, 11):
-    cursor.execute(f"SELECT COUNT(*) FROM word_frequencies WHERE frequency = {i}")
-    count = cursor.fetchone()[0]
-    print(f"Number of word that has frequency of {i}: {count}")
+# get the sum of frequency from the table
+cursor.execute("SELECT SUM(frequency) FROM word_frequencies")
+sum_frequency = cursor.fetchone()[0]
+print(f"Sum of frequency: {sum_frequency}")
 
-# count the number of word that has frequency from 10 to 100 in steps of 10
-for i in range(10, 101, 10):
-    cursor.execute(f"SELECT COUNT(*) FROM word_frequencies WHERE frequency = {i}")
-    count = cursor.fetchone()[0]
-    print(f"Number of word that has frequency of {i}: {count}")
+# get the average of frequency from the table
+cursor.execute("SELECT AVG(frequency) FROM word_frequencies")
+avg_frequency = cursor.fetchone()[0]
+print(f"Average of frequency: {avg_frequency}")
 
-# count the number of word that has frequency from 100 to 1000 in steps of 100
-for i in range(100, 1001, 100):
-    cursor.execute(f"SELECT COUNT(*) FROM word_frequencies WHERE frequency = {i}")
-    count = cursor.fetchone()[0]
-    print(f"Number of word that has frequency of {i}: {count}")
+counting_frequency = 0
+batch_size = 100
+threshold = 0.63
+offset = 0
+
+
+while round(counting_frequency / sum_frequency, 2) < threshold:
+    cursor.execute("SELECT SUM(frequency) FROM (SELECT frequency FROM word_frequencies LIMIT ? OFFSET ?)", (batch_size, offset))
+    batch_sum = cursor.fetchone()[0]
+    
+    if batch_sum is None:  # In case there are no more rows to fetch
+        break
+    
+    counting_frequency += batch_sum
+    offset += batch_size
+    
+    print(f"Counting frequency: {counting_frequency}")
+    print(f"Coverage: {counting_frequency / sum_frequency:.2%}")
 
 
 conn.close()
