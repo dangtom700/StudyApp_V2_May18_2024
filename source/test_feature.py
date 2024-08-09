@@ -1,0 +1,19 @@
+"""
+Pre-set the most popular words as the parameters to compute the text chunk
+relevance using dot product for vector similarity.
+
+The equation for similarity is:
+            a * b = |a| * |b| * cos(angle between a and b)
+            with a and b being unit vectors
+            => 1 >= |a| * |b| * cos(angle between a and b) >= -1
+            => |cos(angle between a and b)| <= 1/(|a| * |b|)
+
+1. Using the words provided in the json file, set a list of parameters for all the 
+text chunks.
+2. Count the number of times each word appears in the text chunks.
+(Text chunks are extracted from database)
+3. Compute the magnitude of the vector for each text chunk in a separate list.
+Convert it to unit vector.
+4. The second vector is the input prompt is vectorized with the same parameters.
+5. Compute the dot product of the two vectors.
+"""
