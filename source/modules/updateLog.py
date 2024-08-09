@@ -57,7 +57,7 @@ def categorize_pdf_files_by_month_year(destination_path = ReadingMaterial_path) 
     rows = {row[0]: row[1] for row in rows}
     conn.close()
     
-    print(len(rows))
+    print(f"There are {len(rows)} files in the database.")
     counter = 0
 
     filtered_data = filter_date(rows)
@@ -77,5 +77,4 @@ def categorize_pdf_files_by_month_year(destination_path = ReadingMaterial_path) 
             shutil.copy2(pdf_path, destination_file)
 
             counter += 1
-            print(counter)
-            print(pdf_path)
+            print(f"Found file {counter}: {pdf_path} has not been sorted yet.")
