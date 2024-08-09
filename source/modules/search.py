@@ -214,7 +214,11 @@ def getWordFrequencyAnalysis(batch_size = 100, threshold = 0.82):
 
     print("Generating report...")
     with open(path.WordFrequencyAnalysis_path, 'w', encoding='utf-8') as f:
-        
+        # Default parameters
+        counting_frequency = 0
+        offset = 0
+        # Write the header
+        f.write("# Word frequency analysis\n\n")
         # Write the main report
         f.write("### Word frequency analysis:\n\n")
         f.write("|Iteration|Counting frequency|Coverage|Frequency gain|Coverage gain|Word count|\n")
@@ -262,11 +266,7 @@ def getWordFrequencyAnalysis(batch_size = 100, threshold = 0.82):
             f.write("\n")
 
         f.write("\n\n")
-        # Default parameters
-        counting_frequency = 0
-        offset = 0
-        # Write the header
-        f.write("# Word frequency analysis\n\n")
+        
         # Write the parameters
         f.write("Parameters:\n")
         f.write(f"- Batch size: {batch_size}\n")
