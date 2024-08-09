@@ -214,23 +214,7 @@ def getWordFrequencyAnalysis(batch_size = 100, threshold = 0.82):
 
     print("Generating report...")
     with open(path.WordFrequencyAnalysis_path, 'w', encoding='utf-8') as f:
-        # Default parameters
-        counting_frequency = 0
-        offset = 0
-        # Write the header
-        f.write("# Word frequency analysis\n\n")
-        # Write the parameters
-        f.write("Parameters:\n")
-        f.write(f"- Batch size: {batch_size}\n")
-        f.write(f"- Threshold: {threshold}\n")
-        f.write("\n\n")
-
-        # Write the results
-        f.write("Generated results:\n\n")
-        f.write(f"- Sum of frequency: {sum_frequency}\n\n")
-        f.write(f"- Average of frequency: {avg_frequency}\n")
-        f.write("\n\n")
-
+        
         # Write the main report
         f.write("### Word frequency analysis:\n\n")
         f.write("|Iteration|Counting frequency|Coverage|Frequency gain|Coverage gain|Word count|\n")
@@ -262,7 +246,7 @@ def getWordFrequencyAnalysis(batch_size = 100, threshold = 0.82):
         f.write("\n\n")
 
         # Write the words with the best coverage
-        cursor.execute("SELECT * FROM word_frequencies ORDER BY frequency DESC LIMIT ?", (batch_size + offset,))
+        cursor.execute("SELECT * FROM word_frequencies ORDER BY frequency DESC LIMIT ?", (offset,))
 
         f.write("### Words of best coverage:\n\n")
         f.write("|Word|Frequency|Word|Frequency|Word|Frequency|Word|Frequency|")
@@ -277,11 +261,28 @@ def getWordFrequencyAnalysis(batch_size = 100, threshold = 0.82):
                 f.write(f"{row[0]}|{row[1]}|")
             f.write("\n")
 
+        f.write("\n\n")
+        # Default parameters
+        counting_frequency = 0
+        offset = 0
+        # Write the header
+        f.write("# Word frequency analysis\n\n")
+        # Write the parameters
+        f.write("Parameters:\n")
+        f.write(f"- Batch size: {batch_size}\n")
+        f.write(f"- Threshold: {threshold}\n")
+        f.write("\n\n")
+
+        # Write the results
+        f.write("Generated results:\n\n")
+        f.write(f"- Sum of frequency: {sum_frequency}\n")
+        f.write(f"- Average of frequency: {avg_frequency}\n")
+        f.write(f"- Counting frequency: {counting_frequency}\n")
+        f.write(f"- Coverage: {coverage:.2%}\n")
+        f.write(f"- Word count: {offset}\n")
+        f.write("\n\n")
+
         f.write("End of report.\n")
         print("Report generated.")
-
-        # Get temporary Json data from the cursor
-        with open(path.WordFrequencyAnalysis_temp_json_path, 'w', encoding='utf-8') as temp_json_file:
-            json.dump(rows, temp_json_file)
 
     conn.close()
