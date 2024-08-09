@@ -22,11 +22,8 @@ import sqlite3 # to query the database
 import modules.path as path # to get the path of the database
 import scipy # to compute the dot product
 
-BATCH_SIZE = 100
-FILE_PATH = path.WordFrequencyAnalysis_temp_json_path
-
-
-def create_relevant_text_chunks_table() -> None:
+def create_relevant_text_chunks_table(word_population = 2800, batch_size = 100, file_path = path.chunk_database_path) -> None:
+    # Word population is collected from the generated word frequency analysis
     conn = sqlite3.connect(path.chunk_database_path)
     cursor = conn.cursor()
 
