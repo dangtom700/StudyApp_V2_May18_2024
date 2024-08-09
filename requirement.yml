@@ -52,6 +52,7 @@ dependencies:
       - multidict==6.0.5
       - murmurhash==1.0.10
       - nltk==3.8.1
+      - numpy==2.0.1
       - orjson==3.10.3
       - packaging==23.2
       - preshed==3.0.9
@@ -64,6 +65,7 @@ dependencies:
       - regex==2024.7.24
       - requests==2.32.2
       - rich==13.7.1
+      - scipy==1.14.0
       - shellingham==1.5.4
       - smart-open==7.0.4
       - sqlalchemy==2.0.30
