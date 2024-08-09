@@ -24,6 +24,9 @@ import scipy # to compute the dot product
 
 def create_relevant_text_chunks_table(word_population = 2800, batch_size = 100, file_path = path.chunk_database_path) -> None:
     # Word population is collected from the generated word frequency analysis
+    # bacth_size is set to 100 to avoid memory issue
+    # file_path is set to the path of the database
+    
     conn = sqlite3.connect(path.chunk_database_path)
     cursor = conn.cursor()
 
