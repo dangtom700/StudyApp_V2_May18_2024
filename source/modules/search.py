@@ -1,6 +1,5 @@
 import sqlite3
 import colorama
-import json
 import datetime
 import modules.path as path
 from modules.updateLog import log_message
@@ -119,7 +118,6 @@ def randomizeNumberOfFilenameWithLowestCount() -> list[str]:
     
     return filenames
 
-
 def getTaskListFromDatabase(date_now = datetime.datetime.now()) -> None:
     result = randomizeNumberOfFilenameWithLowestCount()
     conn = sqlite3.connect(path.chunk_database_path)
@@ -134,7 +132,7 @@ def getTaskListFromDatabase(date_now = datetime.datetime.now()) -> None:
     
     log_message(f"Exporting task list to 'Task List.md' in {path.taskList_path}...")
     with open(path.Obsidian_taskList_path, 'a', encoding='utf-8') as f:
-        f.write(f"\n{date_now.strftime("%a, %b %d, %Y")}\n\n")
+        f.write(f"\n{date_now.strftime('%a, %b %d, %Y')}\n\n")
         
         for task in result:
             # get value from tuple task
@@ -151,9 +149,6 @@ def randomizeNoteList():
     cursor.execute("SELECT note_name FROM note_list ORDER BY RANDOM() LIMIT 3")
     result = cursor.fetchall()
     conn.close()
-    # clear up the string in the list
-    # example: [('Note 1',), ('Note 2',), ('Note 3',)]
-    # to: ['Note 1', 'Note 2', 'Note 3']
     result = [note[0] for note in result]
     log_message(f"Note list randomized: {result}")
     return result
