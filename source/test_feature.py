@@ -25,14 +25,28 @@ import scipy # to compute the dot product
 BATCH_SIZE = 100
 FILE_PATH = path.WordFrequencyAnalysis_temp_json_path
 
-"""
-Create a table for computing the word frequency of each text chunk and the title
-of relevant text chunks.
 
-Structure of the table:
-id | text chunk id| keyword 1| keyword 2| ... | keyword n| relevance score
-1  | 1             | 0       | 0        | ... | 0        | sqrt(sum{[1->n]}^2)
-2  | 2             | 0       | 0        | ... | 0        | sqrt(sum{[1->n]}^2)
-...
-n  | title         |sum{}    |sum{}     | ... |sum{}     | sqrt(sum{[1->n]}^2)
-"""
+def create_relevant_text_chunks_table() -> None:
+    conn = sqlite3.connect(path.chunk_database_path)
+    cursor = conn.cursor()
+
+    """
+    Create a table for computing the word frequency of each text chunk and the title
+    of relevant text chunks.
+
+    Structure of the table:
+    id | text chunk    | keyword 1| keyword 2| ... | keyword n| relevance score
+    1  | text chunk 1  | 0       | 0        | ... | 0        | sqrt(sum{[1->n]}^2)
+    2  | text chunk 2  | 0       | 0        | ... | 0        | sqrt(sum{[1->n]}^2)
+    
+    In a separate table, compute the relevance score for each title to the prompt.
+    n  | title         |sum{}    |sum{}     | ... |sum{}     | sqrt(sum{[1->n]}^2)
+    calculate the sum of all the frequency that each keyword appears in the text chunks.
+    """
+
+    # Create a table with foreign id and text chunk from pdf chunks table, 
+    # and keywords from the first column word frequency table
+    cursor.execute("DROP TABLE IF EXISTS relevant_text_chunks")
+    
+    conn.commit()
+    conn.close()
