@@ -14,23 +14,39 @@ from modules.path import log_file_path, chunk_database_path, pdf_path
 
 stemmer = PorterStemmer()
 
+# Compile the regex pattern once and reuse it
+REPEATED_CHAR_PATTERN = re.compile(r"([a-zA-Z])\1{2,}")
+
 def has_repeats_regex(word, n=3):
-    pattern = f"([a-zA-Z])\\1{{{n - 1}}}"
-    return bool(re.search(pattern, word))
-# Function to clean the text by removing non-alphabetic characters and converting to lowercase
+    """
+    Check if the word contains any repeated characters more than n times.
+    """
+    return bool(REPEATED_CHAR_PATTERN.search(word))
+
 def clean_text(text):
-    def pass_conditions(word):
-        alphabetic = word.isalpha()
-        non_repeating = not has_repeats_regex(word)
-        len_pass = len(word) < 15
-        return alphabetic and non_repeating and len_pass
-    """Preprocesses text by lowercasing, removing punctuation, and stop words."""
-    text = re.sub(r'[^\w\s]', '', text)  # Remove punctuation
-    tokens = text.split()
+    """
+    Preprocesses text by lowercasing, removing punctuation, and filtering out stop words and tokens with repeating characters.
+    """
+    # Initialize stemmer and stop words set once
+    stemmer = PorterStemmer()
     stop_words = set(stopwords.words('english'))
-    tokens = [w for w in tokens if not w in stop_words]
-    tokens = [stemmer.stem(item) for item in tokens if pass_conditions(item)]
-    return tokens
+
+    # Remove punctuation and convert to lowercase
+    text = re.sub(r'[^\w\s]', '', text).lower()
+
+    # Split text into tokens
+    tokens = text.split()
+
+    # Define a function to filter tokens
+    def pass_conditions(word):
+        return (len(word) > 1 and len(word) < 12 and
+                word.isalpha() and not has_repeats_regex(word))
+
+    # Filter tokens based on conditions and apply stemming
+    filtered_tokens = [stemmer.stem(token) for token in tokens
+                       if token not in stop_words and pass_conditions(token)]
+
+    return filtered_tokens
 
 def download_nltk():
     print("Downloading NLTK resources...")
