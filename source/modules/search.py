@@ -190,7 +190,7 @@ def create_task_list_in_time_range(start_date: datetime.datetime, end_date: date
         current_date += datetime.timedelta(days=1)
     print(f"Finished updating task list record.")
 
-def getWordFrequencyAnalysis(batch_size = 100, threshold = 0.82):
+def getWordFrequencyAnalysis(batch_size = 100, threshold = 0.82) -> int:
     conn = sqlite3.connect(path.chunk_database_path)
     cursor = conn.cursor()
 
@@ -281,3 +281,4 @@ def getWordFrequencyAnalysis(batch_size = 100, threshold = 0.82):
         print("Report generated.")
 
     conn.close()
+    return offset
