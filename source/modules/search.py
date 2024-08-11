@@ -110,7 +110,7 @@ def randomizeNumberOfFilenameWithLowestCount() -> list[str]:
         SELECT filename FROM reading_task
         WHERE count = ?
         ORDER BY RANDOM()
-        LIMIT 5
+        LIMIT 3
     """, (min_count,))
 
     filenames = cursor.fetchall()
