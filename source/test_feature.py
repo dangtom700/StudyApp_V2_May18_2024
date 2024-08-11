@@ -17,36 +17,67 @@ Convert it to unit vector.
 5. Compute the dot product of the two vectors.
 """
 
-import json # to read the json file
+"""
+Create a table for computing the word frequency of each text chunk and the title
+of relevant text chunks.
+
+Structure of the table:
+id | text chunk    | keyword 1| keyword 2| ... | keyword n| relevance score
+1  | text chunk 1  | 0       | 0        | ... | 0        | sqrt(sum{[1->n]}^2)
+2  | text chunk 2  | 0       | 0        | ... | 0        | sqrt(sum{[1->n]}^2)
+
+In a separate table, compute the relevance score for each title to the prompt.
+n  | title         |sum{}    |sum{}     | ... |sum{}     | sqrt(sum{[1->n]}^2)
+calculate the sum of all the frequency that each keyword appears in the text chunks.
+"""
+
 import sqlite3 # to query the database
 import modules.path as path # to get the path of the database
-import scipy # to compute the dot product
+import numpy # to compute the dot product
+import modules.search as search # to query the database
+from modules.updateLog import log_message # to log the message
 
-def create_relevant_text_chunks_table(word_population = 2800, batch_size = 100, file_path = path.chunk_database_path) -> None:
+import sqlite3
+
+def create_relevant_text_chunks_table(batch_size=100, file_path= path.chunk_database_path) -> None:
     # Word population is collected from the generated word frequency analysis
-    # bacth_size is set to 100 to avoid memory issue
-    # file_path is set to the path of the database
-    
-    conn = sqlite3.connect(path.chunk_database_path)
+    word_population = 3000 #search.getWordFrequencyAnalysis()
+
+    conn = sqlite3.connect(file_path)
     cursor = conn.cursor()
 
-    """
-    Create a table for computing the word frequency of each text chunk and the title
-    of relevant text chunks.
-
-    Structure of the table:
-    id | text chunk    | keyword 1| keyword 2| ... | keyword n| relevance score
-    1  | text chunk 1  | 0       | 0        | ... | 0        | sqrt(sum{[1->n]}^2)
-    2  | text chunk 2  | 0       | 0        | ... | 0        | sqrt(sum{[1->n]}^2)
-    
-    In a separate table, compute the relevance score for each title to the prompt.
-    n  | title         |sum{}    |sum{}     | ... |sum{}     | sqrt(sum{[1->n]}^2)
-    calculate the sum of all the frequency that each keyword appears in the text chunks.
-    """
-
-    # Create a table with foreign id and text chunk from pdf chunks table, 
-    # and keywords from the first column word frequency table
+    # Drop the table if it exists
     cursor.execute("DROP TABLE IF EXISTS relevant_text_chunks")
-    
+
+    # Create the table with a primary key and the vecLen column
+    cursor.execute("""
+    CREATE TABLE relevant_text_chunks (
+        text_chunk TEXT PRIMARY KEY,
+        vecLen REAL DEFAULT 0.0
+    )
+    """)
+
+    def retrieve_words_in_batches():
+        for i in range(0, word_population, batch_size):
+            cursor.execute("SELECT word FROM word_frequencies ORDER BY frequency DESC LIMIT ? OFFSET ?", (batch_size, i))
+            yield [row[0] for row in cursor.fetchall()]
+
+    def add_columns_to_table():
+        for words in retrieve_words_in_batches():
+            for word in words:
+                cursor.execute(f"ALTER TABLE relevant_text_chunks ADD COLUMN '{word}' INTEGER DEFAULT 0")
+
+    # Add the columns for each word
+    add_columns_to_table()
+
+    # Foreign keys are generally added when creating the table, so it's already handled above
+    # Foreign keys:
+    # - id references pdf_chunks(id)
+    # - text_chunk references pdf_chunks(chunk_text)
+
+    # Commit the changes
     conn.commit()
     conn.close()
+    print("Relevant text chunks table created.")
+
+create_relevant_text_chunks_table()
