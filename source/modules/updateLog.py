@@ -1,8 +1,8 @@
 import sqlite3
 import time
 from modules.path import log_database_path, chunk_database_path, ReadingMaterial_path
-from os import listdir, makedirs
-from os.path import isdir, basename, join, exists
+from os import makedirs
+from os.path import basename, join, exists
 import shutil
 
 def getCurrentTime() -> str:
