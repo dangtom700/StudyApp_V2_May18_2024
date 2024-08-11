@@ -13,6 +13,7 @@ from nltk.stem import PorterStemmer
 from modules.path import log_file_path, chunk_database_path, pdf_path
 
 stemmer = PorterStemmer()
+
 def has_repeats_regex(word, n=3):
     pattern = f"([a-zA-Z])\\1{{{n - 1}}}"
     return bool(re.search(pattern, word))
@@ -21,7 +22,7 @@ def clean_text(text):
     def pass_conditions(word):
         alphabetic = word.isalpha()
         non_repeating = not has_repeats_regex(word)
-        len_pass = len(word) < 12
+        len_pass = len(word) < 15
         return alphabetic and non_repeating and len_pass
     """Preprocesses text by lowercasing, removing punctuation, and stop words."""
     text = re.sub(r'[^\w\s]', '', text)  # Remove punctuation
@@ -187,7 +188,7 @@ def process_files_in_parallel(pdf_files, reset_db, chunk_size, db_name):
                 future.result()
                 completed_files += 1
                 logging.info(f"Completed {completed_files}/{total_files} file: {pdf_file}")
-                print(f"Completed {completed_files}/{total_files}={completed_files/total_files:.2%} file: {os.path.basename(pdf_file).removesuffix('.pdf')}")
+                print(f"Completed {completed_files}/{total_files} file: {os.path.basename(pdf_file).removesuffix('.pdf')}")
             except Exception as e:
                 logging.error(f"Error processing {pdf_file}: {e}")
 
