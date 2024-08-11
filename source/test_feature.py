@@ -41,7 +41,8 @@ import sqlite3
 
 def create_relevant_text_chunks_table(batch_size=100, file_path= path.chunk_database_path) -> None:
     # Word population is collected from the generated word frequency analysis
-    word_population = 3000 #search.getWordFrequencyAnalysis()
+    # Defalut limit of SQLite is 2000
+    word_population = min(1980, search.getWordFrequencyAnalysis())
 
     conn = sqlite3.connect(file_path)
     cursor = conn.cursor()
