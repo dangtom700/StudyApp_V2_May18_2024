@@ -11,6 +11,7 @@ import nltk
 from nltk.corpus import stopwords
 from nltk.stem import PorterStemmer
 from modules.path import log_file_path, chunk_database_path, pdf_path
+from typing import List, Generator
 
 stemmer = PorterStemmer()
 
@@ -262,20 +263,44 @@ def process_chunks_in_batches(db_name: str, batch_size=100):
     conn.close()
 
 # Main function
+def batch_collect_files(folder_path: str, extensions='.pdf', batch_size=100) -> Generator[List[str], None, None]:
+    """
+    Generator function that yields batches of files from the specified folder.
+
+    :param folder_path: Path to the folder containing the files.
+    :param extensions: File extension to filter by (default is '.pdf').
+    :param batch_size: Number of files to include in each batch (default is 100).
+    :yield: List of file paths.
+    """
+    current_batch = []
+
+    for root, _, files in os.walk(folder_path):
+        for file in files:
+            if file.lower().endswith(extensions):
+                current_batch.append(os.path.join(root, file))
+                if len(current_batch) == batch_size:
+                    yield current_batch
+                    current_batch = []
+
+    # Yield any remaining files in the last batch
+    if current_batch:
+        yield current_batch
+
 def extract_text() -> None:
     FOLDER_PATH = pdf_path
     CHUNK_SIZE = 800
     RESET_DATABASE = True
     DB_NAME = chunk_database_path
 
-    pdf_files = [os.path.join(FOLDER_PATH, file) for file in os.listdir(FOLDER_PATH) if file.lower().endswith('.pdf')]
-    
     # Reset the database before processing
     setup_database(reset_db=RESET_DATABASE, db_name=DB_NAME, action="extract_text")
     
-    logging.info(f"Starting processing of {len(pdf_files)} PDF files...")
-    print(f"Starting processing of {len(pdf_files)} PDF files...")
-    process_files_in_parallel(pdf_files, reset_db=RESET_DATABASE, chunk_size=CHUNK_SIZE, db_name=DB_NAME)
+    logging.info(f"Starting processing of PDF files in batches...")
+    print(f"Starting processing of PDF files in batches...")
+
+    for pdf_batch in batch_collect_files(FOLDER_PATH, batch_size=100):
+        process_files_in_parallel(pdf_batch, reset_db=RESET_DATABASE, chunk_size=CHUNK_SIZE, db_name=DB_NAME)
+
     logging.info("Processing complete: Extracting text from PDF files.")
     print("Processing complete: Extracting text from PDF files.")
 
