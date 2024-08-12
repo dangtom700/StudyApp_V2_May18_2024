@@ -18,6 +18,7 @@ import sqlite3
 import os
 import threading
 import time
+from typing import List
 from modules.extract_pdf import batch_collect_files, store_chunks_in_db
 from modules.path import chunk_database_path, study_notes_folder_path
 
@@ -71,18 +72,22 @@ def process_markdown_file(file_path):
             chunks = [text[i:i + CHUNK_SIZE] for i in range(0, len(text), CHUNK_SIZE)]
             store_chunks_with_retry(file_name=os.path.basename(file_path), chunks=chunks, db_name=chunk_database_path)
 
-def extract_markdown_notes_in_batches(directory):
-    """Main process to collect, extract, chunk, and store markdown files using multithreading."""
-    files = batch_collect_files(folder_path=directory, extension='.md')
+def process_batch_of_files(file_batch: List[str]):
+    """Processes a batch of markdown files concurrently."""
     threads = []
-
-    for file_path in files:
+    
+    for file_path in file_batch:
         thread = threading.Thread(target=process_markdown_file, args=(file_path,))
         thread.start()
         threads.append(thread)
-
+    
     for thread in threads:
-        thread.join()  # Wait for all threads to finish
+        thread.join()  # Wait for all threads in the batch to finish
+
+def extract_markdown_notes_in_batches(directory):
+    """Main process to collect, extract, chunk, and store markdown files in batches using multithreading."""
+    for file_batch in batch_collect_files(folder_path=directory, extension='.md'):
+        process_batch_of_files(file_batch)
 
 if __name__ == "__main__":
     directory = study_notes_folder_path
