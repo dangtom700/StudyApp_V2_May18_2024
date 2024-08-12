@@ -5,11 +5,7 @@ from os.path import getmtime
 from time import ctime
 from modules.updateLog import log_message
 from modules.path import chunk_database_path
-
-def get_file_list(file_path: str, extenstion: str) -> list[str]:
-    return [os.path.join(file_path, file) for file in os.listdir(file_path) if file.endswith(extenstion)]
-def extract_names(raw_list: list[str], extension: str) -> list[str]:
-    return [os.path.basename(file).removesuffix(extension) for file in raw_list if file.endswith(extension)]
+from modules.extract_pdf import batch_collect_files
 
 def get_updated_time(file_path: str) -> str:
     """
@@ -48,15 +44,23 @@ def store_files_in_db(file_names: list[str], file_list: list[str], db_name: str,
     conn.commit()
     conn.close()
 # Main function
-def create_type_index_table(file_path: str, extenstion: str, type: str) -> None:
-    log_message(f"Started creating {type} index.")
-    file_list = get_file_list(file_path=file_path, extenstion=extenstion)
-    file_names = extract_names(file_list, extenstion)
+def extract_names(raw_list: list[str], extension: str) -> list[str]:
+    return [os.path.basename(file).removesuffix(extension) for file in raw_list if file.endswith(extension)]
 
+def create_type_index_table(file_path: str, extension: str, type: str) -> None:
+    log_message(f"Started creating {type} index.")
+    
+    # Initialize database
     setup_database(reset_db=True, db_name=chunk_database_path, type=type)
+    
     log_message("Started storing files in database.")
-    for file_name, file_path in zip(file_names, file_list):
-        log_message(f"Processing {type}: {file_name}...")
-        store_files_in_db(file_names=[file_name], file_list=[file_path], db_name=chunk_database_path, type=type)
+    
+    for file_batch in batch_collect_files(file_path=file_path, extension=extension, batch_size=100):
+        file_names = extract_names(file_batch, extension)
+        
+        for file_name, file_path in zip(file_names, file_batch):
+            log_message(f"Processing {type}: {file_name}...")
+            store_files_in_db(file_names=[file_name], file_list=[file_path], db_name=chunk_database_path, type=type)
+
     log_message(f"Files: {type} stored in database.")
     print(f"Processing complete: create {type} index.")
