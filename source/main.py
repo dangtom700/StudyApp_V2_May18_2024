@@ -108,3 +108,17 @@ if __name__ == "__main__":
     app()
     # extract_pdf.download_nltk()
     # search.create_task_list_in_time_range(datetime(2024, 8, 1), datetime(2024, 10, 31))
+    """
+    Typical usage:
+    python source/main.py --help
+    python source/main.py --extractText
+    python source/main.py --updateDatabase
+    python source/main.py --getTaskList
+    python source/main.py --searchTitle
+    python source/main.py --getNoteReview
+    python source/main.py --getWordFrequencyAnalysis
+    python source/main.py --categorizeReadingMaterial
+    python source/main.py --processWordFrequencies
+
+    python source/main.py --extractText --processWordFrequencies --updateDatabase --getWordFrequencyAnalysis --categorizeReadingMaterial
+    """
