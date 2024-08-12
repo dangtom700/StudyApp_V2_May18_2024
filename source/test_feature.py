@@ -21,12 +21,13 @@ import time
 from typing import List
 from modules.extract_pdf import batch_collect_files, store_chunks_in_db
 from modules.path import chunk_database_path, study_notes_folder_path
+from modules.updateLog import log_message
 
-CHUNK_SIZE = 800  # Character limit for each chunk stored in the database
-MAX_RETRIES = 999  # Maximum number of retries for SQLite operations
-RETRY_DELAY = 10   # Delay in seconds between retries
+# CHUNK_SIZE = 800  # Character limit for each chunk stored in the database
+# MAX_RETRIES = 999  # Maximum number of retries for SQLite operations
+# RETRY_DELAY = 10   # Delay in seconds between retries
 
-def extract_text_chunk(file, chunk_size=8000):
+def extract_note_text_chunk(file, chunk_size=8000):
     """Extracts and cleans text chunk by chunk from a markdown file."""
     content = []
     for line in file:
@@ -44,7 +45,7 @@ def clean_markdown_text(markdown_text):
     text = re.sub(r'<[^>]+>', '', html_content)
     return text
 
-def store_chunks_with_retry(file_name, chunks, db_name):
+def store_text_note_in_chunks_with_retry(file_name, chunks, db_name, MAX_RETRIES = 999, RETRY_DELAY = 10):
     """Stores chunks in the database with retry logic."""
     attempts = 0
     while attempts < MAX_RETRIES:
@@ -64,15 +65,15 @@ def store_chunks_with_retry(file_name, chunks, db_name):
     else:
         print(f"Failed to store chunks after {MAX_RETRIES} attempts for file {file_name}")
 
-def process_markdown_file(file_path):
+def process_markdown_file(file_path, CHUNK_SIZE = 800):
     """Processes a single markdown file."""
     with open(file_path, 'r', encoding='utf-8') as file:
-        for raw_chunk in extract_text_chunk(file):
+        for raw_chunk in extract_note_text_chunk(file):
             text = clean_markdown_text(raw_chunk)
             chunks = [text[i:i + CHUNK_SIZE] for i in range(0, len(text), CHUNK_SIZE)]
-            store_chunks_with_retry(file_name=os.path.basename(file_path), chunks=chunks, db_name=chunk_database_path)
+            store_text_note_in_chunks_with_retry(file_name=os.path.basename(file_path), chunks=chunks, db_name=chunk_database_path)
 
-def process_batch_of_files(file_batch: List[str]):
+def process_text_note_batch_of_files(file_batch: List[str]):
     """Processes a batch of markdown files concurrently."""
     threads = []
     
@@ -87,7 +88,12 @@ def process_batch_of_files(file_batch: List[str]):
 def extract_markdown_notes_in_batches(directory):
     """Main process to collect, extract, chunk, and store markdown files in batches using multithreading."""
     for file_batch in batch_collect_files(folder_path=directory, extension='.md'):
-        process_batch_of_files(file_batch)
+        process_text_note_batch_of_files(file_batch)
+        print(f"Finished processing batch of {len(file_batch)} markdown files.")
+        log_message(f"Finished processing batch of {len(file_batch)} markdown files.")
+
+    print("Finished processing markdown files.")
+    log_message("Finished processing markdown files.")
 
 if __name__ == "__main__":
     directory = study_notes_folder_path
