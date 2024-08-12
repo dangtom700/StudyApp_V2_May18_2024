@@ -19,7 +19,7 @@ import os
 import threading
 import time
 from modules.extract_pdf import batch_collect_files, store_chunks_in_db
-from modules.path import chunk_database_path
+from modules.path import chunk_database_path, study_notes_folder_path
 
 CHUNK_SIZE = 800  # Character limit for each chunk stored in the database
 MAX_RETRIES = 999  # Maximum number of retries for SQLite operations
@@ -83,3 +83,9 @@ def extract_markdown_notes_in_batches(directory):
 
     for thread in threads:
         thread.join()  # Wait for all threads to finish
+
+if __name__ == "__main__":
+    directory = study_notes_folder_path
+    extract_markdown_notes_in_batches(directory)
+
+    print("Finished processing markdown files.")
