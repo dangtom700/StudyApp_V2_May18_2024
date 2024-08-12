@@ -192,7 +192,7 @@ def extract_split_and_store_pdf(pdf_file, chunk_size, db_name):
 
 # Function to process multiple PDF files concurrently
 def process_files_in_parallel(pdf_files, reset_db, chunk_size, db_name):
-    setup_database(db_name, reset_db, action="extract_text")  # Ensure the database is reset before processing files
+    # setup_database(db_name, reset_db, action="extract_text")  # Ensure the database is reset before processing files
     with concurrent.futures.ThreadPoolExecutor() as executor:
         future_to_file = {executor.submit(extract_split_and_store_pdf, pdf_file, chunk_size, db_name): pdf_file for pdf_file in pdf_files}
         
