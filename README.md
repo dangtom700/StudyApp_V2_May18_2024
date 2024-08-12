@@ -46,7 +46,10 @@ There are 3 parts to this project:
 
 - **Automated Word Filter**: Collects the raw set of words from a file or a folder from the BOOKS folder that stores reading material in PDF format and the Study Note folder that stores study notes in Markdown format. There are 2 layers for filtering. The first layer is the pre-set rules for filtering. The second layer is the Natural Language Processing (for beta testing). The goal is to reduce the keywords that have to be searched for down to no more than 5. The filter word is then updated itself for readability and for better searching.
 - **Note Tagging System**: Starts off by creating a list of words from a chosen note that is fed into the filter. The list is then used to calculate the keywords density and priority. Priority in this case is understood as representing a topic, a subject, a level heading, or a word in a paragraph. After the filter is done, there is a suggestion of 10 different keywords that can be chosen to append to the note. The note is then saved and execution is done. A similar mechanism is used when extracting the context of a book. By first extracting and splitting chunks of text, filtering the text, and then calculating the keywords density and implementing models to find suitable keywords. No limit on the number of keywords that can be extracted.
-- **Book Title Tagging**: Starts off by creating a list of words, that were split from a BOOKS folder that feeds into the filter. After the filter is done, there is a suggestion of 10 different keywords that can be chosen to append to the note. The note is then saved and execution is done.
+
+## Further updates
+
+For further updates, please prefer to the [interactive web page](doc\interactive.html) of this repository.
 
 ## References
 
