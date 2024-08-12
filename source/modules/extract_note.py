@@ -47,7 +47,7 @@ def store_files_in_db(file_names: list[str], file_list: list[str], db_name: str,
 def extract_names(raw_list: list[str], extension: str) -> list[str]:
     return [os.path.basename(file).removesuffix(extension) for file in raw_list if file.endswith(extension)]
 
-def create_type_index_table(file_path: str, extension: str, type: str) -> None:
+def create_type_index_table(collector_folder: str, extension: str, type: str) -> None:
     log_message(f"Started creating {type} index.")
     
     # Initialize database
@@ -55,12 +55,12 @@ def create_type_index_table(file_path: str, extension: str, type: str) -> None:
     
     log_message("Started storing files in database.")
     
-    for file_batch in batch_collect_files(file_path=file_path, extension=extension, batch_size=100):
+    for file_batch in batch_collect_files(folder_path=collector_folder, extension=extension, batch_size=100):
         file_names = extract_names(file_batch, extension)
         
-        for file_name, file_path in zip(file_names, file_batch):
+        for file_name, file_path_with_extension in zip(file_names, file_batch):
             log_message(f"Processing {type}: {file_name}...")
-            store_files_in_db(file_names=[file_name], file_list=[file_path], db_name=chunk_database_path, type=type)
+            store_files_in_db(file_names=[file_name], file_list=[file_path_with_extension], db_name=chunk_database_path, type=type)
 
     log_message(f"Files: {type} stored in database.")
     print(f"Processing complete: create {type} index.")

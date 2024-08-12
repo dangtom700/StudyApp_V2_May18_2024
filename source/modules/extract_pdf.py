@@ -263,7 +263,7 @@ def process_chunks_in_batches(db_name: str, batch_size=100):
     conn.close()
 
 # Main function
-def batch_collect_files(folder_path: str, extensions='.pdf', batch_size=100) -> Generator[List[str], None, None]:
+def batch_collect_files(folder_path: str, extension='.pdf', batch_size=100) -> Generator[List[str], None, None]:
     """
     Generator function that yields batches of files from the specified folder.
 
@@ -276,7 +276,7 @@ def batch_collect_files(folder_path: str, extensions='.pdf', batch_size=100) -> 
 
     for root, _, files in os.walk(folder_path):
         for file in files:
-            if file.lower().endswith(extensions):
+            if file.lower().endswith(extension):
                 current_batch.append(os.path.join(root, file))
                 if len(current_batch) == batch_size:
                     yield current_batch
