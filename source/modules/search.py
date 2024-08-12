@@ -280,8 +280,5 @@ def getWordFrequencyAnalysis(batch_size = 100, threshold = 0.82) -> int:
         f.write("End of report.\n")
         print("Report generated.")
 
-        mirrorFile_to_destination(path.WordFrequencyAnalysis_path, path.WordFrequencyAnalysis_Obsidian_path)
-        log_message(f"Finished exporting word frequency analysis to 'word frequency analysis.md' in {path.Obsidian_taskList_path}.")
-
     conn.close()
     return offset
