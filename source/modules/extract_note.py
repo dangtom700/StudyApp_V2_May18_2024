@@ -117,22 +117,22 @@ def process_markdown_file(file_path, CHUNK_SIZE = 800):
             chunks = [text[i:i + CHUNK_SIZE] for i in range(0, len(text), CHUNK_SIZE)]
             store_text_note_in_chunks_with_retry(file_name=os.path.basename(file_path), chunks=chunks, db_name=chunk_database_path)
 
-def process_text_note_batch_of_files(file_batch: List[str]):
+def process_text_note_batch_of_files(file_batch: List[str], chunk_size = 800):
     """Processes a batch of markdown files concurrently."""
     threads = []
     
     for file_path in file_batch:
-        thread = threading.Thread(target=process_markdown_file, args=(file_path,))
+        thread = threading.Thread(target=process_markdown_file, args=(file_path,chunk_size,))
         thread.start()
         threads.append(thread)
     
     for thread in threads:
         thread.join()  # Wait for all threads in the batch to finish
 
-def extract_markdown_notes_in_batches(directory):
+def extract_markdown_notes_in_batches(directory, chunk_size = 800):
     """Main process to collect, extract, chunk, and store markdown files in batches using multithreading."""
     for file_batch in batch_collect_files(folder_path=directory, extension='.md'):
-        process_text_note_batch_of_files(file_batch)
+        process_text_note_batch_of_files(file_batch, chunk_size=chunk_size)
         print(f"Finished processing batch of {len(file_batch)} markdown files.")
         log_message(f"Finished processing batch of {len(file_batch)} markdown files.")
 
