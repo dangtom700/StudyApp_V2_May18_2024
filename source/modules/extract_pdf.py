@@ -286,9 +286,8 @@ def batch_collect_files(folder_path: str, extension='.pdf', batch_size=100) -> G
     if current_batch:
         yield current_batch
 
-def extract_text() -> None:
-    FOLDER_PATH = pdf_path
-    CHUNK_SIZE = 800
+def extract_text(FOLDER_PATH = pdf_path, CHUNK_SIZE = 800) -> None:
+    # Initialize database, constants parameters
     RESET_DATABASE = True
     DB_NAME = chunk_database_path
 
