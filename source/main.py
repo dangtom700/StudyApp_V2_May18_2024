@@ -28,9 +28,26 @@ def app():
     if args.extractText:
         start_time = datetime.now()
         print(f"Extracting text from PDF files...")
+        # Adjust parameters
+        """
+        Small Chunks (50-200 characters): These are useful for quick retrieval 
+        of specific information, such as definitions or short facts. They are 
+        easy to index and search but may lack context.
+
+        Medium Chunks (200-500 characters): Medium chunks are a balance between 
+        detail and brevity, providing enough context to understand a concept 
+        without overwhelming the reader. These are often used in study aids or 
+        summaries.
+
+        Large Chunks (500-2000 characters): Large chunks are better suited for 
+        conveying more complex ideas, detailed explanations, or comprehensive 
+        descriptions. They are more challenging to search but provide deeper 
+        understanding.
+        """
+        chunk_size = 2000
         # extract_text
         updateLog.log_message(f"Extracting text from PDF files...")
-        extract_pdf.extract_text()
+        extract_pdf.extract_text(CHUNK_SIZE=chunk_size)
         updateLog.log_message(f"Finished extracting text from PDF files.")
         # update_database
         updateLog.log_message(f"Updating database from log file...")
@@ -38,7 +55,7 @@ def app():
         updateLog.log_message(f"Finished updating database from log file.")
         # extract text from markdown files
         updateLog.log_message(f"Extracting text from markdown files...")
-        extract_note.extract_markdown_notes_in_batches(path.study_notes_folder_path)
+        extract_note.extract_markdown_notes_in_batches(path.study_notes_folder_path, chunk_size=chunk_size)
         updateLog.log_message(f"Finished extracting text from markdown files.")
         # announce finish
         print(f"Finished updating database from log file.")
@@ -125,4 +142,6 @@ if __name__ == "__main__":
     python source/main.py --processWordFrequencies
 
     python source/main.py --extractText --processWordFrequencies --updateDatabase --getWordFrequencyAnalysis --categorizeReadingMaterial
+    python source/main.py --extractText --processWordFrequencies --updateDatabase --getWordFrequencyAnalysis
+    python source/main.py --extractText --processWordFrequencies --getWordFrequencyAnalysis
     """
