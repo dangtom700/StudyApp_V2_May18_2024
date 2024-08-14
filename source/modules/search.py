@@ -279,6 +279,10 @@ def getWordFrequencyAnalysis(batch_size = 100, threshold = 0.82) -> int:
 
         f.write("End of report.\n")
         print("Report generated.")
+    
+    # Copy an portion of the table to another table
+    cursor.execute("DROP TABLE IF EXISTS coverage_analysis")
+    cursor.execute("CREATE TABLE coverage_analysis AS SELECT * FROM word_frequencies ORDER BY frequency DESC LIMIT ? OFFSET ?", (offset, 0))
 
     conn.close()
     return offset

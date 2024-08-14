@@ -9,6 +9,16 @@ body {
   
 h1 {
     font-size: 2.2em;
+    margin-left: 20px;
+}
+
+h2 {
+    font-size: 1.8em;
+    margin-left: 20px;
+}
+
+p {
+    margin: 20px;
 }
 
 .flip {
@@ -84,16 +94,15 @@ h1 {
 .Title{
     text-align: center;
     color: rgb(0, 0, 0);
-    font-size: 40px;
+    font-size: 48px;
     font-weight: bold;
     font-style: normal;
     border: 2px solid rgb(0, 0, 0);
 }
 
 .Introduction{
-    text-align: justify;
+    text-align: start;
     color: rgb(0, 0, 0);
-    text-indent: 20px;
     font-size: 18px;
     border: 2px solid rgb(0, 0, 0);
 }
