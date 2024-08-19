@@ -246,19 +246,4 @@ def setup_tables(cursor: sqlite3.Cursor, number_of_tables: int) -> None:
     cursor.connection.commit()
 
 def compute_tf_idf_text_chunk(database_path: str) -> None:
-    conn = sqlite3.connect(database_path)
-    cursor = conn.cursor()
-
-    NUMER_OF_WORDS = cursor.execute("SELECT COUNT(*) FROM coverage_analysis").fetchone()[0]
-    BATCH_SIZE = 975
-    # Round up the number of tables
-    number_of_tables = (NUMER_OF_WORDS + BATCH_SIZE - 1) // BATCH_SIZE
-
-    # Setup tables
-    print("Setting relational tables for computing TF-IDF")
-    log_message("Setting relational tables for computing TF-IDF")
-    
-    setup_tables(cursor, number_of_tables)
-
-    # Process text chunks
-    print("Computing TF-IDF for text chunks")
+    pass
