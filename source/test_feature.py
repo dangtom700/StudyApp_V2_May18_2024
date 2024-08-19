@@ -70,3 +70,5 @@ def compute_tf_idf_text_chunk(database_path: str) -> None:
 
     # Setup tables
     setup_tables(cursor, number_of_tables)
+
+compute_tf_idf_text_chunk(path.chunk_database_path)
