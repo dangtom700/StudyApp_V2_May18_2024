@@ -22,6 +22,7 @@ def app():
     parser.add_argument("--getNoteReview", action= 'store_true', help="Export a list of notes to review in .md format")
     parser.add_argument("--getWordFrequencyAnalysis", action= 'store_true', help="Export a list of word frequency analysis in .md format")
     parser.add_argument("--categorizeReadingMaterial", action= 'store_true', help="Categorize PDF files by month and year")
+    parser.add_argument("--computeTFIDF", action= 'store_true', help="Compute TF-IDF scores for files in the specified folder path")
 
     args = parser.parse_args()
 
@@ -126,6 +127,11 @@ def app():
         updateLog.categorize_pdf_files_by_month_year()
         updateLog.log_message(f"Finished exporting reading material to 'Reading Material.md' in {path.ReadingMaterial_path}.")
 
+    if args.computeTFIDF:
+        updateLog.log_message(f"Computing TF-IDF scores for each word in each chunk in the PDF file...")
+        extract_note.compute_tf_idf_text_chunk(path.chunk_database_path)
+        updateLog.log_message(f"Finished computing TF-IDF scores for each word in each chunk in the PDF file.")
+
 if __name__ == "__main__":
     app()
     # extract_pdf.download_nltk()
@@ -144,5 +150,6 @@ if __name__ == "__main__":
 
     python source/main.py --extractText --processWordFrequencies --updateDatabase --getWordFrequencyAnalysis --categorizeReadingMaterial
     python source/main.py --extractText --processWordFrequencies --updateDatabase --getWordFrequencyAnalysis
+    python source/main.py --extractText --processWordFrequencies --updateDatabase --getWordFrequencyAnalysis --computeTFIDF
     python source/main.py --extractText --processWordFrequencies --getWordFrequencyAnalysis
     """
