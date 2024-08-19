@@ -42,7 +42,10 @@ def setup_database(reset_db: bool, db_name: str, type: str) -> None:
                    {type}_name TEXT, 
                    {type}_path TEXT, 
                    created_time TEXT, 
-                   chunk_count INTEGER,)""")
+                   chunk_count INTEGER,
+                   start_id INTEGER,
+                   end_id INTEGER
+                   )""")
 
     conn.commit()
     conn.close()
@@ -60,6 +63,24 @@ def create_sha256_hash(data: str) -> str:
 def count_chunk_for_each_title(cursor: sqlite3.Cursor, file_name: str) -> int:
 	return cursor.execute(f"SELECT COUNT(chunk_index) FROM pdf_chunks WHERE file_name = ?", (file_name,)).fetchone()[0]
 
+def get_starting_and_ending_ids(cursor: sqlite3.Cursor, file_name: str):
+    # Query to find the starting (minimum) and ending (maximum) IDs for the given document
+    query = '''
+        SELECT MIN(id) AS starting_id, MAX(id) AS ending_id
+        FROM pdf_chunks
+        WHERE name = ?;
+    '''
+    
+    cursor.execute(query, (file_name,))
+    result = cursor.fetchone()
+    
+    if result:
+        starting_id, ending_id = result
+        return starting_id, ending_id
+    else:
+        # Handle the case where no data is found for the given document
+        return None, None
+
 def store_files_in_db(file_names: list[str], file_list: list[str], db_name: str, type: str) -> None:
     conn = sqlite3.connect(db_name)
     cursor = conn.cursor()
@@ -68,7 +89,20 @@ def store_files_in_db(file_names: list[str], file_list: list[str], db_name: str,
         string_data = file_name + created_time + file_path
         hashed_data = create_sha256_hash(string_data)
         chunk_count = count_chunk_for_each_title(cursor, file_name=file_name)
-        cursor.execute(f"INSERT INTO {type}_list (id, {type}_name, {type}_path, created_time, chunk_count) VALUES (?, ?, ?, ?, ?)", (hashed_data, file_name, file_path, created_time, chunk_count))
+        starting_id, ending_id = get_starting_and_ending_ids(cursor, file_name=file_name)
+        cursor.execute(f"""INSERT INTO {type}_list (
+                       id, 
+                       {type}_name, 
+                       {type}_path, 
+                       created_time, 
+                       chunk_count
+                       ) VALUES (?, ?, ?, ?, ?)""", (hashed_data, 
+                                                     file_name, 
+                                                     file_path, 
+                                                     created_time, 
+                                                     chunk_count,
+                                                     starting_id,
+                                                     ending_id))
     conn.commit()
     conn.close()
 # Main function
