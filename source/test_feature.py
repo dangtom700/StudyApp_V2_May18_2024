@@ -1,23 +1,11 @@
 """
-+ Process: 
-		1) Prepare data about the most popular root words that cover the most ground in the text chunk database (text material including books and Markdown notes)
-		2) Generate raw data for the most popular root words analysis and get the key of number of most popular keywords to access to the table
-		3) Generate dynamic table with IDs, chunk text, list of popular keywords, length of relevance
-		4) Set rules for effective prompting
-		5) Set computing algorithms and logging inputs, outputs and errors
-
-	- Recommendation 1: Low the dimension of data vector and increase the number of layer of pre-computation
-	- Recommendation 2: Since the limit of SQLite table is 2000 columns, it is better to match the prompt to suggested book titles (n << 2000)
-	- Recommendation 3: Instead of get the key to retrieve the number of root words that cover the most ground, create a new table that consists of most popular root words
-	- Recommendation 4: Compute the word impact, create a table of each book title, with columns are the most popular root words with an additional row of computing the word impact on that title
-
-	+ Revised process
+	+ Process
 		Phase 1: Pre-process words impact in text chunks and titles
 			Note: When computing the TF-IDF, to improve the accuracy, times every value by 100 and also limit the decimal place to 16 (subject to test)
-		1) Sort the word frequency table in descending order on the frequency columns (pre-compute the root words population in the text chunk database) and check the max chunk ID to make sure it is under 1950
-		2) Compute in iterations to find the least number of words that cover the most ground in the text chunk database in batches of 100 words, constant incrementing word size of 100 
-		3) Export a report that consists of word coverage iterations, a table of those words with their frequency and inputs & outputs data and a partially duplicated table in the name "word coverage"
-		3.1) Set constant value to reuse for faster computation, such as number of pdf titles, number of chunks, frequency of each root word (suggest to create a table to store constant value)
+		X1) Sort the word frequency table in descending order on the frequency columns (pre-compute the root words population in the text chunk database) and check the max chunk ID to make sure it is under 1950
+		X2) Compute in iterations to find the least number of words that cover the most ground in the text chunk database in batches of 100 words, constant incrementing word size of 100 
+		X3) Export a report that consists of word coverage iterations, a table of those words with their frequency and inputs & outputs data and a partially duplicated table in the name "word coverage"
+		X3.1) Set constant value to reuse for faster computation, such as number of pdf titles, number of chunks, frequency of each root word (suggest to create a table to store constant value)
 		4) For each book title, create a table that consists of rows taken from the word coverage table, and columns including chunk IDs of that title to count number of root words. Name [title]_counter
 		5) For each [title]_counter, create a table called [title]_analysis, compute the TF-IDF values for each term of each text chunk
 		6) Create a table, called "title_TF_IDF" to store the TF-IDF values of each term to the corresponding titles, derived from the corresponding tables
@@ -45,3 +33,100 @@
 	- Recommendation 1: Skipping the zero value for faster computation. Zero appearance of one term, guarantee zero TF-IDF value and zero binding value
 	- Recommendation2: Parallelize the processing in phase 1, step 3 to reduce the performance time
 """
+
+import sqlite3
+import os
+import modules.path as path
+from modules.updateLog import log_message
+
+def create_table_for_title_type(cursor: sqlite3.Cursor, title: str, number_of_columns: int) -> None:
+	
+	chunk_columns = ", ".join([f"chunk {i} INTEGER DEFAULT 0" for i in range(number_of_columns)])
+
+	# Create the counter table with only word and chunk_n columns
+	cursor.execute(f'''
+        CREATE TABLE IF NOT EXISTS "{title}_counter" (
+            word TEXT PRIMARY KEY,
+            {chunk_columns}
+        );
+    ''')
+
+	# Insert word data from word_coverage into the counter table
+	cursor.execute(f'''
+        INSERT INTO "{title}_counter" (word)
+        SELECT word FROM word_coverage;
+    ''',)
+
+	# Create the analysis table with word, frequency, and chunk_n columns
+	cursor.execute(f'''
+        CREATE TABLE IF NOT EXISTS "{title}_analysis" (
+            word TEXT PRIMARY KEY,
+            frequency INTEGER,
+            {chunk_columns}
+        );
+    ''')
+
+    # Insert word and frequency data from word_coverage into the analysis table
+	cursor.execute(f'''
+        INSERT INTO "{title}_analysis" (word, frequency)
+        SELECT word, frequency FROM word_coverage;
+    ''',)
+
+def count_chunk_for_each_title(cursor: sqlite3.Cursor, pdf_file_name: str) -> int:
+	return cursor.execute(f"SELECT COUNT(chunk_index) FROM pdf_chunks WHERE pdf_name = ?", (pdf_file_name,)).fetchone()[0]
+
+def batch_collect_row_names(cursor: sqlite3.Cursor, columns_in_comma: str, table_name: str, batch_size: int = 100):
+    offset = 0
+    columns = columns_in_comma.split(',')
+    num_columns = len(columns)
+
+    while True:
+        # Execute the query to fetch a batch of rows
+        cursor.execute(f"SELECT {columns_in_comma} FROM {table_name} LIMIT ? OFFSET ?", (batch_size, offset))
+        rows = cursor.fetchall()
+
+        if not rows:
+            break  # No more rows to fetch
+
+        # Yield each row in the desired format
+        for row in rows:
+            formatted_row = [row[i] for i in range(num_columns)]
+            yield formatted_row
+
+        offset += batch_size
+
+def precompute_word_impact():
+    
+	conn = sqlite3.connect(path.chunk_database_path)
+	cursor = conn.cursor()
+
+	max_chunk_id = cursor.execute("SELECT MAX(chunk_index) FROM pdf_chunks").fetchone()[0]
+	print(f"Maximum chunk ID: {max_chunk_id}")
+	# log_message(f"Maximum chunk ID: {max_chunk_id}")
+
+	if max_chunk_id > 1950:
+		print("The maximum chunk ID is greater than 1950. Please check the database.")
+		log_message("The maximum chunk ID is greater than 1950. Please check the database.", "ERROR")
+		raise ValueError("The maximum chunk ID is greater than 1950. Please check the database.")
+	
+	NUMBER_OF_PDF_FILES = cursor.execute("SELECT COUNT(*) FROM pdf_list").fetchone()[0]
+	print(f"Total number of pdf files: {NUMBER_OF_PDF_FILES}")
+	# log_message(f"Total number of pdf files: {NUMBER_OF_PDF_FILES}")
+
+	NUMBER_OF_CHUNKS = cursor.execute("SELECT MAX(id) FROM pdf_chunks").fetchone()[0]
+	print(f"Total number of chunks: {NUMBER_OF_CHUNKS}")
+	# log_message(f"Total number of chunks: {NUMBER_OF_CHUNKS}")
+
+	for file in batch_collect_row_names(cursor, "id, pdf_path", "pdf_list"):
+		pdf_file_name = os.path.basename(file[1])
+		chunk_count = count_chunk_for_each_title(cursor, pdf_file_name)
+		print(f"Chunk count for {pdf_file_name}: {chunk_count}")
+		# log_message(f"Chunk count for {pdf_file_name}: {chunk_count}")
+		create_table_for_title_type(cursor, file[0], chunk_count)
+		print(f"Table {file[0]} created.")
+
+	conn.commit()
+	conn.close()
+
+# Main Flow
+precompute_word_impact()
