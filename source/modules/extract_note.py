@@ -10,7 +10,6 @@ from os.path import getmtime
 from time import ctime
 from modules.updateLog import log_message
 from modules.path import chunk_database_path
-from modules.extract_pdf import batch_collect_files
 from modules.extract_pdf import batch_collect_files, store_chunks_in_db
 from typing import List
 
@@ -31,16 +30,17 @@ def get_updated_time(file_path: str) -> str:
     formatted_modification_time = datetime.fromtimestamp(modification_time).strftime('%a, %b %d, %Y, %H:%M:%S')
     return formatted_modification_time
 
-def setup_database(reset_db: bool, db_name: str, type: str) -> None:
+def setup_database(reset_db: bool, db_name: str) -> None:
     conn = sqlite3.connect(db_name)
     cursor = conn.cursor()
     
     if reset_db:
-        cursor.execute(f"DROP TABLE IF EXISTS {type}_list")
-    cursor.execute(f"""CREATE TABLE IF NOT EXISTS {type}_list (
+        cursor.execute(f"DROP TABLE IF EXISTS file_list")
+    cursor.execute(f"""CREATE TABLE IF NOT EXISTS file_list (
                    id TEXT PRIMARY KEY, 
-                   {type}_name TEXT, 
-                   {type}_path TEXT, 
+                   file_name TEXT, 
+                   file_path TEXT, 
+                   file_type TEXT,
                    created_time TEXT, 
                    chunk_count INTEGER,
                    start_id INTEGER,
@@ -68,7 +68,7 @@ def get_starting_and_ending_ids(cursor: sqlite3.Cursor, file_name: str) -> tuple
     cursor.execute('''
         SELECT MIN(id) AS starting_id, MAX(id) AS ending_id
         FROM pdf_chunks
-        WHERE pdf_name = ?;
+        WHERE file_name = ?;
     ''', (file_name,))
     
     result = cursor.fetchone()
@@ -76,7 +76,7 @@ def get_starting_and_ending_ids(cursor: sqlite3.Cursor, file_name: str) -> tuple
     starting_id, ending_id = result
     return starting_id, ending_id
 
-def store_files_in_db(file_names: list[str], file_list: list[str], db_name: str, type: str) -> None:
+def store_files_in_db(file_names: list[str], file_list: list[str], db_name: str, file_type: str) -> None:
     conn = sqlite3.connect(db_name)
     cursor = conn.cursor()
     for file_name, file_path in zip(file_names, file_list):
@@ -86,40 +86,44 @@ def store_files_in_db(file_names: list[str], file_list: list[str], db_name: str,
         chunk_count = count_chunk_for_each_title(cursor, file_name=file_name)
         starting_id, ending_id = get_starting_and_ending_ids(cursor, file_name=file_name)
         
-        cursor.execute(f"""INSERT INTO {type}_list (
+        cursor.execute(f"""INSERT INTO file_list (
             id, 
-            {type}_name, 
-            {type}_path, 
+            file_name, 
+            file_path,
+            file_type,
             created_time, 
             chunk_count,
             start_id,
             end_id
-            ) VALUES (?, ?, ?, ?, ?, ?, ?)""",
-            (hashed_data, file_name, file_path, created_time, chunk_count, starting_id, ending_id)
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)""",
+            (hashed_data, file_name, file_path, file_type, created_time, chunk_count, starting_id, ending_id)
         )
     conn.commit()
     conn.close()
 # Main function
-def extract_names(raw_list: list[str], extension: str) -> list[str]:
+def extract_names(raw_list: list[str], extension: list[str]) -> list[str]:
     return [os.path.basename(file).removesuffix(extension) for file in raw_list if file.endswith(extension)]
 
-def create_type_index_table(collector_folder: str, extension: str, type: str) -> None:
-    log_message(f"Started creating {type} index.")
+def create_type_index_table(collector_folder_list: list[str], extension_list: list[str]) -> None:
+    log_message(f"Started creating file index.")
     
     # Initialize database
-    setup_database(reset_db=True, db_name=chunk_database_path, type=type)
+    setup_database(reset_db=True, db_name=chunk_database_path)
     
     log_message("Started storing files in database.")
-    
-    for file_batch in batch_collect_files(folder_path=collector_folder, extension=extension, batch_size=100):
-        file_names = extract_names(file_batch, extension)
-        
-        for file_name, file_path_with_extension in zip(file_names, file_batch):
-            log_message(f"Processing {type}: {file_name}...")
-            store_files_in_db(file_names=[file_name], file_list=[file_path_with_extension], db_name=chunk_database_path, type=type)
+    for collector_folder, extension in zip(collector_folder_list, extension_list):
+        for file_batch in batch_collect_files(folder_path=collector_folder, extension=extension, batch_size=100):
+            file_names = extract_names(file_batch, extension)
+            
+            for file_name, file_path_with_extension in zip(file_names, file_batch):
+                log_message(f"Processing file: {file_name}...")
+                store_files_in_db(file_names=[file_name], 
+                                  file_list=[file_path_with_extension], 
+                                  db_name=chunk_database_path, 
+                                  file_type=extension)
 
-    log_message(f"Files: {type} stored in database.")
-    print(f"Processing complete: create {type} index.")
+    log_message(f"Files: file stored in database.")
+    print(f"Processing complete: create file index.")
 
 def extract_note_text_chunk(file, chunk_size=8000):
     """Extracts and cleans text chunk by chunk from a markdown file."""
