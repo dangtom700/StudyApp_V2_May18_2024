@@ -9,6 +9,13 @@ import sqlite3
 import modules.path as path
 from typing import Generator
 
+def count_one_term_appear_in_each_chunk(term, text_chunk) -> int:
+    """
+    Count the number of times the term appears in the text chunk.
+    """
+    text_chunk = text_chunk.lower()
+    return text_chunk.count(term.lower())
+
 def batch_collect_words(cursor, batch_size=975) -> Generator[list[str], None, None]:
     offset = 0
     while True:
@@ -52,21 +59,14 @@ def setup_tables(cursor: sqlite3.Cursor, number_of_tables: int) -> None:
     # Complete transaction
     cursor.connection.commit()
 
-def count_one_term_appear_in_each_chunk(term, text_chunk) -> int:
-    """
-    Count the number of times the term appears in the text chunk.
-    """
-    text_chunk = text_chunk.lower()
-    return text_chunk.count(term.lower())
+def compute_tf_idf_text_chunk(database_path: str) -> None:
+    conn = sqlite3.connect(database_path)
+    cursor = conn.cursor()
 
-# Assuming path.chunk_database_path is correct
-conn = sqlite3.connect(path.chunk_database_path)
-cursor = conn.cursor()
+    NUMER_OF_WORDS = cursor.execute("SELECT COUNT(*) FROM coverage_analysis").fetchone()[0]
+    BATCH_SIZE = 975
+    # Round up the number of tables
+    number_of_tables = (NUMER_OF_WORDS + BATCH_SIZE - 1) // BATCH_SIZE
 
-NUMER_OF_WORDS = cursor.execute("SELECT COUNT(*) FROM coverage_analysis").fetchone()[0]
-BATCH_SIZE = 975
-# Round up the number of tables
-number_of_tables = (NUMER_OF_WORDS + BATCH_SIZE - 1) // BATCH_SIZE
-
-# Setup tables
-setup_tables(cursor, number_of_tables)
+    # Setup tables
+    setup_tables(cursor, number_of_tables)
