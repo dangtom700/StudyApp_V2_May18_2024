@@ -83,10 +83,11 @@ def app():
         start_time = datetime.now()
         updateLog.log_message(f"Updating database from log file...")
         # create_index_tables
-        updateLog.log_message(f"Extracting notes from PDF files...")
-        extract_note.create_type_index_table(path.pdf_path, ".pdf", "pdf")
-        extract_note.create_type_index_table(path.study_notes_folder_path, ".md", "note")
-        updateLog.log_message(f"Finished extracting notes from PDF files.")
+        updateLog.log_message(f"Extracting files from multiple folders")
+        folders = [path.pdf_path, path.study_notes_folder_path]
+        extensions = [".pdf", ".md"]
+        extract_note.create_type_index_table(folders, extensions)
+        updateLog.log_message(f"Finished extracting files from multiple folders")
         # update task list record
         updateLog.log_message(f"Updating task list record...")
         search.processDataFromTaskListFile()
