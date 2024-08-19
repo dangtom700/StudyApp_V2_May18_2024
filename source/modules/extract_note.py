@@ -125,7 +125,7 @@ def create_type_index_table(collector_folder_list: list[str], extension_list: li
                 store_files_in_db(file_names=[file_name], 
                                   file_list=[file_path_with_extension], 
                                   db_name=chunk_database_path, 
-                                  file_type=extension)
+                                  file_type=extension.removeprefix("."))
 
     log_message(f"Files: file stored in database.")
     print(f"Processing complete: create file index.")

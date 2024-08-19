@@ -282,7 +282,14 @@ def getWordFrequencyAnalysis(batch_size = 100, threshold = 0.82) -> int:
     
     # Copy an portion of the table to another table
     cursor.execute("DROP TABLE IF EXISTS coverage_analysis")
-    cursor.execute("CREATE TABLE coverage_analysis AS SELECT * FROM word_frequencies ORDER BY frequency DESC LIMIT ? OFFSET ?", (offset, 0))
+    cursor.execute("""CREATE TABLE coverage_analysis (word TEXT PRIMARY KEY, frequency INTEGER,
+                   FOREIGN KEY (word, frequency) REFERENCES word_frequencies(word, frequency))""")
+    cursor.execute("""INSERT INTO coverage_analysis
+                   SELECT word, frequency FROM word_frequencies
+                   ORDER BY frequency DESC
+                   LIMIT ? OFFSET ?""", (offset, 0))
 
+    # Complete transaction
+    conn.commit()
     conn.close()
     return offset
