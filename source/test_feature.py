@@ -57,6 +57,7 @@ def create_table_for_title_type(cursor: sqlite3.Cursor, title: str, number_of_co
         SELECT word FROM word_coverage;
     ''',)
 
+	chunk_columns = ", ".join([f"chunk {i} REAL DEFAULT 0.0" for i in range(number_of_columns)])
 	# Create the analysis table with word, frequency, and chunk_n columns
 	cursor.execute(f'''
         CREATE TABLE IF NOT EXISTS "{title}_analysis" (
