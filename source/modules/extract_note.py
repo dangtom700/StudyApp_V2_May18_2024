@@ -37,7 +37,12 @@ def setup_database(reset_db: bool, db_name: str, type: str) -> None:
     
     if reset_db:
         cursor.execute(f"DROP TABLE IF EXISTS {type}_list")
-    cursor.execute(f"CREATE TABLE IF NOT EXISTS {type}_list (id TEXT PRIMARY KEY, {type}_name TEXT, {type}_path TEXT, created_time TEXT)")
+    cursor.execute(f"""CREATE TABLE IF NOT EXISTS {type}_list (
+                   id TEXT PRIMARY KEY, 
+                   {type}_name TEXT, 
+                   {type}_path TEXT, 
+                   created_time TEXT, 
+                   chunk_count INTEGER,)""")
 
     conn.commit()
     conn.close()
@@ -52,6 +57,9 @@ def create_sha256_hash(data: str) -> str:
     # Return the first 20 characters of the hex digest
     return hex_hash[:20]
 
+def count_chunk_for_each_title(cursor: sqlite3.Cursor, file_name: str) -> int:
+	return cursor.execute(f"SELECT COUNT(chunk_index) FROM pdf_chunks WHERE file_name = ?", (file_name,)).fetchone()[0]
+
 def store_files_in_db(file_names: list[str], file_list: list[str], db_name: str, type: str) -> None:
     conn = sqlite3.connect(db_name)
     cursor = conn.cursor()
@@ -59,7 +67,8 @@ def store_files_in_db(file_names: list[str], file_list: list[str], db_name: str,
         created_time = get_updated_time(file_path)
         string_data = file_name + created_time + file_path
         hashed_data = create_sha256_hash(string_data)
-        cursor.execute(f"INSERT INTO {type}_list (id, {type}_name, {type}_path, created_time) VALUES (?, ?, ?, ?)", (hashed_data, file_name, file_path, created_time))
+        chunk_count = count_chunk_for_each_title(cursor, file_name=file_name)
+        cursor.execute(f"INSERT INTO {type}_list (id, {type}_name, {type}_path, created_time, chunk_count) VALUES (?, ?, ?, ?, ?)", (hashed_data, file_name, file_path, created_time, chunk_count))
     conn.commit()
     conn.close()
 # Main function
