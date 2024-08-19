@@ -63,23 +63,18 @@ def create_sha256_hash(data: str) -> str:
 def count_chunk_for_each_title(cursor: sqlite3.Cursor, file_name: str) -> int:
 	return cursor.execute(f"SELECT COUNT(chunk_index) FROM pdf_chunks WHERE file_name = ?", (file_name,)).fetchone()[0]
 
-def get_starting_and_ending_ids(cursor: sqlite3.Cursor, file_name: str):
-    # Query to find the starting (minimum) and ending (maximum) IDs for the given document
-    query = '''
+def get_starting_and_ending_ids(cursor: sqlite3.Cursor, file_name: str) -> tuple[int, int]:
+    # Execute a single query to get both the starting and ending IDs
+    cursor.execute('''
         SELECT MIN(id) AS starting_id, MAX(id) AS ending_id
         FROM pdf_chunks
-        WHERE file_name = ?;
-    '''
+        WHERE pdf_name = ?;
+    ''', (file_name,))
     
-    cursor.execute(query, (file_name,))
     result = cursor.fetchone()
     
-    if result:
-        starting_id, ending_id = result
-        return starting_id, ending_id
-    else:
-        # Handle the case where no data is found for the given document
-        return None, None
+    starting_id, ending_id = result
+    return starting_id, ending_id
 
 def store_files_in_db(file_names: list[str], file_list: list[str], db_name: str, type: str) -> None:
     conn = sqlite3.connect(db_name)
@@ -138,13 +133,13 @@ def extract_note_text_chunk(file, chunk_size=8000):
     if content:
         yield ''.join(content)
 
-def clean_markdown_text(markdown_text):
+def clean_markdown_text(markdown_text) -> str:
     """Converts markdown text to plain text by removing HTML tags."""
     html_content = markdown.markdown(markdown_text)
     text = re.sub(r'<[^>]+>', '', html_content)
     return text
 
-def store_text_note_in_chunks_with_retry(file_name, chunks, db_name, MAX_RETRIES = 999, RETRY_DELAY = 10):
+def store_text_note_in_chunks_with_retry(file_name, chunks, db_name, MAX_RETRIES = 999, RETRY_DELAY = 10) -> None:
     """Stores chunks in the database with retry logic."""
     attempts = 0
     while attempts < MAX_RETRIES:
@@ -164,7 +159,7 @@ def store_text_note_in_chunks_with_retry(file_name, chunks, db_name, MAX_RETRIES
     else:
         print(f"Failed to store chunks after {MAX_RETRIES} attempts for file {file_name}")
 
-def process_markdown_file(file_path, CHUNK_SIZE = 800):
+def process_markdown_file(file_path, CHUNK_SIZE = 800) -> None:
     """Processes a single markdown file."""
     with open(file_path, 'r', encoding='utf-8') as file:
         for raw_chunk in extract_note_text_chunk(file):
@@ -172,7 +167,7 @@ def process_markdown_file(file_path, CHUNK_SIZE = 800):
             chunks = [text[i:i + CHUNK_SIZE] for i in range(0, len(text), CHUNK_SIZE)]
             store_text_note_in_chunks_with_retry(file_name=os.path.basename(file_path), chunks=chunks, db_name=chunk_database_path)
 
-def process_text_note_batch_of_files(file_batch: List[str], chunk_size = 800):
+def process_text_note_batch_of_files(file_batch: List[str], chunk_size = 800) -> None:
     """Processes a batch of markdown files concurrently."""
     threads = []
     
@@ -184,7 +179,7 @@ def process_text_note_batch_of_files(file_batch: List[str], chunk_size = 800):
     for thread in threads:
         thread.join()  # Wait for all threads in the batch to finish
 
-def extract_markdown_notes_in_batches(directory, chunk_size = 800):
+def extract_markdown_notes_in_batches(directory, chunk_size = 800) -> None:
     """Main process to collect, extract, chunk, and store markdown files in batches using multithreading."""
     for file_batch in batch_collect_files(folder_path=directory, extension='.md'):
         process_text_note_batch_of_files(file_batch, chunk_size=chunk_size)
