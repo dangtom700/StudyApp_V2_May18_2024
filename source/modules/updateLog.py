@@ -7,12 +7,12 @@ import shutil
 
 def getCurrentTime() -> str:
     return time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
-def log_message(message: str) -> None:
+def log_message(message: str, message_type = "PROGRESS") -> None:
     database_name = log_database_path
     current_time = getCurrentTime()
     conn = sqlite3.connect(database_name)
     cursor = conn.cursor()
-    cursor.execute(f"INSERT INTO messages (timestamp, message_type, message) VALUES (?, ?, ?)", (current_time,"PROGRESS",message))
+    cursor.execute(f"INSERT INTO messages (timestamp, message_type, message) VALUES (?, ?, ?)", (current_time, message_type ,message))
     conn.commit()
     conn.close()
 
