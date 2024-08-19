@@ -61,7 +61,10 @@ def create_sha256_hash(data: str) -> str:
     return hex_hash[:20]
 
 def count_chunk_for_each_title(cursor: sqlite3.Cursor, file_name: str) -> int:
-	return cursor.execute(f"SELECT COUNT(chunk_index) FROM pdf_chunks WHERE file_name = ?", (file_name,)).fetchone()[0]
+    cursor.execute(f"SELECT COUNT(chunk_index) FROM pdf_chunks WHERE file_name = ?", (file_name,))
+    chunk_count = cursor.fetchone()[0]
+    # print(f"Chunk count for {file_name}: {chunk_count}")
+    return chunk_count
 
 def get_starting_and_ending_ids(cursor: sqlite3.Cursor, file_name: str) -> tuple[int, int]:
     # Execute a single query to get both the starting and ending IDs
@@ -74,6 +77,7 @@ def get_starting_and_ending_ids(cursor: sqlite3.Cursor, file_name: str) -> tuple
     result = cursor.fetchone()
     
     starting_id, ending_id = result
+    # print(f"Starting ID: {starting_id}, Ending ID: {ending_id}")
     return starting_id, ending_id
 
 def store_files_in_db(file_names: list[str], file_list: list[str], db_name: str, file_type: str) -> None:
@@ -82,9 +86,10 @@ def store_files_in_db(file_names: list[str], file_list: list[str], db_name: str,
     for file_name, file_path in zip(file_names, file_list):
         created_time = get_updated_time(file_path)
         string_data = file_name + created_time + file_path
+        file_basename = os.path.basename(file_path)
+        chunk_count = count_chunk_for_each_title(cursor, file_name=file_basename)
+        starting_id, ending_id = get_starting_and_ending_ids(cursor, file_name=file_basename)
         hashed_data = create_sha256_hash(string_data)
-        chunk_count = count_chunk_for_each_title(cursor, file_name=file_name)
-        starting_id, ending_id = get_starting_and_ending_ids(cursor, file_name=file_name)
         
         cursor.execute(f"""INSERT INTO file_list (
             id, 
