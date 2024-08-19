@@ -68,7 +68,7 @@ def get_starting_and_ending_ids(cursor: sqlite3.Cursor, file_name: str):
     query = '''
         SELECT MIN(id) AS starting_id, MAX(id) AS ending_id
         FROM pdf_chunks
-        WHERE name = ?;
+        WHERE file_name = ?;
     '''
     
     cursor.execute(query, (file_name,))
@@ -90,19 +90,18 @@ def store_files_in_db(file_names: list[str], file_list: list[str], db_name: str,
         hashed_data = create_sha256_hash(string_data)
         chunk_count = count_chunk_for_each_title(cursor, file_name=file_name)
         starting_id, ending_id = get_starting_and_ending_ids(cursor, file_name=file_name)
+        
         cursor.execute(f"""INSERT INTO {type}_list (
-                       id, 
-                       {type}_name, 
-                       {type}_path, 
-                       created_time, 
-                       chunk_count
-                       ) VALUES (?, ?, ?, ?, ?)""", (hashed_data, 
-                                                     file_name, 
-                                                     file_path, 
-                                                     created_time, 
-                                                     chunk_count,
-                                                     starting_id,
-                                                     ending_id))
+            id, 
+            {type}_name, 
+            {type}_path, 
+            created_time, 
+            chunk_count,
+            start_id,
+            end_id
+            ) VALUES (?, ?, ?, ?, ?, ?, ?)""",
+            (hashed_data, file_name, file_path, created_time, chunk_count, starting_id, ending_id)
+        )
     conn.commit()
     conn.close()
 # Main function
