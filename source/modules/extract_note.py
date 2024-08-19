@@ -4,6 +4,7 @@ import threading
 import markdown
 import re
 import time
+import hashlib
 from datetime import datetime
 from os.path import getmtime
 from time import ctime
@@ -36,17 +37,29 @@ def setup_database(reset_db: bool, db_name: str, type: str) -> None:
     
     if reset_db:
         cursor.execute(f"DROP TABLE IF EXISTS {type}_list")
-    cursor.execute(f"CREATE TABLE IF NOT EXISTS {type}_list ({type}_name TEXT, {type}_path TEXT, created_time TEXT)")
+    cursor.execute(f"CREATE TABLE IF NOT EXISTS {type}_list (id, TEXT PRIMARY KEY, {type}_name TEXT, {type}_path TEXT, created_time TEXT)")
 
     conn.commit()
     conn.close()
+
+def create_sha256_hash(data: str) -> str:
+    # Create SHA-256 hash object
+    sha256 = hashlib.sha256()
+    # Update hash object with data
+    sha256.update(data.encode())
+    # Get the hexadecimal digest of the hash
+    hex_hash = sha256.hexdigest()
+    # Return the first 20 characters of the hex digest
+    return hex_hash[:20]
 
 def store_files_in_db(file_names: list[str], file_list: list[str], db_name: str, type: str) -> None:
     conn = sqlite3.connect(db_name)
     cursor = conn.cursor()
     for file_name, file_path in zip(file_names, file_list):
         created_time = get_updated_time(file_path)
-        cursor.execute(f"INSERT INTO {type}_list ({type}_name, {type}_path, created_time) VALUES (?, ?, ?)", (file_name, file_path, created_time))
+        string_data = file_name + created_time + file_path
+        hashed_data = create_sha256_hash(string_data)
+        cursor.execute(f"INSERT INTO {type}_list (id, {type}_name, {type}_path, created_time) VALUES (?, ?, ?)", (hashed_data,file_name, file_path, created_time))
     conn.commit()
     conn.close()
 # Main function
