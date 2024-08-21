@@ -89,10 +89,6 @@ def app():
         extensions = [".pdf", ".md"]
         extract_note.create_type_index_table(folders, extensions)
         updateLog.log_message(f"Finished extracting files from multiple folders")
-        # update task list record
-        updateLog.log_message(f"Updating task list record...")
-        search.processDataFromTaskListFile()
-        updateLog.log_message(f"Finished updating task list record.")
         # announce finish
         print(f"Finished updating database from log file.")
         updateLog.log_message(f"Finished updating database from log file.")
