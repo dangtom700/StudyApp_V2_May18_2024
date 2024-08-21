@@ -3,6 +3,7 @@ Compute TF-IDF scores for each word in each chunk in the PDF file.
 1) Create a table with columns: id Foreign key id pdf chunks, word 1 Integer, TF-IDF word 1 Real, word 2, ...
 and continue create another table if the columns exceed 1950
 2) Create a table with columns: word, title1, title2, ...
+3) Do the fucking computation
 """
 
 import sqlite3
@@ -31,17 +32,17 @@ def batch_collect_words(cursor, batch_size=975) -> Generator[list[str], None, No
 def setup_tables(cursor: sqlite3.Cursor, number_of_tables: int) -> None:
     # Drop all tables
     for index in range(number_of_tables):
-        cursor.execute(f"DROP TABLE IF EXISTS IF_IDF_table_{index}")
-        print(f"Dropped table IF_IDF_table_{index}")
+        cursor.execute(f"DROP TABLE IF EXISTS TF_IDF_table_{index}")
+        print(f"Dropped table TF_IDF_table_{index}")
 
     # Create tables
     for index, word_list in zip(range(number_of_tables), batch_collect_words(cursor)):
-        cursor.execute(f"CREATE TABLE IF_IDF_table_{index} (word TEXT PRIMARY KEY, FOREIGN KEY(word) REFERENCES coverage_analysis(word))")
-        cursor.execute(f"INSERT INTO IF_IDF_table_{index} SELECT word FROM coverage_analysis")
+        cursor.execute(f"CREATE TABLE TF_IDF_table_{index} (word TEXT PRIMARY KEY, FOREIGN KEY(word) REFERENCES coverage_analysis(word))")
+        cursor.execute(f"INSERT INTO TF_IDF_table_{index} SELECT word FROM coverage_analysis")
         for keyword in word_list:
-            cursor.execute(f"ALTER TABLE IF_IDF_table_{index} ADD COLUMN '{keyword}_count' INTEGER DEFAULT 0")
-            cursor.execute(f"ALTER TABLE IF_IDF_table_{index} ADD COLUMN '{keyword}_TF_IDF' REAL DEFAULT 0.0")
-        print(f"Created table IF_IDF_table_{index} with {len(word_list)} keywords")
+            cursor.execute(f"ALTER TABLE TF_IDF_table_{index} ADD COLUMN '{keyword}_count' INTEGER DEFAULT 0")
+            cursor.execute(f"ALTER TABLE TF_IDF_table_{index} ADD COLUMN '{keyword}_TF_IDF' REAL DEFAULT 0.0")
+        print(f"Created table TF_IDF_table_{index} with {len(word_list)} keywords")
 
     # Create word_impact_titles table
     cursor.execute("DROP TABLE IF EXISTS TF_IDF_titles")
