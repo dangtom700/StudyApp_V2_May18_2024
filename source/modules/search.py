@@ -14,17 +14,14 @@ def searchFileInDatabase(keyword: str) -> None:
         conn = sqlite3.connect('data\\chunks.db')
         cursor = conn.cursor()
 
-        type_search = ["note", "pdf"]
+        cursor.execute(f"SELECT file_name FROM file_list WHERE file_name LIKE ?", (f'%{keyword}%',))
+        result = cursor.fetchall()
 
-        for type in type_search:
-            cursor.execute(f"SELECT {type}_name FROM {type}_list WHERE {type}_name LIKE ?", (f'%{keyword}%',))
-            result = cursor.fetchall()
-
-            print(f"{colorama.Fore.GREEN}{type.capitalize()} files containing '{keyword}':{colorama.Style.RESET_ALL}\n")
-            # print(f"files containing '{keyword}':\n")
-            for file_name in result:
-                print(f"- {colorama.Fore.BLUE}{file_name[0]}{colorama.Style.RESET_ALL}\n")
-                # print(f"- {file_name[0]}\n")
+        print(f"{colorama.Fore.GREEN}{type.capitalize()} Files containing '{keyword}':{colorama.Style.RESET_ALL}\n")
+        # print(f"Files containing '{keyword}':\n")
+        for file_name in result:
+            print(f"- {colorama.Fore.BLUE}{file_name[0]}{colorama.Style.RESET_ALL}\n")
+            # print(f"- {file_name[0]}\n")
 
     except sqlite3.Error as e:
         print(f"Error searching files in database: {e}")
