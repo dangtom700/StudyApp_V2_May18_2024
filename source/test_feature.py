@@ -4,6 +4,24 @@ Compute TF-IDF scores for each word in each chunk in the PDF file.
 and continue create another table if the columns exceed 1950
 2) Create a table with columns: word, title1, title2, ...
 3) Do the fucking computation
+
+Phase 2: Prompting and compute relevancy
+		1) Setting the rules for prompting.
+			- The text has to be at least 200 characters long
+		2) Process root words in the prompt and count them
+		3) Compute the TF-IDF of the prompt
+		4) Multiply them to all TF-IDF values in "title_TF_IDF" 
+				'''
+				[total impact] = [[title list] : 0]
+				[for each root word in the prompt]
+					[for each title of that root word]
+						[binding value] = [TF-IDF of prompt] * [TF-IDF of title]
+						total impact [title] += [binding value]
+				'''
+		5) Rank for the top 10* of the binding TF-IDF values, *subject to change
+		6) For each title, perform step 4 and 5 on the [title]_analysis table and concatenate the top ranking chunk of each title
+		7) From concatenate vector, output the top 10* chunk with the corresponding title, chunk ID, and the text chunk, *subject to change
+
 """
 
 import sqlite3
