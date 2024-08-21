@@ -74,7 +74,7 @@ def store_files_in_db(file_names: list[str], file_list: list[str], db_name: str,
     conn = sqlite3.connect(db_name)
     cursor = conn.cursor()
     for file_name, file_path in zip(file_names, file_list):
-        epoch_time, created_time = get_updated_time(file_path)
+        created_time, epoch_time = get_updated_time(file_path)
         string_data = file_name + created_time + file_path
         file_basename = os.path.basename(file_path)
         chunk_count = count_chunk_for_each_title(cursor, file_name=file_basename)
