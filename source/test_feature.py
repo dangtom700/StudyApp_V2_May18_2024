@@ -87,6 +87,9 @@ def compute_TF_IDF(cursor: sqlite3.Cursor, term: str, chunk: str, index: int, te
     cursor.execute(f"UPDATE TF_IDF_table_{index} SET '{term}_TF_IDF' = ? WHERE chunk_text = ?", (tf_idf_value, chunk))
 
 def process_in_parallel_TF_IDF(cursor: sqlite3.Cursor, number_of_tables: int) -> None:
+    """
+    Add in retry mechanism of updating failed
+    """
     thread_list = []
 
     TOTAL_TEXT_CHUNK = cursor.execute("SELECT COUNT(*) FROM pdf_chunks").fetchone()[0]
