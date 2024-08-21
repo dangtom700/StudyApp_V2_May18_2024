@@ -4,7 +4,8 @@ import threading
 import markdown
 import re
 import time
-import hashlib
+import zlib
+import base64
 from datetime import datetime
 from os.path import getmtime
 from time import ctime
@@ -13,22 +14,13 @@ from modules.path import chunk_database_path
 from modules.extract_pdf import batch_collect_files, store_chunks_in_db
 from typing import Generator
 
-def get_updated_time(file_path: str) -> str:
-    """
-    Given a file path, this function retrieves the modification time of the file and converts it to a recognizable timestamp.
-
-    Parameters:
-        file_path (str): The path to the file.
-
-    Returns:
-        str: The modification time of the file in the format of '%a, %b %d, %Y, %H:%M:%S'.
-    """
+def get_updated_time(file_path: str) -> tuple[str, int]:
     # Get the modification time in seconds since EPOCH
     modification_time = getmtime(file_path)
     # Convert the modification time to a recognizable timestamp
-    formatted_modification_time = ctime(modification_time)
     formatted_modification_time = datetime.fromtimestamp(modification_time).strftime('%a, %b %d, %Y, %H:%M:%S')
-    return formatted_modification_time
+    epoch_time = int(modification_time)
+    return (formatted_modification_time, epoch_time)
 
 def setup_database(reset_db: bool, db_name: str) -> None:
     conn = sqlite3.connect(db_name)
@@ -42,6 +34,7 @@ def setup_database(reset_db: bool, db_name: str) -> None:
                    file_path TEXT, 
                    file_type TEXT,
                    created_time TEXT, 
+                   epoch_time INTEGER,
                    chunk_count INTEGER,
                    start_id INTEGER,
                    end_id INTEGER
@@ -50,15 +43,14 @@ def setup_database(reset_db: bool, db_name: str) -> None:
     conn.commit()
     conn.close()
 
-def create_sha256_hash(data: str) -> str:
-    # Create SHA-256 hash object
-    sha256 = hashlib.sha256()
-    # Update hash object with data
-    sha256.update(data.encode())
-    # Get the hexadecimal digest of the hash
-    hex_hash = sha256.hexdigest()
-    # Return the first 20 characters of the hex digest
-    return hex_hash[:20]
+def create_unique_id(data: str) -> str:
+    # Generate a CRC32 hash
+    crc32_hash = zlib.crc32(data.encode())
+    
+    # Convert to base64 and trim to 16 characters
+    base64_id = base64.urlsafe_b64encode(crc32_hash.to_bytes(4, byteorder='big')).decode()[:16]
+    
+    return base64_id
 
 def count_chunk_for_each_title(cursor: sqlite3.Cursor, file_name: str) -> int:
     cursor.execute(f"SELECT COUNT(chunk_index) FROM pdf_chunks WHERE file_name = ?", (file_name,))
@@ -84,24 +76,25 @@ def store_files_in_db(file_names: list[str], file_list: list[str], db_name: str,
     conn = sqlite3.connect(db_name)
     cursor = conn.cursor()
     for file_name, file_path in zip(file_names, file_list):
-        created_time = get_updated_time(file_path)
+        epoch_time, created_time = get_updated_time(file_path)
         string_data = file_name + created_time + file_path
         file_basename = os.path.basename(file_path)
         chunk_count = count_chunk_for_each_title(cursor, file_name=file_basename)
         starting_id, ending_id = get_starting_and_ending_ids(cursor, file_name=file_basename)
-        hashed_data = create_sha256_hash(string_data)
+        hashed_data = create_unique_id(string_data)
         
         cursor.execute(f"""INSERT INTO file_list (
             id, 
             file_name, 
             file_path,
             file_type,
-            created_time, 
+            created_time,
+            epoch_time,
             chunk_count,
             start_id,
             end_id
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)""",
-            (hashed_data, file_name, file_path, file_type, created_time, chunk_count, starting_id, ending_id)
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+            (hashed_data, file_name, file_path, file_type, created_time, epoch_time, chunk_count, starting_id, ending_id)
         )
     conn.commit()
     conn.close()
