@@ -27,6 +27,9 @@ Phase 2: Prompting and compute relevancy
 import sqlite3
 import modules.path as path
 from typing import Generator
+from math import log10
+import threading
+import time
 
 def batch_collect_words(cursor, batch_size=975, column_name="word", table_name="coverage_analysis") -> Generator[list[str], None, None]:
     offset = 0
@@ -72,7 +75,49 @@ def setup_TF_IDF_tables(cursor: sqlite3.Cursor, number_of_tables: int) -> None:
     # Complete transaction
     cursor.connection.commit()
 
-def main_function(database_path: str) -> None:
+def count_a_term_in_a_chunk(term: str, chunk: str, cursor: sqlite3.Cursor, index: int) -> int:
+    term_count = chunk.count(term)
+    cursor.execute(f"UPDATE TF_IDF_table_{index} SET '{term}_count' = ? WHERE chunk_text = ?", (term_count, chunk))
+    return term_count
+
+def compute_TF_IDF(cursor: sqlite3.Cursor, term: str, chunk: str, index: int, term_appearance_count: int, total_words_in_chunk: int, total_document: int, number_document_with_term: int) -> None:
+    term_frequency = term_appearance_count / total_words_in_chunk
+    document_frequency = total_document / number_document_with_term
+    tf_idf_value = term_frequency / log10(1 + document_frequency)
+    cursor.execute(f"UPDATE TF_IDF_table_{index} SET '{term}_TF_IDF' = ? WHERE chunk_text = ?", (tf_idf_value, chunk))
+
+def process_in_parallel_TF_IDF(cursor: sqlite3.Cursor, number_of_tables: int) -> None:
+    thread_list = []
+
+    TOTAL_TEXT_CHUNK = cursor.execute("SELECT COUNT(*) FROM pdf_chunks").fetchone()[0]
+
+    for root_word, index in zip(batch_collect_words(cursor), range(number_of_tables)): # For each table
+        # First round, count the number of terms appear in a chunk
+        for word in root_word:# For each word, count the number of times it appears in the table
+            for text_chunk in batch_collect_words(cursor, batch_size= 100, column_name= "chunk_text", table_name= "pdf_chunks"):
+                thread = threading.Thread(target=count_a_term_in_a_chunk, args=(word, text_chunk, cursor, index))
+                thread.start()
+                thread_list.append(thread)
+            
+            for thread in thread_list:
+                thread.join()
+        # add a waiting time to finish all threads
+        time.sleep(5)
+        # Second round, calculate the TF-IDF to gurantee the accuracy
+        for word in root_word:
+            total_document_with_term = cursor.execute(f"SELECT COUNT(*) FROM TF_IDF_table_{index} WHERE '{word}_count' > 0").fetchone()[0]
+            for text_chunk in batch_collect_words(cursor, batch_size= 100, column_name= "chunk_text", table_name= "pdf_chunks"):
+                term_appearance_count = cursor.execute(f"SELECT '{word}_count' FROM TF_IDF_table_{index} WHERE chunk_text = ?", (text_chunk,)).fetchone()[0]
+                total_words_in_chunk = len(text_chunk.split())
+                thread = threading.Thread(target=compute_TF_IDF, args=(cursor,word,text_chunk,index,term_appearance_count,total_words_in_chunk,TOTAL_TEXT_CHUNK,total_document_with_term))
+                thread.start()
+                thread_list.append(thread)
+
+            for thread in thread_list:
+                thread.join()
+                
+# Main function
+def computeTFIDF(database_path: str) -> None:
     conn = sqlite3.connect(database_path)
     cursor = conn.cursor()
 
@@ -83,5 +128,12 @@ def main_function(database_path: str) -> None:
 
     # Setup tables
     setup_TF_IDF_tables(cursor, number_of_tables)
+    conn.commit()
 
-main_function(path.chunk_database_path)
+    # Count and precompute TF-IDF in multithreaded way
+    process_in_parallel_TF_IDF(cursor, number_of_tables)
+    conn.commit()
+
+    conn.close()
+
+computeTFIDF(path.chunk_database_path)
