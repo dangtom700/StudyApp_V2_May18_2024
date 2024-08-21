@@ -32,24 +32,6 @@ def searchFileInDatabase(keyword: str) -> None:
         if conn:
             conn.close()
 
-def setupTableReadingTask(reset_db: bool = True) -> None:
-    database_name = path.chunk_database_path
-    conn = sqlite3.connect(database_name)
-    cursor = conn.cursor()
-    
-    if reset_db:
-        cursor.execute("DROP TABLE IF EXISTS reading_task")
-    
-    cursor.execute(
-        "CREATE TABLE IF NOT EXISTS reading_task ("
-        "filename TEXT PRIMARY KEY, "
-        "count INTEGER DEFAULT 0, "
-        "Finished INTEGER DEFAULT 0, "
-        "Unfished INTEGER DEFAULT 0)"
-    )
-    conn.commit()
-    conn.close()
-
 def getFilenameFromAnotherTable() -> list[str]:
     database_name = path.chunk_database_path
     conn = sqlite3.connect(database_name)
@@ -58,43 +40,6 @@ def getFilenameFromAnotherTable() -> list[str]:
     filenames = cursor.fetchall()
     conn.close()
     return [filename[0] for filename in filenames]
-
-def processDataFromTaskListFile() -> None:
-    database_name = path.chunk_database_path
-    setupTableReadingTask()
-
-    filenames = getFilenameFromAnotherTable()
-    # Initialize a dictionary to store filename as key and a list of [finished, unfinished] as value
-    data = {filename: [0, 0] for filename in filenames}
-
-    with open(path.taskList_path, 'r') as taskList_file:
-        raw_text = taskList_file.readlines()[2:]
-        for line in raw_text:
-            if "|" not in line:
-                continue
-            line = line.strip()
-            filename = line.split('|')[1]
-            filename = filename.removesuffix(']]')
-
-            if filename not in data:
-                data[filename] = [0, 0]  # Initialize if not already in data
-            if line.startswith('- [x] '):
-                data[filename][0] += 1
-            elif line.startswith('- [ ] '):
-                data[filename][1] += 1
-    
-    conn = sqlite3.connect(database_name)
-    cursor = conn.cursor()
-    for filename, counts in data.items():
-        count = counts[0] + counts[1]
-        cursor.execute(
-            "INSERT OR REPLACE INTO reading_task (filename, count, Finished, Unfished) "
-            "VALUES (?, ?, ?, ?)",
-            (filename, count, counts[0], counts[1])
-        )
-
-    conn.commit()
-    conn.close()
 
 def randomizeNumberOfFilenameWithLowestCount() -> list[str]:
     database_name = path.chunk_database_path
