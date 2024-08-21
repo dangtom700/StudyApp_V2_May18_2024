@@ -8,7 +8,6 @@ import zlib
 import base64
 from datetime import datetime
 from os.path import getmtime
-from time import ctime
 from modules.updateLog import log_message
 from modules.path import chunk_database_path
 from modules.extract_pdf import batch_collect_files, store_chunks_in_db
