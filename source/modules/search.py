@@ -38,52 +38,52 @@ def getFilenameFromAnotherTable() -> list[str]:
     conn.close()
     return [filename[0] for filename in filenames]
 
-def randomizeNumberOfFilenameWithLowestCount() -> list[str]:
-    database_name = path.chunk_database_path
-    conn = sqlite3.connect(database_name)
-    cursor = conn.cursor()
+# def randomizeNumberOfFilenameWithLowestCount() -> list[str]:
+#     database_name = path.chunk_database_path
+#     conn = sqlite3.connect(database_name)
+#     cursor = conn.cursor()
 
-    # Select the minimum count value
-    cursor.execute("SELECT MIN(count) FROM reading_task")
-    min_count = cursor.fetchone()[0]
+#     # Select the minimum count value
+#     cursor.execute("SELECT MIN(count) FROM reading_task")
+#     min_count = cursor.fetchone()[0]
 
-    # Select all filenames with the minimum count, then randomly limit to 3
-    cursor.execute("""
-        SELECT filename FROM reading_task
-        WHERE count = ?
-        ORDER BY RANDOM()
-        LIMIT 3
-    """, (min_count,))
+#     # Select all filenames with the minimum count, then randomly limit to 3
+#     cursor.execute("""
+#         SELECT filename FROM reading_task
+#         WHERE count = ?
+#         ORDER BY RANDOM()
+#         LIMIT 3
+#     """, (min_count,))
 
-    filenames = cursor.fetchall()
-    conn.close()
+#     filenames = cursor.fetchall()
+#     conn.close()
     
-    return filenames
+#     return filenames
 
-def getTaskListFromDatabase(date_now = datetime.datetime.now()) -> None:
-    result = randomizeNumberOfFilenameWithLowestCount()
-    conn = sqlite3.connect(path.chunk_database_path)
+# def getTaskListFromDatabase(date_now = datetime.datetime.now()) -> None:
+#     result = randomizeNumberOfFilenameWithLowestCount()
+#     conn = sqlite3.connect(path.chunk_database_path)
 
-    cursor = conn.cursor()
-    # increare by 1 in count column for every filename in result
-    for filename in result:
-        cursor.execute("UPDATE reading_task SET count = count + 1 WHERE filename = ?", (filename[0],))
-    conn.commit()
-    conn.close()
-    log_message("Finished updating count in database.")
+#     cursor = conn.cursor()
+#     # increare by 1 in count column for every filename in result
+#     for filename in result:
+#         cursor.execute("UPDATE reading_task SET count = count + 1 WHERE filename = ?", (filename[0],))
+#     conn.commit()
+#     conn.close()
+#     log_message("Finished updating count in database.")
     
-    log_message(f"Exporting task list to 'Task List.md' in {path.taskList_path}...")
-    with open(path.Obsidian_taskList_path, 'a', encoding='utf-8') as f:
-        f.write(f"\n{date_now.strftime('%a, %b %d, %Y')}\n\n")
+#     log_message(f"Exporting task list to 'Task List.md' in {path.taskList_path}...")
+#     with open(path.Obsidian_taskList_path, 'a', encoding='utf-8') as f:
+#         f.write(f"\n{date_now.strftime('%a, %b %d, %Y')}\n\n")
         
-        for task in result:
-            # get value from tuple task
-            file = task[0]
-            f.write(f"- [ ] Read a chapter of [[BOOKS/{file}.pdf|{file}]]\n")
-    log_message(f"Finished exporting task list to 'Task List.md' in {path.taskList_path}.")
-    print(f"Finished updating task list record.")
+#         for task in result:
+#             # get value from tuple task
+#             file = task[0]
+#             f.write(f"- [ ] Read a chapter of [[BOOKS/{file}.pdf|{file}]]\n")
+#     log_message(f"Finished exporting task list to 'Task List.md' in {path.taskList_path}.")
+#     print(f"Finished updating task list record.")
 
-    mirrorFile_to_destination(path.Obsidian_taskList_path, path.taskList_path)
+#     mirrorFile_to_destination(path.Obsidian_taskList_path, path.taskList_path)
 
 def randomizeNoteList():
     conn = sqlite3.connect(path.chunk_database_path)
@@ -123,14 +123,14 @@ def getNoteReviewTask() -> None:
     exportNoteReviewTask(note_list, date)
     exportStudyLogTemplate(note_list, date)
 
-def create_task_list_in_time_range(start_date: datetime.datetime, end_date: datetime.datetime) -> None:
-    current_date = start_date
-    while current_date <= end_date:
-        log_message(f"Exporting task list to 'Task List.md' in {path.Obsidian_taskList_path}...")
-        getTaskListFromDatabase(current_date)
-        log_message(f"Finished exporting task list to 'Task List.md' in {path.Obsidian_taskList_path} for {current_date}.")
-        current_date += datetime.timedelta(days=1)
-    print(f"Finished updating task list record.")
+# def create_task_list_in_time_range(start_date: datetime.datetime, end_date: datetime.datetime) -> None:
+#     current_date = start_date
+#     while current_date <= end_date:
+#         log_message(f"Exporting task list to 'Task List.md' in {path.Obsidian_taskList_path}...")
+#         getTaskListFromDatabase(current_date)
+#         log_message(f"Finished exporting task list to 'Task List.md' in {path.Obsidian_taskList_path} for {current_date}.")
+#         current_date += datetime.timedelta(days=1)
+#     print(f"Finished updating task list record.")
 
 def getWordFrequencyAnalysis(batch_size = 100, threshold = 0.82) -> int:
     conn = sqlite3.connect(path.chunk_database_path)
