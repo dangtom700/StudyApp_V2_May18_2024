@@ -4,24 +4,6 @@ Compute TF-IDF scores for each word in each chunk in the PDF file.
 and continue create another table if the columns exceed 1950
 2) Create a table with columns: word, title1, title2, ...
 3) Do the fucking computation
-
-Phase 2: Prompting and compute relevancy
-		1) Setting the rules for prompting.
-			- The text has to be at least 200 characters long
-		2) Process root words in the prompt and count them
-		3) Compute the TF-IDF of the prompt
-		4) Multiply them to all TF-IDF values in "title_TF_IDF" 
-				'''
-				[total impact] = [[title list] : 0]
-				[for each root word in the prompt]
-					[for each title of that root word]
-						[binding value] = [TF-IDF of prompt] * [TF-IDF of title]
-						total impact [title] += [binding value]
-				'''
-		5) Rank for the top 10* of the binding TF-IDF values, *subject to change
-		6) For each title, perform step 4 and 5 on the [title]_analysis table and concatenate the top ranking chunk of each title
-		7) From concatenate vector, output the top 10* chunk with the corresponding title, chunk ID, and the text chunk, *subject to change
-
 """
 
 import sqlite3
@@ -36,10 +18,8 @@ def batch_collect_words(cursor, batch_size=975, column_name="word", table_name="
     while True:
         cursor.execute(f"SELECT {column_name} FROM {table_name} LIMIT ? OFFSET ?", (batch_size, offset))
         extracted_words = [word[0] for word in cursor.fetchall()]
-
         if not extracted_words:
             break
-
         yield extracted_words
         offset += batch_size
 
@@ -53,7 +33,6 @@ def setup_TF_IDF_tables(cursor: sqlite3.Cursor, number_of_tables: int) -> None:
             )
         """)
         cursor.execute(f"INSERT INTO TF_IDF_table_{index} (chunk_text) SELECT chunk_text FROM pdf_chunks")
-
         word_list = next(batch_collect_words(cursor))
         for keyword in word_list:
             cursor.execute(f"ALTER TABLE TF_IDF_table_{index} ADD COLUMN '{keyword}_count' INTEGER DEFAULT 0")
@@ -67,7 +46,6 @@ def setup_TF_IDF_tables(cursor: sqlite3.Cursor, number_of_tables: int) -> None:
         )
     """)
     cursor.execute("INSERT INTO TF_IDF_titles (word) SELECT DISTINCT word FROM coverage_analysis")
-
     title_collection = cursor.execute("SELECT id FROM file_list WHERE chunk_count > 0 AND file_type = 'pdf'").fetchall()
     cleaned_title_collection = [title[0] for title in title_collection]
     for title in cleaned_title_collection:
@@ -76,19 +54,21 @@ def setup_TF_IDF_tables(cursor: sqlite3.Cursor, number_of_tables: int) -> None:
 
     cursor.connection.commit()
 
-def compute_TF_IDF_with_retry(cursor: sqlite3.Cursor, term: str, chunk: str, index: int, total_words_in_chunk: int, total_documents: int, number_documents_with_term: int, MAX_RETRIES=5, RETRY_DELAY=1) -> None:
+def compute_TF_IDF_with_retry(database_path: str, term: str, chunk: str, index: int, total_words_in_chunk: int, total_documents: int, number_documents_with_term: int, MAX_RETRIES=5, RETRY_DELAY=1) -> None:
     attempts = 0
     while attempts < MAX_RETRIES:
         try:
+            conn = sqlite3.connect(database_path)
+            cursor = conn.cursor()
             term_count = chunk.count(term)
             cursor.execute(f"UPDATE TF_IDF_table_{index} SET '{term}_count' = ? WHERE chunk_text = ?", (term_count, chunk))
-
             term_frequency = term_count / total_words_in_chunk if total_words_in_chunk > 0 else 0
             document_frequency = total_documents / number_documents_with_term if number_documents_with_term > 0 else 0
             tf_idf_value = term_frequency * log10(1 + document_frequency)
-
             cursor.execute(f"UPDATE TF_IDF_table_{index} SET '{term}_TF_IDF' = ? WHERE chunk_text = ?", (tf_idf_value, chunk))
-            cursor.connection.commit()
+            conn.commit()
+            cursor.close()
+            conn.close()
             break
         except sqlite3.OperationalError as e:
             if "database is locked" in str(e):
@@ -102,22 +82,29 @@ def compute_TF_IDF_with_retry(cursor: sqlite3.Cursor, term: str, chunk: str, ind
     else:
         print(f"Failed to compute TF-IDF after {MAX_RETRIES} attempts for term '{term}' in chunk {chunk[:50]}...")
 
-def process_in_parallel_TF_IDF_with_retry(cursor: sqlite3.Cursor, number_of_tables: int, MAX_RETRIES=5, RETRY_DELAY=1) -> None:
+def process_in_parallel_TF_IDF_with_retry(database_path: str, number_of_tables: int, MAX_RETRIES=5, RETRY_DELAY=1) -> None:
+    conn = sqlite3.connect(database_path)
+    cursor = conn.cursor()
     TOTAL_TEXT_CHUNK = cursor.execute("SELECT COUNT(*) FROM pdf_chunks").fetchone()[0]
+    conn.close()
 
-    for root_word, index in zip(batch_collect_words(cursor), range(number_of_tables)):
+    for root_word, index in zip(batch_collect_words(sqlite3.connect(database_path).cursor()), range(number_of_tables)):
         thread_list = []
 
         for word in root_word:
+            # Establish a new connection inside the loop for each word
+            conn = sqlite3.connect(database_path)
+            cursor = conn.cursor()
             total_document_with_term = cursor.execute(f"SELECT COUNT(*) FROM TF_IDF_table_{index} WHERE '{word}_count' > 0").fetchone()[0]
             text_chunks = cursor.execute(f"SELECT chunk_text FROM pdf_chunks").fetchall()
+            conn.close()
 
             for chunk_tuple in text_chunks:
                 text_chunk = chunk_tuple[0]
                 total_words_in_chunk = len(text_chunk.split())
                 thread = threading.Thread(
                     target=compute_TF_IDF_with_retry,
-                    args=(cursor, word, text_chunk, index, total_words_in_chunk, TOTAL_TEXT_CHUNK, total_document_with_term, MAX_RETRIES, RETRY_DELAY)
+                    args=(database_path, word, text_chunk, index, total_words_in_chunk, TOTAL_TEXT_CHUNK, total_document_with_term, MAX_RETRIES, RETRY_DELAY)
                 )
                 thread.start()
                 thread_list.append(thread)
@@ -126,7 +113,7 @@ def process_in_parallel_TF_IDF_with_retry(cursor: sqlite3.Cursor, number_of_tabl
             thread.join()
 
 def computeTFIDF(database_path: str) -> None:
-    conn = sqlite3.connect(database_path, check_same_thread=False)
+    conn = sqlite3.connect(database_path)
     cursor = conn.cursor()
 
     NUMER_OF_WORDS = cursor.execute("SELECT COUNT(*) FROM coverage_analysis").fetchone()[0]
@@ -135,7 +122,7 @@ def computeTFIDF(database_path: str) -> None:
 
     setup_TF_IDF_tables(cursor, number_of_tables)
 
-    process_in_parallel_TF_IDF_with_retry(cursor, number_of_tables)
+    process_in_parallel_TF_IDF_with_retry(database_path, number_of_tables)
 
     conn.close()
 
