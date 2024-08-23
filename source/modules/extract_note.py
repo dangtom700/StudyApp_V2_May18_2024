@@ -4,8 +4,7 @@ import threading
 import markdown
 import re
 import time
-import zlib
-import base64
+import hashlib
 from datetime import datetime
 from os.path import getmtime
 from modules.updateLog import log_message
@@ -41,14 +40,10 @@ def setup_database(reset_db: bool, db_name: str) -> None:
     conn.commit()
     conn.close()
 
-def create_unique_id(data: str) -> str:
-    # Generate a CRC32 hash
-    crc32_hash = zlib.crc32(data.encode())
-    
-    # Convert to base64 and trim to 16 characters
-    base64_id = base64.urlsafe_b64encode(crc32_hash.to_bytes(4, byteorder='big')).decode()[:16]
-    
-    return base64_id
+def create_unique_id(data: str, sha256_hash: hashlib.sha256, character_limit: int = 16) -> str:
+    # Generate a sha256 hash of the data
+    sha256_hash.update(data.encode('utf-8'))
+    return sha256_hash.hexdigest()[:character_limit]
 
 def count_chunk_for_each_title(cursor: sqlite3.Cursor, file_name: str) -> int:
     cursor.execute(f"SELECT COUNT(chunk_index) FROM pdf_chunks WHERE file_name = ?", (file_name,))
@@ -73,13 +68,14 @@ def get_starting_and_ending_ids(cursor: sqlite3.Cursor, file_name: str) -> tuple
 def store_files_in_db(file_names: list[str], file_list: list[str], db_name: str, file_type: str) -> None:
     conn = sqlite3.connect(db_name)
     cursor = conn.cursor()
+    sha256_hash = hashlib.sha256()
     for file_name, file_path in zip(file_names, file_list):
         created_time, epoch_time = get_updated_time(file_path)
         string_data = file_name + created_time + file_path
         file_basename = os.path.basename(file_path)
         chunk_count = count_chunk_for_each_title(cursor, file_name=file_basename)
         starting_id, ending_id = get_starting_and_ending_ids(cursor, file_name=file_basename)
-        hashed_data = create_unique_id(string_data)
+        hashed_data = create_unique_id(string_data, sha256_hash)
         
         cursor.execute(f"""INSERT INTO file_list (
             id, 
