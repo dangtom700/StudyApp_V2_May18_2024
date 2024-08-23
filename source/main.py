@@ -49,14 +49,14 @@ def app():
         updateLog.log_message(f"Extracting text from PDF files...")
         extract_pdf.extract_text(CHUNK_SIZE=chunk_size)
         updateLog.log_message(f"Finished extracting text from PDF files.")
-        # update_database
-        updateLog.log_message(f"Updating database from log file...")
-        updateLog.store_log_file_to_database(path.log_file_path)
-        updateLog.log_message(f"Finished updating database from log file.")
         # extract text from markdown files
         updateLog.log_message(f"Extracting text from markdown files...")
         extract_note.extract_markdown_notes_in_batches(path.study_notes_folder_path, chunk_size=chunk_size)
         updateLog.log_message(f"Finished extracting text from markdown files.")
+        # update_database
+        updateLog.log_message(f"Updating database from log file...")
+        updateLog.store_log_file_to_database(path.log_file_path)
+        updateLog.log_message(f"Finished updating database from log file.")
         # announce finish
         print(f"Finished updating database from log file.")
         updateLog.log_message(f"Finished updating database from log file.")
