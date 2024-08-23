@@ -52,12 +52,12 @@ def categorize_pdf_files_by_month_year(destination_path = ReadingMaterial_path) 
         return date_to_pdf
     conn = sqlite3.connect(chunk_database_path)
     cursor = conn.cursor()
-    cursor.execute("SELECT pdf_path, created_time FROM pdf_list")
+    cursor.execute("SELECT file_path, created_time FROM file_list WHERE file_type = 'pdf'")
     rows = cursor.fetchall()
     rows = {row[0]: row[1] for row in rows}
     conn.close()
     
-    print(f"There are {len(rows)} files in the database.")
+    print(f"There are {len(rows)} pdf files found in the database.")
     counter = 0
 
     filtered_data = filter_date(rows)
