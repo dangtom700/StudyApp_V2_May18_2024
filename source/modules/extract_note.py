@@ -8,7 +8,7 @@ import hashlib
 from datetime import datetime
 from collections.abc import Generator
 from os.path import getmtime
-from modules.updateLog import log_message
+from modules.updateLog import print_and_log, log_message
 from modules.path import chunk_database_path
 from modules.extract_pdf import batch_collect_files, store_chunks_in_db
 
@@ -98,12 +98,12 @@ def extract_names(raw_list: list[str], extension: list[str]) -> list[str]:
     return [os.path.basename(file).removesuffix(extension) for file in raw_list if file.endswith(extension)]
 
 def create_type_index_table(collector_folder_list: list[str], extension_list: list[str]) -> None:
-    log_message(f"Started creating file index.")
+    print_and_log(f"Started creating file index.")
     
     # Initialize database
     setup_database(reset_db=True, db_name=chunk_database_path)
     
-    log_message("Started storing files in database.")
+    print_and_log("Started storing files in database.")
     for collector_folder, extension in zip(collector_folder_list, extension_list):
         for file_batch in batch_collect_files(folder_path=collector_folder, extension=extension, batch_size=100):
             file_names = extract_names(file_batch, extension)
@@ -115,8 +115,8 @@ def create_type_index_table(collector_folder_list: list[str], extension_list: li
                                   db_name=chunk_database_path, 
                                   file_type=extension.removeprefix("."))
 
-    log_message(f"Files: file stored in database.")
-    print(f"Processing complete: create file index.")
+    print_and_log(f"Files: file stored in database.")
+    print_and_log(f"Processing complete: create file index.")
 
 def extract_note_text_chunk(file, chunk_size=4000) -> Generator[str, None, None]:
     """Extracts and cleans text chunk by chunk from a markdown file."""
@@ -180,8 +180,6 @@ def extract_markdown_notes_in_batches(directory, chunk_size = 800) -> None:
     """Main process to collect, extract, chunk, and store markdown files in batches using multithreading."""
     for file_batch in batch_collect_files(folder_path=directory, extension='.md'):
         process_text_note_batch_of_files(file_batch, chunk_size=chunk_size)
-        print(f"Finished processing batch of {len(file_batch)} markdown files.")
-        log_message(f"Finished processing batch of {len(file_batch)} markdown files.")
+        print_and_log(f"Finished processing batch of {len(file_batch)} markdown files.")
 
-    print("Finished processing markdown files.")
-    log_message("Finished processing markdown files.")
+    print_and_log("Finished processing markdown files.")

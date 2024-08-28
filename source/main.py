@@ -8,8 +8,7 @@ from datetime import datetime
 
 def calculate_time_difference(start_time: datetime, announce_txt: str) -> str:
     end_time = datetime.now()
-    updateLog.log_message(f"{announce_txt}: {end_time - start_time}")
-    print(f"{announce_txt}: {end_time - start_time}")
+    updateLog.print_and_log(f"{announce_txt}: {end_time - start_time}")
 
 def app():
 
@@ -34,7 +33,6 @@ def app():
 
     if args.extractText:
         start_time = datetime.now()
-        print(f"Extracting text from PDF files...")
         # Adjust parameters
         """
         Small Chunks (50-200 characters): These are useful for quick retrieval 
@@ -53,94 +51,85 @@ def app():
         """
         chunk_size = 2000
         # extract_text
-        updateLog.log_message(f"Extracting text from PDF files...")
+        updateLog.print_and_log("Extracting text from PDF files...")
         extract_pdf.extract_text(CHUNK_SIZE=chunk_size)
-        updateLog.log_message(f"Finished extracting text from PDF files.")
+        updateLog.print_and_log("Finished extracting text from PDF files.")
         # extract text from markdown files
-        updateLog.log_message(f"Extracting text from markdown files...")
+        updateLog.print_and_log("Extracting text from markdown files...")
         extract_note.extract_markdown_notes_in_batches(path.study_notes_folder_path, chunk_size=chunk_size)
-        updateLog.log_message(f"Finished extracting text from markdown files.")
+        updateLog.print_and_log("Finished extracting text from markdown files.")
         # update_database
-        updateLog.log_message(f"Updating database from log file...")
+        updateLog.print_and_log("Updating database from log file...")
         updateLog.store_log_file_to_database(path.log_file_path)
-        updateLog.log_message(f"Finished updating database from log file.")
-        # announce finish
-        print(f"Finished updating database from log file.")
-        updateLog.log_message(f"Finished updating database from log file.")
+        updateLog.print_and_log("Finished updating database from log file.")
         # calculate the total time done
         calculate_time_difference(start_time, "Text extraction processing time")
     
     if args.processWordFrequencies:
         start_time = datetime.now()
-        print(f"Processing word frequencies in chunks...")
-        updateLog.log_message(f"Processing word frequencies in chunks...")
+        updateLog.print_and_log("Processing word frequencies in chunks...")
         # process word frequency
         extract_pdf.process_word_frequencies_in_batches()
         # announce finish
-        print(f"Finished processing word frequencies.")
-        updateLog.log_message(f"Finished processing word frequencies.")
+        updateLog.print_and_log("Finished processing word frequencies.")
         # calculate the total time done
         calculate_time_difference(start_time, "Word frequency processing time")
 
     if args.updateDatabase:
         start_time = datetime.now()
-        updateLog.log_message(f"Updating database from log file...")
-        print("Updating database from log file...")
+        updateLog.print_and_log("Updating database from log file...")
         # create_index_tables
-        updateLog.log_message(f"Extracting files from multiple folders")
+        updateLog.print_and_log("Extracting files from multiple folders")
         folders = [path.pdf_path, path.study_notes_folder_path]
         extensions = [".pdf", ".md"]
         extract_note.create_type_index_table(folders, extensions)
-        updateLog.log_message(f"Finished extracting files from multiple folders")
+        updateLog.print_and_log("Finished extracting files from multiple folders")
         # announce finish
-        print(f"Finished updating database from log file.")
-        updateLog.log_message(f"Finished updating database from log file.")
+        updateLog.print_and_log("Finished updating database from log file.")
         # calculate the total time done
         calculate_time_difference(start_time, "Database update time")
 
     if args.getWordFrequencyAnalysis:
         updateLog.log_message(f"Exporting word frequency analysis to 'word_frequency_analysis.md' in {path.WordFrequencyAnalysis_path}...")
-        print("Exporting word frequency analysis...")
+        updateLog.print_and_log("Exporting word frequency analysis...")
         search.getWordFrequencyAnalysis(threshold= 0.925)
         updateLog.log_message(f"Finished exporting word frequency analysis to 'word_frequency_analysis.md' in {path.WordFrequencyAnalysis_path}.")
-        print("Finished exporting word frequency analysis.")
+        updateLog.print_and_log("Finished exporting word frequency analysis.")
 
     if args.precomputeTitleVector:
         start_time = datetime.now()
-        print("Precomputing title vector...")
-        updateLog.log_message(f"Precomputing title vector...")
+        updateLog.print_and_log("Precomputing title vector...")
         # precompute title vector
         extract_pdf.precompute_title_vector(path.chunk_database_path)
         # announce finish
-        print("Title vector precomputation complete.")
-        updateLog.log_message("Title vector precomputation complete.")
+        updateLog.print_and_log("Title vector precomputation complete.")
         # calculate the time done
         calculate_time_difference(start_time, "Title vector precomputation time")
 
     if args.categorizeReadingMaterial:
-        updateLog.log_message(f"Exporting reading material to 'Reading Material.md' in {path.ReadingMaterial_path}...")
+        updateLog.print_and_log(f"Exporting reading material to 'Reading Material.md' in {path.ReadingMaterial_path}...")
         updateLog.categorize_pdf_files_by_month_year()
-        updateLog.log_message(f"Finished exporting reading material to 'Reading Material.md' in {path.ReadingMaterial_path}.")
+        updateLog.print_and_log(f"Finished exporting reading material to 'Reading Material.md' in {path.ReadingMaterial_path}.")
 
     # very seasonal use
     if args.searchTitle:
-        updateLog.log_message(f"Searching for keyword '{args.searchTitle}'...")
-        updateLog.log_message(f"Searching for files in database...")
+        updateLog.print_and_log(f"Searching for keyword '{args.searchTitle}'...")
+        updateLog.print_and_log(f"Searching for files in database...")
         search.searchFileInDatabase(args.searchTitle)
-        updateLog.log_message(f"Finished search.")
+        updateLog.print_and_log(f"Finished search.")
 
     if args.suggestTitle:
         prompt = input("Enter a prompt: ")
         suggest_number = int(input("Enter the number of suggestions: "))
-        updateLog.log_message(f"Prompt: {prompt}")
-        updateLog.log_message(f"Suggesting {suggest_number} titles...")
+        updateLog.print_and_log(f"Prompt: {prompt}")
+        updateLog.print_and_log(f"Suggesting {suggest_number} titles...")
         extract_pdf.suggestTitle(path.chunk_database_path,prompt, suggest_number)
-        updateLog.log_message(f"Finished suggesting titles.")
+        updateLog.print_and_log(f"Finished suggesting titles.")
 
     if args.getNoteReview:
-        updateLog.log_message(f"Exporting notes to 'Note Review.md' in {path.Obsidian_noteReview_path}...")
+        updateLog.print_and_log(f"Exporting notes to 'Note Review.md' in {path.Obsidian_noteReview_path}...")
         search.getNoteReviewTask()
-        updateLog.log_message(f"Finished exporting notes to 'Note Review.md' in {path.Obsidian_noteReview_path}.")
+        updateLog.print_and_log(f"Finished exporting notes to 'Note Review.md' in {path.Obsidian_noteReview_path}.")
 
     # Calculate the total time done
     calculate_time_difference(begin_execution, "Total execution time")

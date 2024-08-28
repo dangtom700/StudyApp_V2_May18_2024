@@ -2,7 +2,7 @@ import sqlite3
 import colorama
 import datetime
 import modules.path as path
-from modules.updateLog import log_message
+from modules.updateLog import print_and_log
 
 def mirrorFile_to_destination(source: str, destination: str) -> None:
     with open(source, 'r', encoding='utf-8') as read_obj, open(destination, 'w', encoding='utf-8') as write_obj:
@@ -45,7 +45,7 @@ def randomizeNoteList():
     result = cursor.fetchall()
     conn.close()
     result = [note[0] for note in result]
-    log_message(f"Note list randomized: {result}")
+    print_and_log(f"Note list randomized: {result}")
     return result
 
 def exportNoteReviewTask(note_list: list, date: str) -> None:
@@ -53,7 +53,7 @@ def exportNoteReviewTask(note_list: list, date: str) -> None:
         f.write(f"\n[[{date}]]\n\n")
         for note in note_list:
             f.write(f"- {note}\n")
-    log_message("Note review task exported.")
+    print_and_log("Note review task exported.")
     mirrorFile_to_destination(path.Obsidian_noteReview_path, path.noteReview_path)
 
 def exportStudyLogTemplate(note_list: list, date: str) -> None:
@@ -68,7 +68,7 @@ def exportStudyLogTemplate(note_list: list, date: str) -> None:
 
         f.write(change_note)
 
-    log_message("Modified study log template exported to 'Review' folder.")
+    print_and_log("Modified study log template exported to 'Review' folder.")
 
 def getNoteReviewTask() -> None:
     note_list = randomizeNoteList()

@@ -13,7 +13,7 @@ from math import sqrt, log
 from nltk.stem import PorterStemmer
 from modules.path import log_file_path, chunk_database_path, pdf_path
 from collections.abc import Generator
-from modules.updateLog import log_message
+from modules.updateLog import log_message, print_and_log
 
 stemmer = PorterStemmer()
 
@@ -313,6 +313,9 @@ def process_word_frequencies_in_batches():
     logging.info("Processing word frequencies complete.")
     print("Processing word frequencies complete.")
 
+import sqlite3
+from math import sqrt, log
+
 def precompute_title_vector(database_name: str) -> None:
     conn = sqlite3.connect(database_name)
     cursor = conn.cursor()
@@ -323,8 +326,18 @@ def precompute_title_vector(database_name: str) -> None:
         cursor.execute("DROP TABLE IF EXISTS title_tf_idf")
 
         # Create title_analysis and title_normalized tables
-        cursor.execute("CREATE TABLE title_analysis (word TEXT PRIMARY KEY, FOREIGN KEY(word) REFERENCES coverage_analysis(word))")
-        cursor.execute("CREATE TABLE title_normalized (word TEXT PRIMARY KEY, FOREIGN KEY(word) REFERENCES coverage_analysis(word))")
+        cursor.execute("""
+            CREATE TABLE title_analysis (
+                word TEXT PRIMARY KEY, 
+                FOREIGN KEY(word) REFERENCES coverage_analysis(word)
+            )
+        """)
+        cursor.execute("""
+            CREATE TABLE title_normalized (
+                word TEXT PRIMARY KEY, 
+                FOREIGN KEY(word) REFERENCES coverage_analysis(word)
+            )
+        """)
         
         for title_id in title_ids:
             cursor.execute(f"ALTER TABLE title_analysis ADD COLUMN 'title_{title_id}' INTEGER DEFAULT 0")
@@ -355,40 +368,53 @@ def precompute_title_vector(database_name: str) -> None:
             length = sqrt(length)
             cursor.execute(f"""
                 UPDATE title_normalized
-                    SET title_{title} = 
-                        (SELECT title_{title} FROM title_analysis WHERE title_normalized.word = title_analysis.word) /(1 + {length})""")
+                SET title_{title} = 
+                    (SELECT title_{title} FROM title_analysis WHERE title_normalized.word = title_analysis.word) / ?
+            """, (1 + length,))
         conn.commit()
 
     def compute_TF_IDF(title_ids: list[str]) -> None:
         DOCUMENT_COUNT = len(title_ids)
         for title in title_ids:
-            total_terms = cursor.execute(f"""SELECT SUM(title_{title}) FROM title_analysis""").fetchone()[0]
-            for word in words:
-                term_count = cursor.execute(f"""SELECT title_{title} FROM title_analysis WHERE word = ?""", (word,)).fetchone()[0]
+            total_terms = cursor.execute(f"SELECT SUM(title_{title}) FROM title_analysis").fetchone()[0]
+            if total_terms == 0:
+                continue  # Skip if no terms are found
+            
+            term_counts = cursor.execute(f"SELECT word, title_{title} FROM title_analysis").fetchall()
+            
+            for word, term_count in term_counts:
+                if term_count == 0:
+                    continue
+                
                 tf = term_count / total_terms
-                doc_with_term = cursor.execute(f"""SELECT COUNT(*) FROM title_analysis WHERE title_{title} > 0 AND word = ?""", (word,)).fetchone()[0]
+                doc_with_term = cursor.execute(f"""
+                    SELECT COUNT(*) 
+                    FROM title_analysis 
+                    WHERE word = ? AND title_{title} > 0
+                """, (word,)).fetchone()[0]
+                
                 idf = log(DOCUMENT_COUNT / (1 + doc_with_term))
-                cursor.execute(f"""UPDATE title_tf_idf SET title_{title} = ? WHERE word = ?""", (tf * idf, word))
+                cursor.execute(f"""
+                    UPDATE title_tf_idf 
+                    SET title_{title} = ? 
+                    WHERE word = ?
+                """, (tf * idf, word))
             conn.commit()
-
-    def log_and_print(message: str) -> None:
-        print(message)
-        log_message(message)
 
     # Main flow
     cursor.execute("SELECT id FROM file_list WHERE file_type = 'pdf' AND chunk_count > 0")
     titles = cursor.fetchall()
     title_ids = [title[0] for title in titles]
-    log_and_print(f"Found {len(title_ids)} titles.")
+    print_and_log(f"Found {len(title_ids)} titles.")
 
     cursor.execute("SELECT word FROM coverage_analysis")
     words = {word[0]: 0 for word in cursor.fetchall()}
-    log_and_print(f"Found {len(words)} words.")
+    print_and_log(f"Found {len(words)} words.")
 
-    log_and_print("Creating tables...")
+    print_and_log("Creating tables...")
     create_tables(title_ids=title_ids)
 
-    log_and_print("Retrieving and processing chunks...")
+    print_and_log("Retrieving and processing chunks...")
     buffer = None
     BATCH_SIZE = 100
     
@@ -428,17 +454,22 @@ def precompute_title_vector(database_name: str) -> None:
         log_message(f"Processed {buffer}")
     
     # Normalizing vectors
-    log_and_print("Normalizing vectors...")
+    print_and_log("Normalizing vectors...")
     normalize_vector(title_ids=title_ids)
-    log_and_print("Finished normalizing vectors.")
+    print_and_log("Finished normalizing vectors.")
 
     # Compute TF-IDF
-    log_and_print("Computing TF-IDF...")
+    print_and_log("Computing TF-IDF...")
     compute_TF_IDF(title_ids=title_ids)
-    log_and_print("Finished computing TF-IDF.")
+    print_and_log("Finished computing TF-IDF.")
 
     conn.commit()
     conn.close()
+
+def print_and_log(message: str) -> None:
+    print(message)
+    log_message(message)
+
 
 def suggest_top_titles(database_path: str, prompt: str, top_n = 10):
     conn = sqlite3.connect(database_path)
