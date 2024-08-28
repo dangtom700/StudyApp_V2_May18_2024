@@ -419,6 +419,8 @@ def precompute_title_vector(database_name: str) -> None:
     print("Normalizing vectors...")
     log_message("Normalizing vectors...")
     normalize_vector(title_ids=title_ids)
+    print("Finish normalizing vectors.")
+    log_message("Finish normalizing vectors.")
 
     conn.commit()
     conn.close()
