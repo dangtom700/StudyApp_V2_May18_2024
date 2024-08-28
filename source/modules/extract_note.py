@@ -6,6 +6,7 @@ import re
 import time
 import hashlib
 from datetime import datetime
+from collections.abc import Generator
 from os.path import getmtime
 from modules.updateLog import log_message
 from modules.path import chunk_database_path
@@ -117,7 +118,7 @@ def create_type_index_table(collector_folder_list: list[str], extension_list: li
     log_message(f"Files: file stored in database.")
     print(f"Processing complete: create file index.")
 
-def extract_note_text_chunk(file, chunk_size=8000):
+def extract_note_text_chunk(file, chunk_size=4000) -> Generator[str, None, None]:
     """Extracts and cleans text chunk by chunk from a markdown file."""
     content = []
     for line in file:
