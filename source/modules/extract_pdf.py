@@ -337,7 +337,7 @@ def precompute_title_vector(database_name: str) -> None:
             offset += batch_size
 
     # Main flow
-    cursor.execute("SELECT id, file_path FROM file_list WHERE file_type = 'pdf' AND chunk_count IS NOT NULL")
+    cursor.execute("SELECT id, file_path FROM file_list WHERE file_type = 'pdf' AND chunk_count > 0")
     titles = cursor.fetchall()
     title_ids = [title[0] for title in titles]
     print(f"Found {len(title_ids)} titles.")
@@ -359,7 +359,7 @@ def precompute_title_vector(database_name: str) -> None:
     log_message("Retrieving chunks...")
 
     cursor.execute("SELECT file_name FROM pdf_chunks GROUP BY file_name ORDER BY file_name ASC")
-    buffer = cursor.execute("SELECT file_name FROM file_list WHERE file_type = 'pdf' AND chunk_count IS NOT NULL ORDER BY file_name ASC").fetchone()[0]
+    buffer = cursor.execute("SELECT file_name FROM file_list WHERE file_type = 'pdf' AND chunk_count > 0 ORDER BY file_name ASC").fetchone()[0]
     print("Counting words based on titles...")
     log_message("Counting words based on titles...")
     
