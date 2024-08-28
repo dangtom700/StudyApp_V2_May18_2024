@@ -73,7 +73,7 @@ def app():
         start_time = datetime.now()
         print(f"Processing word frequencies in chunks...")
         updateLog.log_message(f"Processing word frequencies in chunks...")
-        # peoxwss word frequency
+        # process word frequency
         extract_pdf.process_word_frequencies_in_batches()
         # announce finish
         print(f"Finished processing word frequencies.")
@@ -102,12 +102,13 @@ def app():
         print("Exporting word frequency analysis...")
         search.getWordFrequencyAnalysis()
         updateLog.log_message(f"Finished exporting word frequency analysis to 'word_frequency_analysis.md' in {path.WordFrequencyAnalysis_path}.")
+        print("Finished exporting word frequency analysis.")
 
     if args.precomputeTitleVector:
         start_time = datetime.now()
         print("Precomputing title vector...")
-        # precompute title vector
         updateLog.log_message(f"Precomputing title vector...")
+        # precompute title vector
         extract_pdf.precompute_title_vector(path.chunk_database_path)
         # announce finish
         print("Title vector precomputation complete.")
