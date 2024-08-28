@@ -25,14 +25,20 @@ def precompute_title_vector(database_name: str) -> None:
             offset += batch_size
 
     # Main flow
+    print("Precomputing title vector...")
     cursor.execute("SELECT id, file_name FROM file_list WHERE file_type = 'pdf' AND chunk_count IS NOT NULL")
     titles = cursor.fetchall()
     title_ids = [title[0] for title in titles]
     cleaned_titles = {title[1]: title[0] for title in titles}
-    
+    print(f"Found {len(title_ids)} titles.")
+    print(cleaned_titles)
+
+    print("Retrieving words...")
     cursor.execute("SELECT word FROM coverage_analysis")
     words = cursor.fetchall()
     words = {word[0]: 0 for word in words}
+    print(f"Found {len(words)} words.")
+    print(words)
 
     create_table(title_ids=title_ids)
     BATCH_SIZE = 100
@@ -40,20 +46,24 @@ def precompute_title_vector(database_name: str) -> None:
     cursor.execute("SELECT file_name FROM pdf_chunks GROUP BY file_name ORDER BY file_name ASC")
     buffer = cursor.execute("SELECT file_name FROM pdf_chunks GROUP BY file_name ORDER BY file_name ASC").fetchone()[0]
     
+    print("Counting words based on titles...")
     for raw_data in retrieve_chunk_and_title_in_batch(batch_size=BATCH_SIZE):
         for file_name, chunk_text in raw_data:
             if file_name != buffer:
+                print(f"Processing {buffer}.")
                 buffer = file_name
                 word_values = ', '.join([f"{words[word]}" for word in words])
                 cursor.execute(f"INSERT INTO Title_Analysis (word, 'title_{cleaned_titles[file_name]}') VALUES ({word_values})")
                 words = {word: 0 for word in words}
                 conn.commit()
+                print(f"Processed {file_name}.")
 
             filtered_list = clean_text(chunk_text)
+            print(f"Filtered {len(filtered_list)} words.")
             for word in filtered_list:
                 if word in words:
                     words[word] += 1
-
+    print("Done.")
     conn.close()
 
 precompute_title_vector(chunk_database_path)
