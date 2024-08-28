@@ -48,8 +48,6 @@ def precompute_title_vector(database_name: str) -> None:
     buffer = cursor.execute("SELECT file_name FROM file_list WHERE file_type = 'pdf' AND chunk_count IS NOT NULL ORDER BY file_name ASC").fetchone()[0]
     print("Counting words based on titles...")
     
-    title_word_counts = {}
-
     for raw_data in retrieve_chunk_and_title_in_batch(batch_size=BATCH_SIZE):
         for file_name, chunk_text in raw_data:
             if not file_name.endswith(".pdf"):
@@ -58,14 +56,13 @@ def precompute_title_vector(database_name: str) -> None:
             if file_name != buffer:
                 print(f"Processing {buffer}.")
                 ID_title = cursor.execute("SELECT id FROM file_list WHERE file_name = ?", (buffer.removesuffix('.pdf'),)).fetchone()[0]
-                word_values = [words[word] for word in words]
                 
                 cursor.executemany(
                     f"UPDATE Title_Analysis SET 'title_{ID_title}' = ? WHERE word = ?",
                     [(words[word], word) for word in words]
                 )
 
-                words = {word: 0 for word in words}
+                words = {word: 0 for word in words}  # Reset word counts
                 conn.commit()
                 buffer = file_name
                 print(f"Processed {file_name}.")
