@@ -337,8 +337,6 @@ def precompute_title_vector(database_name: str) -> None:
             offset += batch_size
 
     # Main flow
-    print("Precomputing title vector...")
-    log_message("Precomputing title vector...")
     cursor.execute("SELECT id, file_path FROM file_list WHERE file_type = 'pdf' AND chunk_count IS NOT NULL")
     titles = cursor.fetchall()
     title_ids = [title[0] for title in titles]
@@ -400,8 +398,5 @@ def precompute_title_vector(database_name: str) -> None:
         )
         conn.commit()
         log_message(f"Processed {buffer}")
-
-    print("Title vector precomputation complete.")
-    log_message("Title vector precomputation complete.")
     
     conn.close()
