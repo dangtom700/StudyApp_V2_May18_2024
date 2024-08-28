@@ -14,6 +14,8 @@ def precompute_title_vector(database_name: str) -> None:
         for title_id in title_ids:
             cursor.execute(f"ALTER TABLE Title_Analysis ADD COLUMN 'title_{title_id}' INTEGER DEFAULT 0")
 
+        conn.commit()
+
     def retrieve_chunk_and_title_in_batch(batch_size: int):
         offset = 0
         while True:
@@ -26,34 +28,37 @@ def precompute_title_vector(database_name: str) -> None:
 
     # Main flow
     print("Precomputing title vector...")
-    cursor.execute("SELECT id, file_name FROM file_list WHERE file_type = 'pdf' AND chunk_count IS NOT NULL")
+    cursor.execute("SELECT id, file_path FROM file_list WHERE file_type = 'pdf' AND chunk_count IS NOT NULL")
     titles = cursor.fetchall()
     title_ids = [title[0] for title in titles]
-    cleaned_titles = {title[1]: title[0] for title in titles}
     print(f"Found {len(title_ids)} titles.")
-    print(cleaned_titles)
+    # print(title_ids)
 
     print("Retrieving words...")
     cursor.execute("SELECT word FROM coverage_analysis")
     words = cursor.fetchall()
     words = {word[0]: 0 for word in words}
     print(f"Found {len(words)} words.")
-    print(words)
+    # print(words)
 
+    print("Creating table Title_Analysis...")
     create_table(title_ids=title_ids)
     BATCH_SIZE = 100
+    print("Retrieving chunks...")
 
     cursor.execute("SELECT file_name FROM pdf_chunks GROUP BY file_name ORDER BY file_name ASC")
-    buffer = cursor.execute("SELECT file_name FROM pdf_chunks GROUP BY file_name ORDER BY file_name ASC").fetchone()[0]
-    
+    buffer = cursor.execute("SELECT file_name FROM file_list WHERE file_type = 'pdf' AND chunk_count IS NOT NULL ORDER BY file_name ASC").fetchone()[0]
     print("Counting words based on titles...")
     for raw_data in retrieve_chunk_and_title_in_batch(batch_size=BATCH_SIZE):
         for file_name, chunk_text in raw_data:
+            if not file_name.endswith(".pdf"):
+                continue
             if file_name != buffer:
                 print(f"Processing {buffer}.")
                 buffer = file_name
                 word_values = ', '.join([f"{words[word]}" for word in words])
-                cursor.execute(f"INSERT INTO Title_Analysis (word, 'title_{cleaned_titles[file_name]}') VALUES ({word_values})")
+                ID_title = cursor.execute(f"SELECT id FROM file_list WHERE file_name = '{buffer.removesuffix('.pdf')}'").fetchone()[0]
+                cursor.execute(f"INSERT INTO Title_Analysis (word, 'title_{ID_title}') VALUES ({word_values})")
                 words = {word: 0 for word in words}
                 conn.commit()
                 print(f"Processed {file_name}.")
