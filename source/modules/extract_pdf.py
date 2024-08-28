@@ -11,7 +11,7 @@ import nltk
 from nltk.corpus import stopwords
 from nltk.stem import PorterStemmer
 from modules.path import log_file_path, chunk_database_path, pdf_path
-from typing import List, Generator
+from collections.abc import Generator
 
 stemmer = PorterStemmer()
 
@@ -263,7 +263,7 @@ def process_chunks_in_batches(db_name: str, batch_size=100):
     conn.close()
 
 # Main function
-def batch_collect_files(folder_path: str, extension='.pdf', batch_size=100) -> Generator[List[str], None, None]:
+def batch_collect_files(folder_path: str, extension='.pdf', batch_size=100) -> Generator[list[str], None, None]:
     """
     Generator function that yields batches of files from the specified folder.
 
@@ -363,7 +363,6 @@ def precompute_title_vector(database_name: str) -> None:
                 continue
 
             if file_name != buffer:
-                print(f"Processing {buffer}.")
                 ID_title = cursor.execute("SELECT id FROM file_list WHERE file_name = ?", (buffer.removesuffix('.pdf'),)).fetchone()[0]
                 
                 cursor.executemany(
@@ -374,7 +373,6 @@ def precompute_title_vector(database_name: str) -> None:
                 words = {word: 0 for word in words}  # Reset word counts
                 conn.commit()
                 buffer = file_name
-                print(f"Processed {file_name}.")
 
             filtered_list = clean_text(chunk_text)
             for word in filtered_list:
@@ -390,5 +388,6 @@ def precompute_title_vector(database_name: str) -> None:
         )
         conn.commit()
 
-    print("Done.")
+    print("Title vector precomputation complete.")
+    
     conn.close()
