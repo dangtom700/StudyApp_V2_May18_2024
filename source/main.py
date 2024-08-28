@@ -148,7 +148,6 @@ def app():
 if __name__ == "__main__":
     app()
     # extract_pdf.download_nltk()
-    # search.create_task_list_in_time_range(datetime(2024, 8, 1), datetime(2024, 10, 31))
     """
     Typical usage:
     python source/main.py --help
@@ -160,9 +159,8 @@ if __name__ == "__main__":
     python source/main.py --categorizeReadingMaterial
     python source/main.py --processWordFrequencies
     python source/main.py --precomputeTitleVector
+    python source/main.py --suggestTitle
 
     python source/main.py --extractText --processWordFrequencies --updateDatabase --getWordFrequencyAnalysis --precomputeTitleVector --categorizeReadingMaterial
     python source/main.py --extractText --processWordFrequencies --updateDatabase --getWordFrequencyAnalysis --precomputeTitleVector
-    python source/main.py --extractText --processWordFrequencies --updateDatabase --getWordFrequencyAnalysis
-    python source/main.py --extractText --processWordFrequencies --getWordFrequencyAnalysis
     """
