@@ -9,6 +9,7 @@ import re
 from collections import defaultdict
 import nltk
 from nltk.corpus import stopwords
+from math import sqrt
 from nltk.stem import PorterStemmer
 from modules.path import log_file_path, chunk_database_path, pdf_path
 from collections.abc import Generator
@@ -317,12 +318,17 @@ def precompute_title_vector(database_name: str) -> None:
     cursor = conn.cursor()
     
     def create_table(title_ids: list) -> None:
-        cursor.execute("DROP TABLE IF EXISTS Title_Analysis")
-        cursor.execute("CREATE TABLE Title_Analysis (word TEXT PRIMARY KEY, FOREIGN KEY(word) REFERENCES coverage_analysis(word))")
-        cursor.execute("INSERT INTO Title_Analysis (word) SELECT DISTINCT word FROM coverage_analysis")
+        cursor.execute("DROP TABLE IF EXISTS title_analysis")
+        cursor.execute("CREATE TABLE title_analysis (word TEXT PRIMARY KEY, FOREIGN KEY(word) REFERENCES coverage_analysis(word))")
+        cursor.execute("INSERT INTO title_analysis (word) SELECT DISTINCT word FROM coverage_analysis")
+
+        cursor.execute("DROP TABLE IF EXISTS title_normalized")
+        cursor.execute("CREATE TABLE title_normalized (word TEXT PRIMARY KEY, FOREIGN KEY(word) REFERENCES title_analysis(word))")
+        cursor.execute("INSERT INTO title_normalized (word) SELECT DISTINCT word FROM title_analysis")
         
         for title_id in title_ids:
-            cursor.execute(f"ALTER TABLE Title_Analysis ADD COLUMN 'title_{title_id}' INTEGER DEFAULT 0")
+            cursor.execute(f"ALTER TABLE title_analysis ADD COLUMN 'title_{title_id}' INTEGER DEFAULT 0")
+            cursor.execute(f"ALTER TABLE title_normalized ADD COLUMN 'title_{title_id}' REAL DEFAULT 0.0")
 
         conn.commit()
 
@@ -335,6 +341,16 @@ def precompute_title_vector(database_name: str) -> None:
                 break
             yield raw_data
             offset += batch_size
+
+    def normalize_vector(title_ids: list[str]) -> None:
+        for title in title_ids:
+            length = cursor.execute(f"SELECT SUM(title_{title} * title_{title}) FROM title_analysis").fetchone()[0]
+            length = sqrt(length)
+            cursor.execute(f"""
+                UPDATE title_normalized
+                    SET title_{title} = 
+                        (SELECT title_{title} FROM title_analysis WHERE title_normalized.word = title_analysis.word) /(1 + {length})""")
+            conn.commit()
 
     # Main flow
     cursor.execute("SELECT id, file_path FROM file_list WHERE file_type = 'pdf' AND chunk_count > 0")
@@ -351,8 +367,8 @@ def precompute_title_vector(database_name: str) -> None:
     print(f"Found {len(words)} words.")
     log_message(f"Found {len(words)} words.")
 
-    print("Creating table Title_Analysis...")
-    log_message("Creating table Title_Analysis...")
+    print("Creating table title_analysis...")
+    log_message("Creating table title_analysis...")
     create_table(title_ids=title_ids)
     BATCH_SIZE = 100
     print("Retrieving chunks...")
@@ -373,7 +389,7 @@ def precompute_title_vector(database_name: str) -> None:
                 ID_title = cursor.execute("SELECT id FROM file_list WHERE file_name = ?", (buffer.removesuffix('.pdf'),)).fetchone()[0]
                 
                 cursor.executemany(
-                    f"UPDATE Title_Analysis SET 'title_{ID_title}' = ? WHERE word = ?",
+                    f"UPDATE title_analysis SET 'title_{ID_title}' = ? WHERE word = ?",
                     [(words[word], word) for word in words]
                 )
 
@@ -393,10 +409,16 @@ def precompute_title_vector(database_name: str) -> None:
         log_message("Processing last buffer")
         ID_title = cursor.execute("SELECT id FROM file_list WHERE file_name = ?", (buffer.removesuffix('.pdf'),)).fetchone()[0]
         cursor.executemany(
-            f"UPDATE Title_Analysis SET 'title_{ID_title}' = ? WHERE word = ?",
+            f"UPDATE title_analysis SET 'title_{ID_title}' = ? WHERE word = ?",
             [(words[word], word) for word in words]
         )
         conn.commit()
         log_message(f"Processed {buffer}")
     
+    # Normalizing vectors
+    print("Normalizing vectors...")
+    log_message("Normalizing vectors...")
+    normalize_vector(title_ids=title_ids)
+
+    conn.commit()
     conn.close()
