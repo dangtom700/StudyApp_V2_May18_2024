@@ -6,6 +6,10 @@ import modules.extract_note as extract_note
 import modules.path as path
 from datetime import datetime
 
+def calculate_time_difference(start_time: datetime, announce_txt: str) -> str:
+    end_time = datetime.now()
+    updateLog.log_message(f"{announce_txt}: {end_time - start_time}")
+    print(f"{announce_txt}: {end_time - start_time}")
 
 def app():
 
@@ -26,6 +30,7 @@ def app():
 
     args = parser.parse_args()
     begin_execution = datetime.now()
+
     if args.extractText:
         start_time = datetime.now()
         print(f"Extracting text from PDF files...")
@@ -62,9 +67,7 @@ def app():
         print(f"Finished updating database from log file.")
         updateLog.log_message(f"Finished updating database from log file.")
         # calculate the total time done
-        end_time = datetime.now()
-        updateLog.log_message(f"Total time taken: {end_time - start_time}")
-        print(f"Total time taken: {end_time - start_time}")
+        calculate_time_difference(start_time, "Text extraction processing time")
     
     if args.processWordFrequencies:
         start_time = datetime.now()
@@ -76,13 +79,12 @@ def app():
         print(f"Finished processing word frequencies.")
         updateLog.log_message(f"Finished processing word frequencies.")
         # calculate the total time done
-        end_time = datetime.now()
-        updateLog.log_message(f"Total time taken: {end_time - start_time}")
-        print(f"Total time taken: {end_time - start_time}")
+        calculate_time_difference(start_time, "Word frequency processing time")
 
     if args.updateDatabase:
         start_time = datetime.now()
         updateLog.log_message(f"Updating database from log file...")
+        print("Updating database from log file...")
         # create_index_tables
         updateLog.log_message(f"Extracting files from multiple folders")
         folders = [path.pdf_path, path.study_notes_folder_path]
@@ -93,19 +95,25 @@ def app():
         print(f"Finished updating database from log file.")
         updateLog.log_message(f"Finished updating database from log file.")
         # calculate the total time done
-        end_time = datetime.now()
-        updateLog.log_message(f"Total time taken: {end_time - start_time}")
-        print(f"Total time taken: {end_time - start_time}")
+        calculate_time_difference(start_time, "Database update time")
 
     if args.getWordFrequencyAnalysis:
         updateLog.log_message(f"Exporting word frequency analysis to 'word_frequency_analysis.md' in {path.WordFrequencyAnalysis_path}...")
+        print("Exporting word frequency analysis...")
         search.getWordFrequencyAnalysis()
         updateLog.log_message(f"Finished exporting word frequency analysis to 'word_frequency_analysis.md' in {path.WordFrequencyAnalysis_path}.")
 
     if args.precomputeTitleVector:
+        start_time = datetime.now()
+        print("Precomputing title vector...")
+        # precompute title vector
         updateLog.log_message(f"Precomputing title vector...")
         extract_pdf.precompute_title_vector(path.chunk_database_path)
-        updateLog.log_message(f"Finished precomputing title vector.")
+        # announce finish
+        print("Title vector precomputation complete.")
+        updateLog.log_message("Title vector precomputation complete.")
+        # calculate the time done
+        calculate_time_difference(start_time, "Title vector precomputation time")
 
     if args.categorizeReadingMaterial:
         updateLog.log_message(f"Exporting reading material to 'Reading Material.md' in {path.ReadingMaterial_path}...")
@@ -124,9 +132,7 @@ def app():
         updateLog.log_message(f"Finished exporting notes to 'Note Review.md' in {path.Obsidian_noteReview_path}.")
 
     # Calculate the total time done
-    end_time = datetime.now()
-    updateLog.log_message(f"Total time taken: {end_time - start_time}")
-    print(f"Total time taken: {end_time - start_time}")
+    calculate_time_difference(begin_execution, "Total execution time")
 
 if __name__ == "__main__":
     app()
