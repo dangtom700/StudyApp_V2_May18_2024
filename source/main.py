@@ -17,11 +17,12 @@ def app():
     parser.add_argument("--extractText", action= 'store_true', help= 'Extract text from PDF files and store in database')
     parser.add_argument("--processWordFrequencies", action= 'store_true', help="Create index tables and analyze word frequencies all in one")
     parser.add_argument("--updateDatabase", action= 'store_true', help="Create index tables and analyze word frequencies all in one")
-    # parser.add_argument("--getTaskList", action= 'store_true', help="Export a list of tasks in .md format")
+    parser.add_argument("--getWordFrequencyAnalysis", action= 'store_true', help="Export a list of word frequency analysis in .md format")
+    parser.add_argument("--precomputeTitleVector", action= 'store_true', help="Precompute the title vector")
+    parser.add_argument("--categorizeReadingMaterial", action= 'store_true', help="Categorize PDF files by month and year")
+    # very seasonal use
     parser.add_argument("--searchTitle", type=str, help="Search for files in the specified folder path")
     parser.add_argument("--getNoteReview", action= 'store_true', help="Export a list of notes to review in .md format")
-    parser.add_argument("--getWordFrequencyAnalysis", action= 'store_true', help="Export a list of word frequency analysis in .md format")
-    parser.add_argument("--categorizeReadingMaterial", action= 'store_true', help="Categorize PDF files by month and year")
 
     args = parser.parse_args()
 
@@ -96,6 +97,21 @@ def app():
         updateLog.log_message(f"Total time taken: {end_time - start_time}")
         print(f"Total time taken: {end_time - start_time}")
 
+    if args.getWordFrequencyAnalysis:
+        updateLog.log_message(f"Exporting word frequency analysis to 'word_frequency_analysis.md' in {path.WordFrequencyAnalysis_path}...")
+        search.getWordFrequencyAnalysis()
+        updateLog.log_message(f"Finished exporting word frequency analysis to 'word_frequency_analysis.md' in {path.WordFrequencyAnalysis_path}.")
+
+    if args.precomputeTitleVector:
+        updateLog.log_message(f"Precomputing title vector...")
+        extract_pdf.precompute_title_vector(path.chunk_database_path)
+        updateLog.log_message(f"Finished precomputing title vector.")
+
+    if args.categorizeReadingMaterial:
+        updateLog.log_message(f"Exporting reading material to 'Reading Material.md' in {path.ReadingMaterial_path}...")
+        updateLog.categorize_pdf_files_by_month_year()
+        updateLog.log_message(f"Finished exporting reading material to 'Reading Material.md' in {path.ReadingMaterial_path}.")
+
     if args.searchTitle:
         updateLog.log_message(f"Searching for keyword '{args.searchTitle}'...")
         updateLog.log_message(f"Searching for files in database...")
@@ -106,16 +122,6 @@ def app():
         updateLog.log_message(f"Exporting notes to 'Note Review.md' in {path.Obsidian_noteReview_path}...")
         search.getNoteReviewTask()
         updateLog.log_message(f"Finished exporting notes to 'Note Review.md' in {path.Obsidian_noteReview_path}.")
-
-    if args.getWordFrequencyAnalysis:
-        updateLog.log_message(f"Exporting word frequency analysis to 'word_frequency_analysis.md' in {path.WordFrequencyAnalysis_path}...")
-        search.getWordFrequencyAnalysis()
-        updateLog.log_message(f"Finished exporting word frequency analysis to 'word_frequency_analysis.md' in {path.WordFrequencyAnalysis_path}.")
-
-    if args.categorizeReadingMaterial:
-        updateLog.log_message(f"Exporting reading material to 'Reading Material.md' in {path.ReadingMaterial_path}...")
-        updateLog.categorize_pdf_files_by_month_year()
-        updateLog.log_message(f"Finished exporting reading material to 'Reading Material.md' in {path.ReadingMaterial_path}.")
 
 if __name__ == "__main__":
     app()
