@@ -26,6 +26,7 @@ def app():
     parser.add_argument("--categorizeReadingMaterial", action= 'store_true', help="Categorize PDF files by month and year")
     # very seasonal use
     parser.add_argument("--searchTitle", type=str, help="Search for files in the specified folder path")
+    parser.add_argument("--suggestTitle", action= 'store_true', help="Suggest pdf files for an input prompt")
     parser.add_argument("--getNoteReview", action= 'store_true', help="Export a list of notes to review in .md format")
 
     args = parser.parse_args()
@@ -121,11 +122,20 @@ def app():
         updateLog.categorize_pdf_files_by_month_year()
         updateLog.log_message(f"Finished exporting reading material to 'Reading Material.md' in {path.ReadingMaterial_path}.")
 
+    # very seasonal use
     if args.searchTitle:
         updateLog.log_message(f"Searching for keyword '{args.searchTitle}'...")
         updateLog.log_message(f"Searching for files in database...")
         search.searchFileInDatabase(args.searchTitle)
         updateLog.log_message(f"Finished search.")
+
+    if args.suggestTitle:
+        prompt = input("Enter a prompt: ")
+        suggest_number = int(input("Enter the number of suggestions: "))
+        updateLog.log_message(f"Prompt: {prompt}")
+        updateLog.log_message(f"Suggesting {suggest_number} titles...")
+        search.suggestTitle(path.chunk_database_path,prompt, suggest_number)
+        updateLog.log_message(f"Finished suggesting titles.")
 
     if args.getNoteReview:
         updateLog.log_message(f"Exporting notes to 'Note Review.md' in {path.Obsidian_noteReview_path}...")
