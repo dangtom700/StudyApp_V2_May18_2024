@@ -134,7 +134,7 @@ def app():
         suggest_number = int(input("Enter the number of suggestions: "))
         updateLog.log_message(f"Prompt: {prompt}")
         updateLog.log_message(f"Suggesting {suggest_number} titles...")
-        search.suggestTitle(path.chunk_database_path,prompt, suggest_number)
+        extract_pdf.suggestTitle(path.chunk_database_path,prompt, suggest_number)
         updateLog.log_message(f"Finished suggesting titles.")
 
     if args.getNoteReview:
