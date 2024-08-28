@@ -137,7 +137,9 @@ if __name__ == "__main__":
     python source/main.py --getWordFrequencyAnalysis
     python source/main.py --categorizeReadingMaterial
     python source/main.py --processWordFrequencies
+    python source/main.py --precomputeTitleVector
 
+    python source/main.py --extractText --processWordFrequencies --updateDatabase --getWordFrequencyAnalysis --precomputeTitleVector --categorizeReadingMaterial
     python source/main.py --extractText --processWordFrequencies --updateDatabase --getWordFrequencyAnalysis --categorizeReadingMaterial
     python source/main.py --extractText --processWordFrequencies --updateDatabase --getWordFrequencyAnalysis
     python source/main.py --extractText --processWordFrequencies --getWordFrequencyAnalysis
