@@ -101,7 +101,7 @@ def app():
     if args.getWordFrequencyAnalysis:
         updateLog.log_message(f"Exporting word frequency analysis to 'word_frequency_analysis.md' in {path.WordFrequencyAnalysis_path}...")
         print("Exporting word frequency analysis...")
-        search.getWordFrequencyAnalysis()
+        search.getWordFrequencyAnalysis(threshold= 0.925)
         updateLog.log_message(f"Finished exporting word frequency analysis to 'word_frequency_analysis.md' in {path.WordFrequencyAnalysis_path}.")
         print("Finished exporting word frequency analysis.")
 
