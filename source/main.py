@@ -25,7 +25,7 @@ def app():
     parser.add_argument("--getNoteReview", action= 'store_true', help="Export a list of notes to review in .md format")
 
     args = parser.parse_args()
-
+    begin_execution = datetime.now()
     if args.extractText:
         start_time = datetime.now()
         print(f"Extracting text from PDF files...")
@@ -122,6 +122,11 @@ def app():
         updateLog.log_message(f"Exporting notes to 'Note Review.md' in {path.Obsidian_noteReview_path}...")
         search.getNoteReviewTask()
         updateLog.log_message(f"Finished exporting notes to 'Note Review.md' in {path.Obsidian_noteReview_path}.")
+
+    # Calculate the total time done
+    end_time = datetime.now()
+    updateLog.log_message(f"Total time taken: {end_time - start_time}")
+    print(f"Total time taken: {end_time - start_time}")
 
 if __name__ == "__main__":
     app()
