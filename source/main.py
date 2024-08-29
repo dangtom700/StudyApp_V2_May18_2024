@@ -16,7 +16,17 @@ def app():
                                      description="This project is to meant to store record of learning activities. The files and record of activities are then transfer into database that show user the timeline and activities done in that day.",
                                      add_help=True,
                                      allow_abbrev=True)
-    
+    """
+    Operation order:
+    1. Extract text from PDF files
+    2. Update database
+    3. Process word frequencies
+    4. Analyze word frequencies
+    5.1. Count word frequencies according to title
+    5.2. Vectorize titles
+    5.3. Compute TF-IDF
+    6. Categorize reading material
+    """
     parser.add_argument("--extractText", action= 'store_true', help= 'Extract text from PDF files and store in database')
     parser.add_argument("--processWordFrequencies", action= 'store_true', help="Create index tables and analyze word frequencies all in one")
     parser.add_argument("--updateDatabase", action= 'store_true', help="Create index tables and analyze word frequencies all in one")
@@ -151,8 +161,4 @@ if __name__ == "__main__":
     python source/main.py --processWordFrequencies
     python source/main.py --precomputeTitleVector
     python source/main.py --suggestTitle
-
-    python source/main.py --extractText --processWordFrequencies --updateDatabase --getWordFrequencyAnalysis --precomputeTitleVector --categorizeReadingMaterial
-    python source/main.py --extractText --processWordFrequencies --updateDatabase --getWordFrequencyAnalysis --precomputeTitleVector
-    python source/main.py --extractText --processWordFrequencies --updateDatabase --getWordFrequencyAnalysis
     """
