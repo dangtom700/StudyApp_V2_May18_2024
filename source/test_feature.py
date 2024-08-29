@@ -183,6 +183,9 @@ def precompute_title_vector(database_path: str) -> None:
                 FOREIGN KEY(word) REFERENCES coverage_analysis(word)
             )
         """)
+        # Insert data into tables
+        cursor.execute("INSERT INTO title_analysis (word) SELECT word FROM coverage_analysis")
+        cursor.execute("INSERT INTO title_normalized (word) SELECT word FROM coverage_analysis")
 
         # Create title_tf_idf table
         cursor.execute("CREATE TABLE title_tf_idf AS SELECT * FROM title_normalized")
@@ -197,7 +200,6 @@ def precompute_title_vector(database_path: str) -> None:
         start_execution_time = datetime.now()
 
         title_ids = get_title_ids()
-        print(title_ids)
 
         create_tables(title_ids=title_ids)
 
