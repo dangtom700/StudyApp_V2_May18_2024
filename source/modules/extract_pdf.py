@@ -194,7 +194,6 @@ def extract_split_and_store_pdf(pdf_file, chunk_size, db_name):
 
 # Function to process multiple PDF files concurrently
 def process_files_in_parallel(pdf_files, reset_db, chunk_size, db_name):
-    # setup_database(db_name, reset_db, action="extract_text")  # Ensure the database is reset before processing files
     with concurrent.futures.ThreadPoolExecutor() as executor:
         future_to_file = {executor.submit(extract_split_and_store_pdf, pdf_file, chunk_size, db_name): pdf_file for pdf_file in pdf_files}
         
@@ -211,65 +210,54 @@ def process_files_in_parallel(pdf_files, reset_db, chunk_size, db_name):
             except Exception as e:
                 logging.error(f"Error processing {pdf_file}: {e}")
 
-def merge_split_words(chunks):
-    """
-    Merges words that are split across chunks.
+# Retrieve title IDs from the database
+def get_title_ids(cursor: sqlite3.Cursor) -> list[str]:
+    cursor.execute("SELECT id FROM file_list WHERE file_type = 'pdf' AND chunk_count > 0")
+    return [title[0] for title in cursor.fetchall()]
 
-    Parameters:
-    chunks (list of str): A list of text chunks.
+# Retrieve and clean text chunks for a single title
+def retrieve_token_list(title_id: str, cursor: sqlite3.Cursor) -> list[str]:
+    cursor.execute("SELECT chunk_count, start_id FROM file_list WHERE id = ?", (title_id,))
+    result = cursor.fetchone()
+    
+    if result is None:
+        raise ValueError(f"No data found for title ID: {title_id}")
+    
+    chunk_count, start_id = result
 
-    Returns:
-    list of str: A list of merged text chunks.
-    """
-    merged_chunks = []
-    buffer = ''
-    for chunk in chunks:
-        if buffer:
-            chunk = buffer + chunk
-        if not chunk[-1].isspace() and not chunk[-1].isalpha():
-            buffer = chunk.split()[-1]
-            chunk = chunk.rsplit(' ', 1)[0]
-        else:
-            buffer = ''
-        merged_chunks.append(chunk)
-    if buffer:
-        merged_chunks.append(buffer)
-    return merged_chunks
+    cursor.execute("""
+        SELECT chunk_text FROM pdf_chunks
+        LIMIT ? OFFSET ?""", (chunk_count, start_id))
+    
+    cleaned_chunks = [chunk[0] for chunk in cursor.fetchall()]
+    merged_chunk_text = "".join(cleaned_chunks)
 
-# Batch processing for merging chunks and cleaning text
-def process_chunks_in_batches(db_name: str, batch_size=100):
-    conn = sqlite3.connect(db_name)
-    cursor = conn.cursor()
+    return clean_text(merged_chunk_text)
 
-    # Function to retrieve chunks in batches
-    def retrieve_chunks_in_batches():
-        cursor.execute("SELECT COUNT(*) FROM pdf_chunks")
-        total_chunks = cursor.fetchone()[0]
-        for offset in range(0, total_chunks, batch_size):
-            cursor.execute("SELECT chunk_text FROM pdf_chunks ORDER BY id LIMIT ? OFFSET ?", (batch_size, offset))
-            yield [row[0] for row in cursor.fetchall()]
+# Process chunks in batches and store word frequencies
+def process_chunks_in_batches(db_name: str):
+    with sqlite3.connect(db_name) as conn:
+        cursor = conn.cursor()
 
-    # Main flow
-    # Dictionary to store word frequencies
-    word_frequencies = defaultdict(int)
+        word_frequencies = defaultdict(int)
+        title_ids = get_title_ids(cursor)
 
-    # Retrieve and process chunks in batches
-    for chunk_batch in retrieve_chunks_in_batches():
-        merged_chunks = merge_split_words(chunk_batch)
-        for chunk in merged_chunks:
-            cleaned_words = clean_text(chunk)
-            for word in cleaned_words:
-                word_frequencies[word] += 1
+        for title_id in title_ids:
+            try:
+                token_list = retrieve_token_list(title_id, cursor)
+                for token in token_list:
+                    word_frequencies[token] += 1
+            except ValueError as e:
+                print(f"Warning: {e}")
 
-    # Store word frequencies in database
-    for word, freq in word_frequencies.items():
-        cursor.execute('''
-            INSERT INTO word_frequencies (word, frequency) VALUES (?, ?)
-            ON CONFLICT(word) DO UPDATE SET frequency = frequency + ?
-        ''', (word, freq, freq))
+        # Efficiently insert word frequencies into the database
+        cursor.executemany('''
+            INSERT INTO word_frequencies (word, frequency) 
+            VALUES (?, ?)
+            ON CONFLICT(word) DO UPDATE SET frequency = frequency + excluded.frequency
+        ''', word_frequencies.items())
 
-    conn.commit()
-    conn.close()
+        conn.commit()
 
 # Main function
 def batch_collect_files(folder_path: str, extension='.pdf', batch_size=100) -> Generator[list[str], None, None]:
