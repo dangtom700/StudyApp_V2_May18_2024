@@ -1,7 +1,7 @@
 import sqlite3
 import modules.path as path
 from modules.updateLog import print_and_log, log_message
-from modules.extract_pdf import clean_text
+from modules.extract_pdf import get_title_ids, retrieve_token_list
 from math import log, sqrt
 from datetime import datetime
 
@@ -156,6 +156,7 @@ from datetime import datetime
 
 #     conn.commit()
 #     conn.close()
+
 def precompute_title_vector(database_path: str) -> None:
     conn = sqlite3.connect(database_path)
     cursor = conn.cursor()
@@ -190,23 +191,9 @@ def precompute_title_vector(database_path: str) -> None:
         # Create title_tf_idf table
         cursor.execute("CREATE TABLE title_tf_idf AS SELECT * FROM title_normalized")
 
-    def process_title_analysis(title_ids: list[str], words: list[str]) -> None:
+    def process_title_analysis(title_ids: list[str], words: list[str], cursor: sqlite3.Cursor) -> None:
         for title in title_ids:
-            cursor.execute("SELECT chunk_count, start_id FROM file_list WHERE id = ?", (title,))
-            chunk_count, start_id = cursor.fetchone()
-            print(f"{chunk_count} chunks, {start_id}")
-
-            # Retrieve chunk text
-            cursor.execute("""
-                SELECT chunk_text FROM pdf_chunks
-                LIMIT ? OFFSET ?""", (chunk_count, start_id))
-            
-            # Clean chunk fetch
-            cleaned_query = [chunk[0] for chunk in cursor.fetchall()]
-            
-            # Merge chunk text
-            merged_chunk_text = "".join(cleaned_query)
-            token_list = clean_text(merged_chunk_text)
+            token_list = retrieve_token_list(title_id=title, cursor=cursor)
 
             for word in words:
                 # Using parameterized query to avoid SQL injection
@@ -216,29 +203,44 @@ def precompute_title_vector(database_path: str) -> None:
         # Commit changes once after the loop
         conn.commit()
 
-    def get_title_ids() -> list[str]:
-        cursor.execute("SELECT id FROM file_list WHERE file_type = 'pdf' AND chunk_count > 0")
-        return [title[0] for title in cursor.fetchall()]
+    def normalize_vector(title_ids: list[str]) -> None:
+        for title in title_ids:
+            length = cursor.execute(f"SELECT SUM(T_{title} * T_{title}) FROM title_analysis").fetchone()[0]
+            if length == 0:
+                continue
+            length = sqrt(length)
+            cursor.execute(f"""
+                UPDATE title_normalized
+                SET T_{title} = 
+                    (SELECT T_{title} FROM title_analysis WHERE title_normalized.word = title_analysis.word) / ?
+            """, (length,))
+        conn.commit()
     
     def get_words() -> list[str]:
         cursor.execute("SELECT word FROM coverage_analysis")
         return [word[0] for word in cursor.fetchall()]
 
-    if __name__ == "__main__":
-        start_execution_time = datetime.now()
+    # Main flow
+    start_execution_time = datetime.now()
 
-        title_ids = get_title_ids()
-        word_essentials = get_words()
-        create_tables(title_ids=title_ids)
+    title_ids = get_title_ids(cursor=cursor)
+    word_essentials = get_words()
+    create_tables(title_ids=title_ids)
 
-        # order pdf_chunks by id
-        cursor.execute("SELECT id FROM pdf_chunks ORDER BY id ASC")
-        # test
-        process_title_analysis(title_ids=title_ids, words=word_essentials)
+    # order pdf_chunks by id
+    cursor.execute("SELECT id FROM pdf_chunks ORDER BY id ASC")
+    # main processing
+    print_and_log("Processing title analysis...")
+    process_title_analysis(title_ids=title_ids, words=word_essentials, cursor=cursor)
+    print_and_log("Finished processing title analysis.")
 
-        conn.commit()
-        conn.close()
+    print_and_log("Normalizing vectors...")
+    normalize_vector(title_ids=title_ids)
+    print_and_log("Finished normalizing vectors.")
 
-        print_and_log(f"Finished in {datetime.now() - start_execution_time}")
+    conn.commit()
+    conn.close()
+
+    print_and_log(f"Finished in {datetime.now() - start_execution_time}")
 
 precompute_title_vector(path.chunk_database_path)
