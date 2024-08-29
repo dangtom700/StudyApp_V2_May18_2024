@@ -343,12 +343,13 @@ def precompute_title_vector(database_name: str) -> None:
             cursor.execute(f"ALTER TABLE title_analysis ADD COLUMN 'title_{title_id}' INTEGER DEFAULT 0")
             cursor.execute(f"ALTER TABLE title_normalized ADD COLUMN 'title_{title_id}' REAL DEFAULT 0.0")
 
+        # Create title_tf_idf table with the same structure as title_normalized
+        cursor.execute("CREATE TABLE title_tf_idf AS SELECT * FROM title_normalized WHERE 1 = 0")
+
         # Insert words into title_analysis and title_normalized
         cursor.execute("INSERT INTO title_analysis (word) SELECT DISTINCT word FROM coverage_analysis")
         cursor.execute("INSERT INTO title_normalized (word) SELECT DISTINCT word FROM coverage_analysis")
-
-        # Create title_tf_idf table with the same structure as title_normalized
-        cursor.execute("CREATE TABLE title_tf_idf AS SELECT * FROM title_normalized WHERE 1 = 0")
+        cursor.execute("INSERT INTO title_tf_idf (word) SELECT DISTINCT word FROM coverage_analysis")
 
         conn.commit()
 
@@ -387,11 +388,12 @@ def precompute_title_vector(database_name: str) -> None:
                     continue
                 
                 tf = term_count / total_terms
-                doc_with_term = cursor.execute(f"""
-                    SELECT COUNT(*) 
+                doc_term = cursor.execute(f"""
+                    SELECT * 
                     FROM title_analysis 
-                    WHERE word = ? AND title_{title} > 0
-                """, (word,)).fetchone()[0]
+                    WHERE word = ?
+                """, (word,)).fetchall()[0]
+                doc_with_term = len([count for count in doc_term[1:] if count > 0])
                 
                 idf = log(DOCUMENT_COUNT / (1 + doc_with_term))
                 cursor.execute(f"""
@@ -465,11 +467,6 @@ def precompute_title_vector(database_name: str) -> None:
 
     conn.commit()
     conn.close()
-
-def print_and_log(message: str) -> None:
-    print(message)
-    log_message(message)
-
 
 def suggest_top_titles(database_path: str, prompt: str, top_n = 10):
     conn = sqlite3.connect(database_path)
