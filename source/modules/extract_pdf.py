@@ -211,56 +211,63 @@ def process_files_in_parallel(pdf_files, reset_db, chunk_size, db_name):
             except Exception as e:
                 logging.error(f"Error processing {pdf_file}: {e}")
 
+def merge_split_words(chunks):
+    """
+    Merges words that are split across chunks.
+
+    Parameters:
+    chunks (list of str): A list of text chunks.
+
+    Returns:
+    list of str: A list of merged text chunks.
+    """
+    merged_chunks = []
+    buffer = ''
+    for chunk in chunks:
+        if buffer:
+            chunk = buffer + chunk
+        if not chunk[-1].isspace() and not chunk[-1].isalpha():
+            buffer = chunk.split()[-1]
+            chunk = chunk.rsplit(' ', 1)[0]
+        else:
+            buffer = ''
+        merged_chunks.append(chunk)
+    if buffer:
+        merged_chunks.append(buffer)
+    return merged_chunks
+
 # Batch processing for merging chunks and cleaning text
 def process_chunks_in_batches(db_name: str, batch_size=100):
+    conn = sqlite3.connect(db_name)
+    cursor = conn.cursor()
 
     # Function to retrieve chunks in batches
     def retrieve_chunks_in_batches():
-        conn = sqlite3.connect(db_name)
-        cursor = conn.cursor()
         cursor.execute("SELECT COUNT(*) FROM pdf_chunks")
         total_chunks = cursor.fetchone()[0]
         for offset in range(0, total_chunks, batch_size):
             cursor.execute("SELECT chunk_text FROM pdf_chunks ORDER BY id LIMIT ? OFFSET ?", (batch_size, offset))
             yield [row[0] for row in cursor.fetchall()]
-            # print(f"Retrived {batch_size + offset} chunks")
-        conn.close()
 
-    # Function to merge split words in the chunks
-    def merge_split_words(chunks):
-        merged_chunks = []
-        buffer = ''
-        for chunk in chunks:
-            if buffer:
-                chunk = buffer + chunk
-                buffer = ''
-            if not chunk[-1].isspace() and not chunk[-1].isalpha():
-                buffer = chunk.split()[-1]
-                chunk = chunk.rsplit(' ', 1)[0]
-            merged_chunks.append(chunk)
-        if buffer:
-            merged_chunks.append(buffer)
-        return merged_chunks
-
+    # Main flow
     # Dictionary to store word frequencies
     word_frequencies = defaultdict(int)
 
     # Retrieve and process chunks in batches
     for chunk_batch in retrieve_chunks_in_batches():
-        merged_chunks = merge_split_words(chunk_batch)
+        merged_chunks = merge_split_words(chunk_batch)  # Use the imported function
         for chunk in merged_chunks:
             cleaned_words = clean_text(chunk)
             for word in cleaned_words:
                 word_frequencies[word] += 1
 
     # Store word frequencies in database
-    conn = sqlite3.connect(db_name)
-    cursor = conn.cursor()
     for word, freq in word_frequencies.items():
         cursor.execute('''
             INSERT INTO word_frequencies (word, frequency) VALUES (?, ?)
             ON CONFLICT(word) DO UPDATE SET frequency = frequency + ?
         ''', (word, freq, freq))
+
     conn.commit()
     conn.close()
 
