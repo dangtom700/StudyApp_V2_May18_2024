@@ -41,10 +41,14 @@ def setup_database(reset_db: bool, db_name: str) -> None:
     conn.commit()
     conn.close()
 
-def create_unique_id(data: str, sha256_hash: hashlib.sha256, character_limit: int = 16) -> str:
-    # Generate a sha256 hash of the data
-    sha256_hash.update(data.encode('utf-8'))
-    return sha256_hash.hexdigest()[:character_limit]
+def create_unique_id(data: str, character_limit: int = 16) -> str:
+    # Generate an MD5 hash of the combined string
+    hash_object = hashlib.md5(data.encode())
+    
+    # Convert the hash to a hexadecimal string and take the first 16 characters
+    unique_code = hash_object.hexdigest()[:character_limit]
+    
+    return unique_code
 
 def count_chunk_for_each_title(cursor: sqlite3.Cursor, file_name: str) -> int:
     cursor.execute(f"SELECT COUNT(chunk_index) FROM pdf_chunks WHERE file_name = ?", (file_name,))
@@ -69,14 +73,14 @@ def get_starting_and_ending_ids(cursor: sqlite3.Cursor, file_name: str) -> tuple
 def store_files_in_db(file_names: list[str], file_list: list[str], db_name: str, file_type: str) -> None:
     conn = sqlite3.connect(db_name)
     cursor = conn.cursor()
-    sha256_hash = hashlib.sha256()
+    
     for file_name, file_path in zip(file_names, file_list):
         created_time, epoch_time = get_updated_time(file_path)
         string_data = file_name + created_time + file_path
         file_basename = os.path.basename(file_path)
         chunk_count = count_chunk_for_each_title(cursor, file_name=file_basename)
         starting_id, ending_id = get_starting_and_ending_ids(cursor, file_name=file_basename)
-        hashed_data = create_unique_id(string_data, sha256_hash)
+        hashed_data = create_unique_id(data=string_data, character_limit=20)
         
         cursor.execute(f"""INSERT INTO file_list (
             id, 
