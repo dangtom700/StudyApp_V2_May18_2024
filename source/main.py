@@ -90,11 +90,13 @@ def app():
         calculate_time_difference(start_time, "Database update time")
 
     if args.getWordFrequencyAnalysis:
+        start_time = datetime.now()
         updateLog.log_message(f"Exporting word frequency analysis to 'word_frequency_analysis.md' in {path.WordFrequencyAnalysis_path}...")
         updateLog.print_and_log("Exporting word frequency analysis...")
         search.getWordFrequencyAnalysis(threshold= 0.925)
         updateLog.log_message(f"Finished exporting word frequency analysis to 'word_frequency_analysis.md' in {path.WordFrequencyAnalysis_path}.")
         updateLog.print_and_log("Finished exporting word frequency analysis.")
+        calculate_time_difference(start_time, "Word frequency analysis export time")
 
     if args.precomputeTitleVector:
         start_time = datetime.now()
