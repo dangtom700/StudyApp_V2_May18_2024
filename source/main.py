@@ -28,11 +28,11 @@ def app():
     6. Categorize reading material
     """
     parser.add_argument("--extractText", action= 'store_true', help= 'Extract text from PDF files and store in database')
-    parser.add_argument("--processWordFrequencies", action= 'store_true', help="Create index tables and analyze word frequencies all in one")
+    parser.add_argument("--processWordFreq", action= 'store_true', help="Create index tables and analyze word frequencies all in one")
     parser.add_argument("--updateDatabase", action= 'store_true', help="Create index tables and analyze word frequencies all in one")
-    parser.add_argument("--getWordFrequencyAnalysis", action= 'store_true', help="Export a list of word frequency analysis in .md format")
-    parser.add_argument("--precomputeTitleVector", action= 'store_true', help="Precompute the title vector")
-    parser.add_argument("--categorizeReadingMaterial", action= 'store_true', help="Categorize PDF files by month and year")
+    parser.add_argument("--analyzeWordFreq", action= 'store_true', help="Export a list of word frequency analysis in .md format")
+    parser.add_argument("--precompVector", action= 'store_true', help="Precompute the title vector")
+    parser.add_argument("--reorderMaterial", action= 'store_true', help="Categorize PDF files by month and year")
     # very seasonal use
     parser.add_argument("--searchTitle", type=str, help="Search for files in the specified folder path")
     parser.add_argument("--suggestTitle", action= 'store_true', help="Suggest pdf files for an input prompt")
@@ -75,7 +75,7 @@ def app():
         # calculate the total time done
         calculate_time_difference(start_time, "Text extraction processing time")
     
-    if args.processWordFrequencies:
+    if args.processWordFreq:
         start_time = datetime.now()
         updateLog.print_and_log("Processing word frequencies in chunks...")
         # process word frequency
@@ -99,7 +99,7 @@ def app():
         # calculate the total time done
         calculate_time_difference(start_time, "Database update time")
 
-    if args.getWordFrequencyAnalysis:
+    if args.analyzeWordFreq:
         start_time = datetime.now()
         updateLog.log_message(f"Exporting word frequency analysis to 'word_frequency_analysis.md' in {path.WordFrequencyAnalysis_path}...")
         updateLog.print_and_log("Exporting word frequency analysis...")
@@ -108,7 +108,7 @@ def app():
         updateLog.print_and_log("Finished exporting word frequency analysis.")
         calculate_time_difference(start_time, "Word frequency analysis export time")
 
-    if args.precomputeTitleVector:
+    if args.precompVector:
         start_time = datetime.now()
         updateLog.print_and_log("Precomputing title vector...")
         # precompute title vector
@@ -118,7 +118,7 @@ def app():
         # calculate the time done
         calculate_time_difference(start_time, "Title vector precomputation time")
 
-    if args.categorizeReadingMaterial:
+    if args.reorderMaterial:
         updateLog.print_and_log(f"Exporting reading material to 'Reading Material.md' in {path.ReadingMaterial_path}...")
         updateLog.categorize_pdf_files_by_month_year()
         updateLog.print_and_log(f"Finished exporting reading material to 'Reading Material.md' in {path.ReadingMaterial_path}.")
@@ -156,9 +156,12 @@ if __name__ == "__main__":
     python source/main.py --updateDatabase
     python source/main.py --searchTitle
     python source/main.py --getNoteReview
-    python source/main.py --getWordFrequencyAnalysis
-    python source/main.py --categorizeReadingMaterial
-    python source/main.py --processWordFrequencies
-    python source/main.py --precomputeTitleVector
+    python source/main.py --analyzeWordFreq
+    python source/main.py --reorderMaterial
+    python source/main.py --processWordFreq
+    python source/main.py --precompVector
     python source/main.py --suggestTitle
+
+    full command:
+    python source/main.py --extractText --updateDatabase --processWordFreq --analyzeWordFreq --precompVector --reorderMaterial
     """
