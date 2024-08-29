@@ -1,7 +1,7 @@
 import sqlite3
 import modules.path as path
 from modules.updateLog import print_and_log, log_message
-from modules.extract_pdf import clean_text, merge_split_words
+from modules.extract_pdf import clean_text
 from math import log, sqrt
 from datetime import datetime
 
@@ -190,8 +190,31 @@ def precompute_title_vector(database_path: str) -> None:
         # Create title_tf_idf table
         cursor.execute("CREATE TABLE title_tf_idf AS SELECT * FROM title_normalized")
 
-    def process_title_analysis(title_id: list[str], words: list[str]) -> None:
-        pass
+    def process_title_analysis(title_ids: list[str], words: list[str]) -> None:
+        for title in title_ids:
+            cursor.execute("SELECT chunk_count, start_id FROM file_list WHERE id = ?", (title,))
+            chunk_count, start_id = cursor.fetchone()
+            print(f"{chunk_count} chunks, {start_id}")
+
+            # Retrieve chunk text
+            cursor.execute("""
+                SELECT chunk_text FROM pdf_chunks
+                LIMIT ? OFFSET ?""", (chunk_count, start_id))
+            
+            # Clean chunk fetch
+            cleaned_query = [chunk[0] for chunk in cursor.fetchall()]
+            
+            # Merge chunk text
+            merged_chunk_text = "".join(cleaned_query)
+            token_list = clean_text(merged_chunk_text)
+
+            for word in words:
+                # Using parameterized query to avoid SQL injection
+                query = f"UPDATE title_analysis SET T_{title} = T_{title} + ? WHERE word = ?"
+                cursor.execute(query, (token_list.count(word), word))
+
+        # Commit changes once after the loop
+        conn.commit()
 
     def get_title_ids() -> list[str]:
         cursor.execute("SELECT id FROM file_list WHERE file_type = 'pdf' AND chunk_count > 0")
@@ -207,10 +230,11 @@ def precompute_title_vector(database_path: str) -> None:
         title_ids = get_title_ids()
         word_essentials = get_words()
         create_tables(title_ids=title_ids)
-        print(word_essentials)
 
+        # order pdf_chunks by id
+        cursor.execute("SELECT id FROM pdf_chunks ORDER BY id ASC")
         # test
-        process_title_analysis(title_id=title_ids[0], words=word_essentials)
+        process_title_analysis(title_ids=title_ids, words=word_essentials)
 
         conn.commit()
         conn.close()
