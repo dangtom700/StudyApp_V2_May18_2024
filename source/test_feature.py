@@ -1,7 +1,7 @@
 import sqlite3
 import modules.path as path
 from modules.updateLog import print_and_log, log_message
-from modules.extract_pdf import clean_text
+from modules.extract_pdf import clean_text, merge_split_words
 from math import log, sqrt
 from datetime import datetime
 
