@@ -190,18 +190,27 @@ def precompute_title_vector(database_path: str) -> None:
         # Create title_tf_idf table
         cursor.execute("CREATE TABLE title_tf_idf AS SELECT * FROM title_normalized")
 
+    def process_title_analysis(title_id: list[str], words: list[str]) -> None:
+        pass
 
-    def get_title_ids() -> list:
+    def get_title_ids() -> list[str]:
         cursor.execute("SELECT id FROM file_list WHERE file_type = 'pdf' AND chunk_count > 0")
         return [title[0] for title in cursor.fetchall()]
     
+    def get_words() -> list[str]:
+        cursor.execute("SELECT word FROM coverage_analysis")
+        return [word[0] for word in cursor.fetchall()]
 
     if __name__ == "__main__":
         start_execution_time = datetime.now()
 
         title_ids = get_title_ids()
-
+        word_essentials = get_words()
         create_tables(title_ids=title_ids)
+        print(word_essentials)
+
+        # test
+        process_title_analysis(title_id=title_ids[0], words=word_essentials)
 
         conn.commit()
         conn.close()
