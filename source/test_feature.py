@@ -5,11 +5,12 @@ import sqlite3
 import threading
 from queue import Queue
 from math import sqrt, log
-from concurrent.futures import ThreadPoolExecutor
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import datetime
 
-def precompute_title_vector(database_path: str) -> None:
-    conn = sqlite3.connect(database_path, check_same_thread=False)  # Allow threads
+def precompute_title_vector(database_path: str, tfidf_threads: int = 4) -> None:
+    # Step 1: Establish a connection to the database
+    conn = sqlite3.connect(database_path, check_same_thread=False)
     cursor = conn.cursor()
 
     def create_tables(title_ids: list) -> None:
@@ -44,57 +45,61 @@ def precompute_title_vector(database_path: str) -> None:
         cursor.execute("INSERT INTO title_analysis (word) SELECT DISTINCT word FROM coverage_analysis")
         cursor.execute("INSERT INTO title_normalized (word) SELECT DISTINCT word FROM coverage_analysis")
         cursor.execute("INSERT INTO title_tf_idf (word) SELECT DISTINCT word FROM coverage_analysis")
+        conn.commit()
 
-    def process_title_analysis(title_ids: list[str], words: list[str], queue: Queue) -> None:
-        for title in title_ids:
-            token_list = retrieve_token_list(title_id=title, cursor=cursor)
-            word_counts = {word: token_list.count(word) for word in words if word in token_list}
-            queue.put((title, word_counts))  # Enqueue the counting results
+    def process_title_analysis(title_id: str, words: list[str]) -> None:
+        token_list = retrieve_token_list(title_id=title_id, cursor=cursor)
+        word_counts = {word: token_list.count(word) for word in words if word in token_list}
+        
+        # Insert word counts into title_analysis table using the queue
+        for word, count in word_counts.items():
+            queue.put(('update_analysis', title_id, word, count))
 
-    def normalize_vector(title_ids: list[str], queue: Queue) -> None:
-        for title in title_ids:
-            length = cursor.execute(f"SELECT SUM(T_{title} * T_{title}) FROM title_analysis").fetchone()[0]
-            if length:
-                length = sqrt(length)
-                for word, in cursor.execute("SELECT word FROM title_analysis").fetchall():
-                    queue.put(('normalize', title, word, length))  # Enqueue the normalization data
+    def normalize_vector(title_id: str) -> None:
+        length = cursor.execute(f"SELECT SUM(T_{title_id} * T_{title_id}) FROM title_analysis").fetchone()[0]
+        if length:
+            length = sqrt(length)
+            queue.put(('normalize', title_id, None, length))
 
-    def compute_TF_IDF(title_ids: list[str], queue: Queue) -> None:
+    def compute_TF_IDF(title_id: str) -> None:
         TOTAL_DOC = len(title_ids)
-        for title in title_ids:
-            total_terms = cursor.execute(f"SELECT SUM(T_{title}) FROM title_analysis").fetchone()[0]
-            if total_terms:
-                term_counts = cursor.execute(f"SELECT word, T_{title} FROM title_analysis").fetchall()
-                for word, term_count in term_counts:
-                    if term_count > 0:
-                        tf = term_count / total_terms
-                        doc_with_term = cursor.execute(f"""
-                            SELECT COUNT(*)
-                            FROM title_analysis 
-                            WHERE word = ? AND T_{title} > 0
-                        """, (word,)).fetchone()[0]
-                        idf = log(TOTAL_DOC / (1 + doc_with_term))
-                        queue.put(('tfidf', title, word, tf * idf))  # Enqueue the TF-IDF data
+        total_terms = cursor.execute(f"SELECT SUM(T_{title_id}) FROM title_analysis").fetchone()[0]
+        if total_terms:
+            term_counts = cursor.execute(f"SELECT word, T_{title_id} FROM title_analysis").fetchall()
+            for word, term_count in term_counts:
+                if term_count > 0:
+                    tf = term_count / total_terms
+                    doc_with_term = cursor.execute(f"""
+                        SELECT COUNT(*)
+                        FROM title_analysis 
+                        WHERE word = ? AND T_{title_id} > 0
+                    """, (word,)).fetchone()[0]
+                    idf = log(TOTAL_DOC / (1 + doc_with_term))
+                    tfidf_value = tf * idf
+                    queue.put(('tfidf', title_id, word, tfidf_value))
 
     def queue_processor(queue: Queue) -> None:
         while True:
             task = queue.get()
-            if task is None:  # Poison pill to shut down the thread
+            if task is None:
                 break
 
-            if task[0] == 'normalize':
-                _, title, word, length = task
+            if task[0] == 'update_analysis':
+                _, title_id, word, count = task
+                cursor.execute(f"UPDATE title_analysis SET T_{title_id} = ? WHERE word = ?", (count, word))
+
+            elif task[0] == 'normalize':
+                _, title_id, _, length = task
                 cursor.execute(f"""
                     UPDATE title_normalized
-                    SET T_{title} = T_{title} / ?
-                    WHERE word = ?
-                """, (length, word))
+                    SET T_{title_id} = T_{title_id} / ?
+                """, (length,))
 
             elif task[0] == 'tfidf':
-                _, title, word, tfidf_value = task
+                _, title_id, word, tfidf_value = task
                 cursor.execute(f"""
                     UPDATE title_tf_idf
-                    SET T_{title} = ?
+                    SET T_{title_id} = ?
                     WHERE word = ?
                 """, (tfidf_value, word))
 
@@ -104,15 +109,12 @@ def precompute_title_vector(database_path: str) -> None:
         cursor.execute("SELECT word FROM coverage_analysis")
         return [word[0] for word in cursor.fetchall()]
 
-    def get_title_ids(cursor: sqlite3.Cursor) -> list[str]:
-        cursor.execute("SELECT id FROM file_list WHERE file_type = 'pdf' AND chunk_count > 0")
-        return [title[0] for title in cursor.fetchall()]
-
     # Main flow
     start_execution_time = datetime.now()
     title_ids = get_title_ids(cursor=cursor)
     words = get_words()
 
+    # Step 1: Create Tables
     print_and_log("Creating tables...")
     create_tables(title_ids=title_ids)
     print_and_log("Finished creating tables.")
@@ -124,15 +126,32 @@ def precompute_title_vector(database_path: str) -> None:
     queue_processor_thread = threading.Thread(target=queue_processor, args=(queue,))
     queue_processor_thread.start()
 
+    # Step 2: Process Title Analysis
+    print_and_log("Processing title analysis...")
     with ThreadPoolExecutor() as executor:
-        print_and_log("Processing title analysis...")
-        executor.submit(process_title_analysis, title_ids, words, queue)
+        analysis_futures = [executor.submit(process_title_analysis, title, words) for title in title_ids]
+        for future in as_completed(analysis_futures):
+            pass  # Handle any exceptions or log progress if needed
+    print_and_log("Finished processing title analysis.")
+    queue.join()  # Ensure all analysis updates are completed
 
-        print_and_log("Normalizing vectors and computing TF-IDF...")
-        executor.submit(normalize_vector, title_ids, queue)
-        executor.submit(compute_TF_IDF, title_ids, queue)
+    # Step 3: Normalize Title Vectors
+    print_and_log("Normalizing vectors...")
+    with ThreadPoolExecutor() as executor:
+        normalize_futures = [executor.submit(normalize_vector, title) for title in title_ids]
+        for future in as_completed(normalize_futures):
+            pass  # Handle any exceptions or log progress if needed
+    print_and_log("Finished normalizing vectors.")
+    queue.join()  # Ensure all normalization updates are completed
 
-    queue.join()  # Wait until all tasks in the queue are processed
+    # Step 4: Compute TF-IDF
+    print_and_log("Computing TF-IDF...")
+    with ThreadPoolExecutor(max_workers=tfidf_threads) as executor:
+        tfidf_futures = [executor.submit(compute_TF_IDF, title) for title in title_ids]
+        for future in as_completed(tfidf_futures):
+            pass  # Handle any exceptions or log progress if needed
+    print_and_log("Finished computing TF-IDF.")
+    queue.join()  # Ensure all TF-IDF updates are completed
 
     # Stop the queue processor thread
     queue.put(None)
