@@ -255,7 +255,7 @@ def process_chunks_in_batches(db_name: str, batch_size=100):
 
     # Retrieve and process chunks in batches
     for chunk_batch in retrieve_chunks_in_batches():
-        merged_chunks = merge_split_words(chunk_batch)  # Use the imported function
+        merged_chunks = merge_split_words(chunk_batch)
         for chunk in merged_chunks:
             cleaned_words = clean_text(chunk)
             for word in cleaned_words:
@@ -319,9 +319,6 @@ def process_word_frequencies_in_batches():
     process_chunks_in_batches(db_name=chunk_database_path)
     logging.info("Processing word frequencies complete.")
     print("Processing word frequencies complete.")
-
-import sqlite3
-from math import sqrt, log
 
 def precompute_title_vector(database_name: str) -> None:
     conn = sqlite3.connect(database_name)
