@@ -195,7 +195,7 @@ def extract_split_and_store_pdf(pdf_file, chunk_size, db_name):
         logging.error(f"Error processing {pdf_file}: {e}")
 
 # Function to process multiple PDF files concurrently
-def process_files_in_parallel(pdf_files, chunk_size, db_name):
+def process_files_in_parallel(pdf_files, reset_db, chunk_size, db_name):
     with concurrent.futures.ThreadPoolExecutor() as executor:
         future_to_file = {executor.submit(extract_split_and_store_pdf, pdf_file, chunk_size, db_name): pdf_file for pdf_file in pdf_files}
         
