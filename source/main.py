@@ -163,5 +163,6 @@ if __name__ == "__main__":
     python source/main.py --suggestTitle
 
     full command:
-    python source/main.py --extractText --updateDatabase --processWordFreq --analyzeWordFreq --precompVector --reorderMaterial
+    python source/main.py --extractText --updateDatabase --processWordFreq --analyzeWordFreq
+    python source/main.py --precompVector --reorderMaterial
     """
