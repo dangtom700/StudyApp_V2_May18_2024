@@ -32,9 +32,9 @@ def setup_database(reset_db: bool, db_name: str) -> None:
                    file_type TEXT,
                    created_time TEXT, 
                    epoch_time INTEGER,
-                   chunk_count INTEGER DEFAULT 0,
-                   start_id INTEGER DEFAULT 0,
-                   end_id INTEGER DEFAULT 0
+                   chunk_count INTEGER,
+                   start_id INTEGER,
+                   end_id INTEGER
                    )""")
 
     conn.commit()
@@ -93,6 +93,9 @@ def store_files_in_db(file_names: list[str], file_list: list[str], db_name: str,
         file_basename = os.path.basename(file_path)
         chunk_count = count_chunk_for_each_title(cursor, file_name=file_basename)
         starting_id, ending_id = get_starting_and_ending_ids(cursor, file_name=file_basename)
+        if starting_id is None or ending_id is None:
+            starting_id = 0
+            ending_id = 0
         hashed_data = create_unique_id(file_basename, epoch_time, chunk_count, starting_id)
         
         cursor.execute(f"""INSERT INTO file_list (
