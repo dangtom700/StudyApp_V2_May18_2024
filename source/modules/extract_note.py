@@ -4,7 +4,6 @@ import threading
 import markdown
 import re
 import time
-import hashlib
 from datetime import datetime
 from collections.abc import Generator
 from os.path import getmtime
@@ -41,14 +40,29 @@ def setup_database(reset_db: bool, db_name: str) -> None:
     conn.commit()
     conn.close()
 
-def create_unique_id(data: str, character_limit: int = 16) -> str:
-    # Generate an MD5 hash of the combined string
-    hash_object = hashlib.md5(data.encode())
-    
-    # Convert the hash to a hexadecimal string and take the first 16 characters
-    unique_code = hash_object.hexdigest()[:character_limit]
-    
-    return unique_code
+def create_unique_id(file_basename: str, epoch_time: int, chunk_count: int, starting_id: int) -> str:
+    # Step 1: Encode the file basename
+    # Sum the ASCII values of all characters, XOR by 1600, and apply & 0xFFFF
+    encoded_file_name = sum(ord(char) for char in file_basename)
+    encoded_file_name ^= 65536
+    encoded_file_name &= 0xFFFF
+
+    # Step 2: Encode the epoch time
+    # Apply & 0xFFFF, then shift right by 1
+    encoded_time = (epoch_time & 0xFFFF) >> 1
+
+    # Step 3: Encode the chunk count and starting ID
+    # Multiply, apply & 0xFFFF, then shift left by 1
+    encoded_num = (chunk_count * starting_id) & 0xFFFF
+    encoded_num <<= 1
+
+    # Step 4: Add redundancy bits
+    redundancy = encoded_file_name ^ encoded_time ^ encoded_num
+
+    # Step 4: Combine the results into a unique ID
+    unique_id = f"{encoded_file_name:04X}{encoded_time:04X}{encoded_num:05X}{redundancy:04X}"
+
+    return unique_id
 
 def count_chunk_for_each_title(cursor: sqlite3.Cursor, file_name: str) -> int:
     cursor.execute(f"SELECT COUNT(chunk_index) FROM pdf_chunks WHERE file_name = ?", (file_name,))
@@ -80,7 +94,7 @@ def store_files_in_db(file_names: list[str], file_list: list[str], db_name: str,
         file_basename = os.path.basename(file_path)
         chunk_count = count_chunk_for_each_title(cursor, file_name=file_basename)
         starting_id, ending_id = get_starting_and_ending_ids(cursor, file_name=file_basename)
-        hashed_data = create_unique_id(data=string_data, character_limit=20)
+        hashed_data = create_unique_id(file_basename, epoch_time, chunk_count, starting_id)
         
         cursor.execute(f"""INSERT INTO file_list (
             id, 
