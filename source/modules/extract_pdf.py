@@ -42,7 +42,7 @@ def clean_text(text):
 
     # Define a function to filter tokens
     def pass_conditions(word):
-        return (len(word) < 12 and
+        return (len(word) < 20 and len(word) > 1 and
                 word.isalpha() and not has_repeats_regex(word))
 
     # Filter tokens based on conditions and apply stemming
