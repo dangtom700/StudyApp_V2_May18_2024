@@ -195,7 +195,7 @@ def extract_split_and_store_pdf(pdf_file, chunk_size, db_name):
         logging.error(f"Error processing {pdf_file}: {e}")
 
 # Function to process multiple PDF files concurrently
-def process_files_in_parallel(pdf_files, reset_db, chunk_size, db_name):
+def process_files_in_parallel(pdf_files, chunk_size, db_name):
     with concurrent.futures.ThreadPoolExecutor() as executor:
         future_to_file = {executor.submit(extract_split_and_store_pdf, pdf_file, chunk_size, db_name): pdf_file for pdf_file in pdf_files}
         
@@ -208,7 +208,6 @@ def process_files_in_parallel(pdf_files, reset_db, chunk_size, db_name):
                 future.result()
                 completed_files += 1
                 logging.info(f"Completed {completed_files}/{total_files} file: {pdf_file}")
-                print(f"Completed {completed_files}/{total_files} file: {os.path.basename(pdf_file).removesuffix('.pdf')}")
             except Exception as e:
                 logging.error(f"Error processing {pdf_file}: {e}")
 
@@ -296,7 +295,10 @@ def extract_text(FOLDER_PATH = pdf_path, CHUNK_SIZE = 800) -> None:
     logging.info(f"Starting processing of PDF files in batches...")
     print(f"Starting processing of PDF files in batches...")
 
+    num_files = 0
     for pdf_batch in batch_collect_files(FOLDER_PATH, batch_size=100):
+        num_files += len(pdf_batch)
+        print(f"Processing {num_files} files...")
         process_files_in_parallel(pdf_batch, reset_db=RESET_DATABASE, chunk_size=CHUNK_SIZE, db_name=DB_NAME)
 
     logging.info("Processing complete: Extracting text from PDF files.")
