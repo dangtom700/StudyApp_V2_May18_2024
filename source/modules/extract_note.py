@@ -32,15 +32,23 @@ def setup_database(reset_db: bool, db_name: str) -> None:
                    file_type TEXT,
                    created_time TEXT, 
                    epoch_time INTEGER,
-                   chunk_count INTEGER,
-                   start_id INTEGER,
-                   end_id INTEGER
+                   chunk_count INTEGER DEFAULT 0,
+                   start_id INTEGER DEFAULT 0,
+                   end_id INTEGER DEFAULT 0
                    )""")
 
     conn.commit()
     conn.close()
-
+def change_none_to_zero(value: int | None) -> int:
+    if value is None:
+        return 0
+    else:
+        return value
 def create_unique_id(file_basename: str, epoch_time: int, chunk_count: int, starting_id: int) -> str:
+    # Check NULL values
+    epoch_time = change_none_to_zero(epoch_time)
+    chunk_count = change_none_to_zero(chunk_count)
+    starting_id = change_none_to_zero(starting_id)
     # Step 1: Encode the file basename
     # Sum the ASCII values of all characters, XOR by 1600, and apply & 0xFFFF
     encoded_file_name = sum(ord(char) for char in file_basename)
@@ -90,7 +98,6 @@ def store_files_in_db(file_names: list[str], file_list: list[str], db_name: str,
     
     for file_name, file_path in zip(file_names, file_list):
         created_time, epoch_time = get_updated_time(file_path)
-        string_data = file_name + created_time + file_path
         file_basename = os.path.basename(file_path)
         chunk_count = count_chunk_for_each_title(cursor, file_name=file_basename)
         starting_id, ending_id = get_starting_and_ending_ids(cursor, file_name=file_basename)
