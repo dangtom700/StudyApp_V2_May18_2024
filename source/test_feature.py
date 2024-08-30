@@ -1,165 +1,39 @@
-from modules.path import chunk_database_path
-from modules.extract_pdf import get_title_ids, retrieve_token_list
-from modules.updateLog import print_and_log
-import sqlite3
-import threading
-from queue import Queue
-from math import sqrt, log
-from concurrent.futures import ThreadPoolExecutor, as_completed
-from datetime import datetime
+"""
+unique id generator
+"""
 
-def precompute_title_vector(database_path: str, tfidf_threads: int = 4) -> None:
-    # Step 1: Establish a connection to the database
-    conn = sqlite3.connect(database_path, check_same_thread=False)
-    cursor = conn.cursor()
+""" option 1: bitch about file name
+    epoch_time is & 0xFFFF
+    chunk_count * starting_id is & 0xFFFF, then bit shift by 1
+"""
+def create_unique_id(file_basename: str, epoch_time: int, chunk_count: int, starting_id: int) -> str:
+    # Step 1: Encode the file basename
+    # Sum the ASCII values of all characters, XOR by 1600, and apply & 0xFFFF
+    encoded_file_name = sum(ord(char) for char in file_basename)
+    encoded_file_name ^= 65536
+    encoded_file_name &= 0xFFFF
 
-    def create_tables(title_ids: list) -> None:
-        cursor.execute("DROP TABLE IF EXISTS title_analysis")
-        cursor.execute("DROP TABLE IF EXISTS title_normalized")
-        cursor.execute("DROP TABLE IF EXISTS title_tf_idf")
+    # Step 2: Encode the epoch time
+    # Apply & 0xFFFF, then shift right by 1
+    encoded_time = (epoch_time & 0xFFFF) >> 1
 
-        columns_INT = ', '.join([f"T_{title_id} INTEGER DEFAULT 0" for title_id in title_ids])
-        columns_REAL = ', '.join([f"T_{title_id} REAL DEFAULT 0.0" for title_id in title_ids])
+    # Step 3: Encode the chunk count and starting ID
+    # Multiply, apply & 0xFFFF, then shift left by 1
+    encoded_num = (chunk_count * starting_id) & 0xFFFF
+    encoded_num <<= 1
 
-        cursor.execute(f"""
-            CREATE TABLE title_analysis (
-                word TEXT PRIMARY KEY, 
-                {columns_INT},
-                FOREIGN KEY(word) REFERENCES coverage_analysis(word)
-            )
-        """)
-        cursor.execute(f"""
-            CREATE TABLE title_normalized (
-                word TEXT PRIMARY KEY,
-                {columns_REAL},
-                FOREIGN KEY(word) REFERENCES coverage_analysis(word)
-            )
-        """)
-        cursor.execute(f"""
-            CREATE TABLE title_tf_idf (
-                word TEXT PRIMARY KEY,
-                {columns_REAL},
-                FOREIGN KEY(word) REFERENCES coverage_analysis(word)
-            )
-        """)
-        cursor.execute("INSERT INTO title_analysis (word) SELECT DISTINCT word FROM coverage_analysis")
-        cursor.execute("INSERT INTO title_normalized (word) SELECT DISTINCT word FROM coverage_analysis")
-        cursor.execute("INSERT INTO title_tf_idf (word) SELECT DISTINCT word FROM coverage_analysis")
-        conn.commit()
+    # Step 4: Add redundancy bits
+    redundancy = encoded_file_name ^ encoded_time ^ encoded_num
 
-    def process_title_analysis(title_id: str, words: list[str]) -> None:
-        token_list = retrieve_token_list(title_id=title_id, cursor=cursor)
-        word_counts = {word: token_list.count(word) for word in words if word in token_list}
-        
-        # Insert word counts into title_analysis table using the queue
-        for word, count in word_counts.items():
-            queue.put(('update_analysis', title_id, word, count))
+    # Step 4: Combine the results into a unique ID
+    unique_id = f"{encoded_file_name:04X}{encoded_time:04X}{encoded_num:05X}{redundancy:04X}"
 
-    def normalize_vector(title_id: str) -> None:
-        length = cursor.execute(f"SELECT SUM(T_{title_id} * T_{title_id}) FROM title_analysis").fetchone()[0]
-        if length:
-            length = sqrt(length)
-            queue.put(('normalize', title_id, None, length))
+    return unique_id
 
-    def compute_TF_IDF(title_id: str) -> None:
-        TOTAL_DOC = len(title_ids)
-        total_terms = cursor.execute(f"SELECT SUM(T_{title_id}) FROM title_analysis").fetchone()[0]
-        if total_terms:
-            term_counts = cursor.execute(f"SELECT word, T_{title_id} FROM title_analysis").fetchall()
-            for word, term_count in term_counts:
-                if term_count > 0:
-                    tf = term_count / total_terms
-                    doc_with_term = cursor.execute(f"""
-                        SELECT COUNT(*)
-                        FROM title_analysis 
-                        WHERE word = ? AND T_{title_id} > 0
-                    """, (word,)).fetchone()[0]
-                    idf = log(TOTAL_DOC / (1 + doc_with_term))
-                    tfidf_value = tf * idf
-                    queue.put(('tfidf', title_id, word, tfidf_value))
+# Example usage
+file_basename = "basic engineering science"
+epoch_time = 1675154174
+chunk_count = 481
+starting_id = 1700
 
-    def queue_processor(queue: Queue) -> None:
-        while True:
-            task = queue.get()
-            if task is None:
-                break
-
-            if task[0] == 'update_analysis':
-                _, title_id, word, count = task
-                cursor.execute(f"UPDATE title_analysis SET T_{title_id} = ? WHERE word = ?", (count, word))
-
-            elif task[0] == 'normalize':
-                _, title_id, _, length = task
-                cursor.execute(f"""
-                    UPDATE title_normalized
-                    SET T_{title_id} = T_{title_id} / ?
-                """, (length,))
-
-            elif task[0] == 'tfidf':
-                _, title_id, word, tfidf_value = task
-                cursor.execute(f"""
-                    UPDATE title_tf_idf
-                    SET T_{title_id} = ?
-                    WHERE word = ?
-                """, (tfidf_value, word))
-
-            queue.task_done()
-
-    def get_words() -> list[str]:
-        cursor.execute("SELECT word FROM coverage_analysis")
-        return [word[0] for word in cursor.fetchall()]
-
-    # Main flow
-    start_execution_time = datetime.now()
-    title_ids = get_title_ids(cursor=cursor)
-    words = get_words()
-
-    # Step 1: Create Tables
-    print_and_log("Creating tables...")
-    create_tables(title_ids=title_ids)
-    print_and_log("Finished creating tables.")
-
-    # Initialize the queue
-    queue = Queue(maxsize=1000)
-
-    # Start the queue processor thread
-    queue_processor_thread = threading.Thread(target=queue_processor, args=(queue,))
-    queue_processor_thread.start()
-
-    # Step 2: Process Title Analysis
-    print_and_log("Processing title analysis...")
-    with ThreadPoolExecutor() as executor:
-        analysis_futures = [executor.submit(process_title_analysis, title, words) for title in title_ids]
-        for future in as_completed(analysis_futures):
-            pass  # Handle any exceptions or log progress if needed
-    print_and_log("Finished processing title analysis.")
-    queue.join()  # Ensure all analysis updates are completed
-
-    # Step 3: Normalize Title Vectors
-    print_and_log("Normalizing vectors...")
-    with ThreadPoolExecutor() as executor:
-        normalize_futures = [executor.submit(normalize_vector, title) for title in title_ids]
-        for future in as_completed(normalize_futures):
-            pass  # Handle any exceptions or log progress if needed
-    print_and_log("Finished normalizing vectors.")
-    queue.join()  # Ensure all normalization updates are completed
-
-    # Step 4: Compute TF-IDF
-    print_and_log("Computing TF-IDF...")
-    with ThreadPoolExecutor(max_workers=tfidf_threads) as executor:
-        tfidf_futures = [executor.submit(compute_TF_IDF, title) for title in title_ids]
-        for future in as_completed(tfidf_futures):
-            pass  # Handle any exceptions or log progress if needed
-    print_and_log("Finished computing TF-IDF.")
-    queue.join()  # Ensure all TF-IDF updates are completed
-
-    # Stop the queue processor thread
-    queue.put(None)
-    queue_processor_thread.join()
-
-    conn.commit()
-    conn.close()
-
-    print_and_log(f"Finished in {datetime.now() - start_execution_time}")
-
-precompute_title_vector(chunk_database_path)
+print(create_unique_id(file_basename, epoch_time, chunk_count, starting_id))
