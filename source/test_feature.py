@@ -34,6 +34,6 @@ def create_unique_id(file_basename: str, epoch_time: int, chunk_count: int, star
 file_basename = "basic engineering science"
 epoch_time = 1675154174
 chunk_count = 481
-starting_id = 1700
+starting_id = 0
 
 print(create_unique_id(file_basename, epoch_time, chunk_count, starting_id))
