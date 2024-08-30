@@ -28,8 +28,8 @@ def app():
     6. Categorize reading material
     """
     parser.add_argument("--extractText", action= 'store_true', help= 'Extract text from PDF files and store in database')
-    parser.add_argument("--processWordFreq", action= 'store_true', help="Create index tables and analyze word frequencies all in one")
     parser.add_argument("--updateDatabase", action= 'store_true', help="Create index tables and analyze word frequencies all in one")
+    parser.add_argument("--processWordFreq", action= 'store_true', help="Create index tables and analyze word frequencies all in one")
     parser.add_argument("--analyzeWordFreq", action= 'store_true', help="Export a list of word frequency analysis in .md format")
     parser.add_argument("--precompVector", action= 'store_true', help="Precompute the title vector")
     parser.add_argument("--reorderMaterial", action= 'store_true', help="Categorize PDF files by month and year")
@@ -74,16 +74,6 @@ def app():
         updateLog.print_and_log("Finished updating database from log file.")
         # calculate the total time done
         calculate_time_difference(start_time, "Text extraction processing time")
-    
-    if args.processWordFreq:
-        start_time = datetime.now()
-        updateLog.print_and_log("Processing word frequencies in chunks...")
-        # process word frequency
-        extract_pdf.process_word_frequencies_in_batches()
-        # announce finish
-        updateLog.print_and_log("Finished processing word frequencies.")
-        # calculate the total time done
-        calculate_time_difference(start_time, "Word frequency processing time")
 
     if args.updateDatabase:
         start_time = datetime.now()
@@ -98,6 +88,16 @@ def app():
         updateLog.print_and_log("Finished updating database from log file.")
         # calculate the total time done
         calculate_time_difference(start_time, "Database update time")
+    
+    if args.processWordFreq:
+        start_time = datetime.now()
+        updateLog.print_and_log("Processing word frequencies in chunks...")
+        # process word frequency
+        extract_pdf.process_word_frequencies_in_batches()
+        # announce finish
+        updateLog.print_and_log("Finished processing word frequencies.")
+        # calculate the total time done
+        calculate_time_difference(start_time, "Word frequency processing time")
 
     if args.analyzeWordFreq:
         start_time = datetime.now()
