@@ -58,6 +58,7 @@ def create_unique_id(file_basename: str, epoch_time: int, chunk_count: int, star
 
     # Step 4: Add redundancy bits
     redundancy = encoded_file_name ^ encoded_time ^ encoded_num
+    redundancy &= 0xFFFF
 
     # Step 4: Combine the results into a unique ID
     unique_id = f"{encoded_file_name:04X}{encoded_time:04X}{encoded_num:04X}{redundancy:04X}"
