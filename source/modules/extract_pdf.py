@@ -15,7 +15,9 @@ from modules.path import log_file_path, chunk_database_path, pdf_path
 from collections.abc import Generator
 from modules.updateLog import print_and_log
 
+# Initialize stemmer and stop words set once
 stemmer = PorterStemmer()
+stop_words = set(stopwords.words('english'))
 
 # Compile the regex pattern once and reuse it
 REPEATED_CHAR_PATTERN = re.compile(r"([a-zA-Z])\1{2,}")
@@ -30,9 +32,6 @@ def clean_text(text):
     """
     Preprocesses text by lowercasing, removing punctuation, and filtering out stop words and tokens with repeating characters.
     """
-    # Initialize stemmer and stop words set once
-    stemmer = PorterStemmer()
-    stop_words = set(stopwords.words('english'))
 
     # Remove punctuation and convert to lowercase
     text = re.sub(r'[^\w\s]', '', text).lower()
