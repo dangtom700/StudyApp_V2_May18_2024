@@ -24,7 +24,6 @@ def app():
     4. Analyze word frequencies
     5.1. Count word frequencies according to title
     5.2. Vectorize titles
-    5.3. Compute TF-IDF
     6. Categorize reading material
     """
     parser.add_argument("--extractText", action= 'store_true', help= 'Extract text from PDF files and store in database')
