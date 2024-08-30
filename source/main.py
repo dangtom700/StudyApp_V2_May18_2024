@@ -111,7 +111,7 @@ def app():
         start_time = datetime.now()
         updateLog.print_and_log("Precomputing title vector...")
         # precompute title vector
-        extract_pdf.precompute_title_vector(path.chunk_database_path)
+        extract_pdf.precompute_title_vector(database_path=path.chunk_database_path)
         # announce finish
         updateLog.print_and_log("Title vector precomputation complete.")
         # calculate the time done
