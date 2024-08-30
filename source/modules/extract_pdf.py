@@ -6,8 +6,6 @@ import concurrent.futures
 import time
 import os
 import re
-# import threading
-# from queue import Queue
 from collections import defaultdict
 import nltk
 from nltk.corpus import stopwords
@@ -340,18 +338,10 @@ def precompute_title_vector(database_path: str) -> None:
                 FOREIGN KEY(word) REFERENCES coverage_analysis(word)
             )
         """)
-        # cursor.execute(f"""
-        #     CREATE TABLE title_tf_idf (
-        #         word TEXT PRIMARY KEY,
-        #         {columns_REAL},
-        #         FOREIGN KEY(word) REFERENCES coverage_analysis(word)
-        #     )
-        # """)
 
         # Insert words into tables
         cursor.execute("INSERT INTO title_analysis (word) SELECT DISTINCT word FROM coverage_analysis")
         cursor.execute("INSERT INTO title_normalized (word) SELECT DISTINCT word FROM coverage_analysis")
-        # cursor.execute("INSERT INTO title_tf_idf (word) SELECT DISTINCT word FROM coverage_analysis")
 
     def process_title_analysis(title_ids: list[str], words: list[str], cursor: sqlite3.Cursor) -> None:
         for title in title_ids:
@@ -369,38 +359,12 @@ def precompute_title_vector(database_path: str) -> None:
     def normalize_vector(title_ids: list[str]) -> None:
         for title in title_ids:
             length = cursor.execute(f"SELECT SUM(T_{title} * T_{title}) FROM title_analysis").fetchone()[0]
-            if length:
-                length = sqrt(length)
-                cursor.execute(f"""
-                    UPDATE title_normalized
-                    SET T_{title} = T_{title} / ?
-                """, (length,))
-        conn.commit()
-
-    # def compute_TF_IDF(title_ids: list[str]) -> None:
-    #     TOTAL_DOC = len(title_ids)
-    #     for title in title_ids:
-    #         total_terms = cursor.execute(f"SELECT SUM(T_{title}) FROM title_analysis").fetchone()[0]
-    #         if total_terms:
-    #             term_counts = cursor.execute(f"SELECT word, T_{title} FROM title_analysis").fetchall()
-                
-    #             tf_idf_data = []
-    #             for word, term_count in term_counts:
-    #                 if term_count > 0:
-    #                     tf = term_count / total_terms
-    #                     doc_with_term = cursor.execute(f"""
-    #                         SELECT COUNT(*) 
-    #                         FROM title_analysis 
-    #                         WHERE word = ? AND T_{title} > 0
-    #                     """, (word,)).fetchone()[0]
-    #                     idf = log(TOTAL_DOC / (1 + doc_with_term))
-    #                     tf_idf_data.append((tf * idf, word))
-                
-    #             cursor.executemany(
-    #                 f"UPDATE title_tf_idf SET T_{title} = ? WHERE word = ?",
-    #                 tf_idf_data
-    #             )
-    #     conn.commit()
+            length = sqrt(length)
+            cursor.execute(f"""
+                UPDATE title_normalized
+                    SET T_{title} = 
+                        (SELECT T_{title} FROM title_analysis WHERE title_normalized.word = title_analysis.word) /(1 + {length})""")
+            conn.commit()
 
     def get_words() -> list[str]:
         cursor.execute("SELECT word FROM coverage_analysis")
@@ -422,10 +386,6 @@ def precompute_title_vector(database_path: str) -> None:
     print_and_log("Normalizing vectors...")
     normalize_vector(title_ids=title_ids)
     print_and_log("Finished normalizing vectors.")
-    
-    # print_and_log("Computing TF-IDF...")
-    # compute_TF_IDF(title_ids=title_ids)
-    # print_and_log("Finished computing TF-IDF.")
 
     conn.commit()
     conn.close()
@@ -457,7 +417,7 @@ def suggest_top_titles(database_path: str, prompt: str, top_n = 10):
     # get values
     for title in title_list.keys():
         for key in key_list:
-            cursor.execute(f"SELECT title_{title} FROM title_normalized WHERE word = ?", (key,))
+            cursor.execute(f"SELECT T_{title} FROM title_normalized WHERE word = ?", (key,))
             title_list[title] += cursor.fetchone()[0] * normalized_prompt[key]
 
     top_10 = sorted(title_list.items(), key=lambda x: x[1], reverse=True)[:top_n]
