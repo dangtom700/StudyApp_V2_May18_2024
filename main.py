@@ -1,8 +1,7 @@
 import argparse
 import modules.updateLog as updateLog
-import modules.extract_pdf as extract_pdf
 import modules.search as search
-import modules.extract_note as extract_note
+import modules.extract_text as extract_text
 import modules.path as path
 from datetime import datetime
 
@@ -61,11 +60,11 @@ def app():
         chunk_size = 2000
         # extract_text
         updateLog.print_and_log("Extracting text from PDF files...")
-        extract_pdf.extract_text(CHUNK_SIZE=chunk_size)
+        extract_text.extract_text(CHUNK_SIZE=chunk_size)
         updateLog.print_and_log("Finished extracting text from PDF files.")
         # extract text from markdown files
         updateLog.print_and_log("Extracting text from markdown files...")
-        extract_note.extract_markdown_notes_in_batches(path.study_notes_folder_path, chunk_size=chunk_size)
+        extract_text.extract_markdown_notes_in_batches(path.study_notes_folder_path, chunk_size=chunk_size)
         updateLog.print_and_log("Finished extracting text from markdown files.")
         # update_database
         updateLog.print_and_log("Updating database from log file...")
@@ -81,7 +80,7 @@ def app():
         updateLog.print_and_log("Extracting files from multiple folders")
         folders = [path.pdf_path, path.study_notes_folder_path]
         extensions = [".pdf", ".md"]
-        extract_note.create_type_index_table(folders, extensions)
+        extract_text.create_type_index_table(folders, extensions)
         updateLog.print_and_log("Finished extracting files from multiple folders")
         # announce finish
         updateLog.print_and_log("Finished updating database from log file.")
@@ -92,7 +91,7 @@ def app():
         start_time = datetime.now()
         updateLog.print_and_log("Processing word frequencies in chunks...")
         # process word frequency
-        extract_pdf.process_word_frequencies_in_batches()
+        extract_text.process_word_frequencies_in_batches()
         # announce finish
         updateLog.print_and_log("Finished processing word frequencies.")
         # calculate the total time done
@@ -111,7 +110,7 @@ def app():
         start_time = datetime.now()
         updateLog.print_and_log("Precomputing title vector...")
         # precompute title vector
-        extract_pdf.precompute_title_vector(database_path=path.chunk_database_path)
+        extract_text.precompute_title_vector(database_path=path.chunk_database_path)
         # announce finish
         updateLog.print_and_log("Title vector precomputation complete.")
         # calculate the time done
@@ -134,7 +133,7 @@ def app():
         suggest_number = int(input("Enter the number of suggestions: "))
         updateLog.print_and_log(f"Prompt: {prompt}")
         updateLog.print_and_log(f"Suggesting {suggest_number} titles...")
-        extract_pdf.suggest_top_titles(path.chunk_database_path,prompt, suggest_number)
+        extract_text.suggest_top_titles(path.chunk_database_path,prompt, suggest_number)
         updateLog.print_and_log(f"Finished suggesting titles.")
 
     if args.getNoteReview:
@@ -147,7 +146,7 @@ def app():
 
 if __name__ == "__main__":
     app()
-    # extract_pdf.download_nltk()
+    # extract_text.download_nltk()
     """
     Typical usage:
     python source/main.py --help
