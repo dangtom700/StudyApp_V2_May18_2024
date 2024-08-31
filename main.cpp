@@ -3,7 +3,8 @@
 #include "lib/interface.hpp"
 #include "lib/vec_com.hpp"
 #include "lib/wor_frq.hpp"
-
+#include "lib/search.hpp"
+#include "lib/db.hpp"
 
 #include<chrono>
 #include<filesystem>
