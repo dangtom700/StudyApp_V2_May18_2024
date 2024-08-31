@@ -29,19 +29,11 @@ def searchFileInDatabase(keyword: str) -> None:
         if conn:
             conn.close()
 
-def getFilenameFromAnotherTable() -> list[str]:
-    database_name = path.chunk_database_path
-    conn = sqlite3.connect(database_name)
-    cursor = conn.cursor()
-    cursor.execute("SELECT pdf_name FROM pdf_list")
-    filenames = cursor.fetchall()
-    conn.close()
-    return [filename[0] for filename in filenames]
 
-def randomizeNoteList():
+def randomizeNoteList(count: int = 3) -> list:
     conn = sqlite3.connect(path.chunk_database_path)
     cursor = conn.cursor()
-    cursor.execute("SELECT note_name FROM note_list ORDER BY RANDOM() LIMIT 3")
+    cursor.execute(f"SELECT file_name FROM file_list WHERE file_type = 'md' ORDER BY RANDOM() LIMIT {count}")
     result = cursor.fetchall()
     conn.close()
     result = [note[0] for note in result]
