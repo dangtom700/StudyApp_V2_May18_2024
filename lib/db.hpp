@@ -6,7 +6,7 @@
 #include<iostream>
 
 #include "env_var.hpp"
-
+// constants
 const std::string file_list_properties[] = {"id TEXT PRIMARY KEY",
                                     "file_name TEXT",
                                     "file_path TEXT",
@@ -18,10 +18,15 @@ const std::string file_list_properties[] = {"id TEXT PRIMARY KEY",
                                     "end_ID INTEGER",
                                     "chunk_count INTEGER"};
 
+const std::string word_freq_properties[] = {"word TEXT PRIMARY KEY",
+                                            "frequency INTEGER"};
+
 const std::string log_properties[] = {"id INTEGER PRIMARY KEY AUTOINCREMENT",
                                     "time TEXT",
                                     "message TEXT"};
 
+
+// functions
 std::string concatenate_command(const std::string& declare_base, const std::string properties_list[]) {
     std::string fill_base;
     size_t size = sizeof(properties_list) / sizeof(properties_list[0]);
@@ -34,9 +39,9 @@ std::string concatenate_command(const std::string& declare_base, const std::stri
     return declare_base + " (" + fill_base + ");";
 }
 
-void create_table(sqlite3* db, const std::string& declare_base, const std::string properties_list[], size_t size) {
+void create_table(sqlite3* db, const std::string& declare_base, const std::string properties_list[]) {
     sqlite3_stmt* stmt;
-    std::string command = concatenate_command(declare_base, properties_list, size);
+    std::string command = concatenate_command(declare_base, properties_list);
     
     // Prepare the SQL statement
     int rc = sqlite3_prepare_v2(db, command.c_str(), -1, &stmt, NULL);
@@ -65,7 +70,26 @@ void create_table(sqlite3* db, const std::string& declare_base, const std::strin
     sqlite3_finalize(stmt);
 }
 
+void initialize_database(const std::string& db_name) {
+    sqlite3* db;
 
+    // Open the SQLite database connection
+    int rc = sqlite3_open(db_name.c_str(), &db);
+    if (rc != SQLITE_OK) {
+        std::cerr << "Cannot open database: " << sqlite3_errmsg(db) << std::endl;
+        sqlite3_close(db);
+        exit(0);
+    }
+
+    // Create the tables
+    create_table(db, "CREATE TABLE IF NOT EXISTS file_list", file_list_properties);
+    create_table(db, "CREATE TABLE IF NOT EXISTS log", log_properties);
+    create_table(db, "CREATE TABLE IF NOT EXISTS word_freq", word_freq_properties);
+    create_table(db, "CREATE TABLE IF NOT EXISTS coverage", word_freq_properties);
+
+    // Close the SQLite database connection
+    sqlite3_close(db);
+}
 // create file_list table
 
 // conditional duplicate coverage analysis
