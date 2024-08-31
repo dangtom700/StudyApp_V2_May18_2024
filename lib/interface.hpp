@@ -6,6 +6,7 @@
 #include <map>
 #include <chrono>
 #include <ctime>
+#include <sstream>
 // constants
 const std::map<int, std::string> REQUEST = {{1,"extract text"}, 
                                             {2,"update database"}, 
@@ -48,5 +49,12 @@ void Get_Request(const std::map<int, std::string>& REQUEST = REQUEST) {
 void Print_Operating_Time(const std::chrono::time_point<std::chrono::system_clock>& start_time) {
     std::chrono::time_point<std::chrono::system_clock> current_time = std::chrono::system_clock::now();
     std::cout << "Operating time: " << std::chrono::duration_cast<std::chrono::seconds>(current_time - start_time).count() << " seconds\n";
+}
+std::string get_current_time(){
+    auto now = std::chrono::system_clock::now();
+    auto in_time_t = std::chrono::system_clock::to_time_t(now);
+    std::stringstream ss;
+    ss << std::put_time(std::localtime(&in_time_t), "%Y-%m-%d %X");
+    return ss.str();
 }
 #endif // INTERFACE_HPP
