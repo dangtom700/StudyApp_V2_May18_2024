@@ -1,6 +1,6 @@
 data/
 sample/
-source/modules/__pycache__/
-source/modules/path.py
-cpp_dev/
+modules/__pycache__/
+modules/path.py
 .vscode/
+lib/env_var.hpp
