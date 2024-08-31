@@ -79,6 +79,6 @@ def categorize_pdf_files_by_month_year(destination_path = ReadingMaterial_path) 
             counter += 1
             print(f"Found file {counter}: {pdf_path} has not been sorted yet.")
 
-def print_and_log(message: str) -> None:
+def print_and_log(message: str, message_type = "PROGRESS") -> None:
     print(message)
     log_message(message)
