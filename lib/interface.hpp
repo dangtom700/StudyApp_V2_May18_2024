@@ -7,6 +7,7 @@
 #include <chrono>
 #include <ctime>
 #include <sstream>
+#include <iomanip>
 // constants
 const std::map<int, std::string> REQUEST = {{1,"extract text"}, 
                                             {2,"update database"}, 
