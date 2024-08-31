@@ -26,16 +26,16 @@ void exit_program() {
     std::cout << "Thank you for using studyLogDB\n";
     exit(0);
 }
-void response(const std::string message) {
+void response(const std::string& message) {
     std:: cout << message << "\n";
 }
-void print_request_list(const std::map<int, std::string> REQUEST = REQUEST) {
+void print_request_list(const std::map<int, std::string>& REQUEST = REQUEST) {
     std::cout << "Request list:\n";
     for (auto const& x : REQUEST) {
         std::cout << x.first << " - " << x.second << "\n";
     }
 }
-void Get_Request(const std::map<int, std::string> REQUEST = REQUEST) {
+void Get_Request(const std::map<int, std::string>& REQUEST = REQUEST) {
     char is_request = 'n';
     std::cout << "Do you have any request?\nPress Y for yes and n for no: ";
     std::cin >> is_request;
@@ -45,7 +45,7 @@ void Get_Request(const std::map<int, std::string> REQUEST = REQUEST) {
     std::cin >> request;
     REQUEST.find(request) != REQUEST.end() ? response("Processing: " + REQUEST.at(request)) : exit_program();
 }
-void Print_Operating_Time(std::chrono::time_point<std::chrono::system_clock> start_time) {
+void Print_Operating_Time(const std::chrono::time_point<std::chrono::system_clock>& start_time) {
     std::chrono::time_point<std::chrono::system_clock> current_time = std::chrono::system_clock::now();
     std::cout << "Operating time: " << std::chrono::duration_cast<std::chrono::seconds>(current_time - start_time).count() << " seconds\n";
 }
