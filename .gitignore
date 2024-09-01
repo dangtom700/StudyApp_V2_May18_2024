@@ -1,8 +1,7 @@
 data/
-sample/
-modules/__pycache__/
-modules/path.py
+prototype/modules/__pycache__
+prototype/modules/path.py
 .vscode/
-lib/env_var.hpp
+src/lib/env_var.hpp
 archived
 main.exe
