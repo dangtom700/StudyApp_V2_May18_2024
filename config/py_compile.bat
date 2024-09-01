@@ -17,7 +17,7 @@ echo 11. Run full command
 set /p choices=Enter your choices (comma-separated): 
 
 REM Initialize the command string and valid flag
-set cmd=python prototpye/main.py
+set cmd=python prototype/main.py
 set valid=true
 
 REM Loop through the selected choices and build the command
@@ -63,7 +63,8 @@ echo Running: %cmd%
 
 REM Get the start time
 for /F "tokens=1-4 delims=:.," %%a in ("%time%") do (
-    set /A startTimeInSeconds=(((%%a*3600) + (%%b*60) + %%c)*100 + %%d)
+    set /A startTimeInSeconds=%%a*3600 + %%b*60 + %%c
+    set startMilliseconds=%%d
 )
 
 REM Run the constructed command
@@ -71,13 +72,20 @@ REM Run the constructed command
 
 REM Get the end time
 for /F "tokens=1-4 delims=:.," %%a in ("%time%") do (
-    set /A endTimeInSeconds=(((%%a*3600) + (%%b*60) + %%c)*100 + %%d)
+    set /A endTimeInSeconds=%%a*3600 + %%b*60 + %%c
+    set endMilliseconds=%%d
 )
 
-REM Calculate the elapsed time in milliseconds
+REM Calculate the elapsed time
 set /A elapsedTime=endTimeInSeconds-startTimeInSeconds
-set /A elapsedMilliseconds=elapsedTime %% 100
-set /A elapsedTime=elapsedTime / 100
+set /A elapsedMilliseconds=endMilliseconds-startMilliseconds
+
+REM Adjust milliseconds if necessary
+if %elapsedMilliseconds% lss 0 (
+    set /A elapsedMilliseconds+=100
+    set /A elapsedTime-=1
+)
+
 set /A elapsedSeconds=elapsedTime %% 60
 set /A elapsedTime=elapsedTime / 60
 set /A elapsedMinutes=elapsedTime %% 60

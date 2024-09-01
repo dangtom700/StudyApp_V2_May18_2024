@@ -256,11 +256,13 @@ def extract_text(FOLDER_PATH = pdf_path, CHUNK_SIZE = 800) -> None:
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             file_name TEXT,
             chunk_index INTEGER,
-            chunk_text TEXT
+            chunk_text TEXT)
         """)
 
     logging.info(f"Starting processing of PDF files in batches...")
     print(f"Starting processing of PDF files in batches...")
+
+    create_table()
 
     num_files = 0
     for pdf_batch in batch_collect_files(FOLDER_PATH, batch_size=100):
@@ -279,7 +281,7 @@ def process_word_frequencies_in_batches():
         cursor.execute("DROP TABLE IF EXISTS word_frequencies")
         cursor.execute("""CREATE TABLE word_frequencies (
             word TEXT PRIMARY KEY,
-            frequency INTEGER
+            frequency INTEGER)
         """)
 
     create_table()
