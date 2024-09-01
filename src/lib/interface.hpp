@@ -47,10 +47,7 @@ void Get_Request(const std::map<int, std::string>& REQUEST = REQUEST) {
     std::cin >> request;
     REQUEST.find(request) != REQUEST.end() ? response("Processing: " + REQUEST.at(request)) : exit_program();
 }
-void Print_Operating_Time(const std::chrono::time_point<std::chrono::system_clock>& start_time) {
-    std::chrono::time_point<std::chrono::system_clock> current_time = std::chrono::system_clock::now();
-    std::cout << "Operating time: " << std::chrono::duration_cast<std::chrono::seconds>(current_time - start_time).count() << " seconds\n";
-}
+
 std::string get_current_time(){
     auto now = std::chrono::system_clock::now();
     auto in_time_t = std::chrono::system_clock::to_time_t(now);

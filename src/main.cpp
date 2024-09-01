@@ -12,12 +12,10 @@
 const PATH path = ENV_VAR_HPP::PATH();
 
 int main() {
-    std::chrono::time_point<std::chrono::system_clock> start_time = std::chrono::system_clock::now();
 
     // INTERFACE_HPP::Greeting();
     // INTERFACE_HPP::Get_Request();
     DATABASE_HPP::initialize_database("data/pdf_db.db");
     
-    INTERFACE_HPP::Print_Operating_Time(start_time);
     return 0;
 }

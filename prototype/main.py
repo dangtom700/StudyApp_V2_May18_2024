@@ -3,11 +3,6 @@ import modules.updateLog as updateLog
 import modules.search as search
 import modules.extract_text as extract_text
 import modules.path as path
-from datetime import datetime
-
-def calculate_time_difference(start_time: datetime, announce_txt: str) -> str:
-    end_time = datetime.now()
-    updateLog.print_and_log(f"{announce_txt}: {end_time - start_time}")
 
 def app():
 
@@ -37,10 +32,9 @@ def app():
     parser.add_argument("--getNoteReview", action= 'store_true', help="Export a list of notes to review in .md format")
 
     args = parser.parse_args()
-    begin_execution = datetime.now()
 
     if args.extractText:
-        start_time = datetime.now()
+        
         # Adjust parameters
         """
         Small Chunks (50-200 characters): These are useful for quick retrieval 
@@ -70,11 +64,9 @@ def app():
         updateLog.print_and_log("Updating database from log file...")
         updateLog.store_log_file_to_database(path.log_file_path)
         updateLog.print_and_log("Finished updating database from log file.")
-        # calculate the total time done
-        calculate_time_difference(start_time, "Text extraction processing time")
 
     if args.updateDatabase:
-        start_time = datetime.now()
+        
         updateLog.print_and_log("Updating database from log file...")
         # create_index_tables
         updateLog.print_and_log("Extracting files from multiple folders")
@@ -84,37 +76,29 @@ def app():
         updateLog.print_and_log("Finished extracting files from multiple folders")
         # announce finish
         updateLog.print_and_log("Finished updating database from log file.")
-        # calculate the total time done
-        calculate_time_difference(start_time, "Database update time")
     
     if args.processWordFreq:
-        start_time = datetime.now()
+        
         updateLog.print_and_log("Processing word frequencies in chunks...")
         # process word frequency
         extract_text.process_word_frequencies_in_batches()
         # announce finish
         updateLog.print_and_log("Finished processing word frequencies.")
-        # calculate the total time done
-        calculate_time_difference(start_time, "Word frequency processing time")
 
     if args.analyzeWordFreq:
-        start_time = datetime.now()
+        
         updateLog.log_message(f"Exporting word frequency analysis to 'word_frequency_analysis.md' in {path.WordFrequencyAnalysis_path}...")
         updateLog.print_and_log("Exporting word frequency analysis...")
         search.getWordFrequencyAnalysis(threshold= 0.82)
         updateLog.log_message(f"Finished exporting word frequency analysis to 'word_frequency_analysis.md' in {path.WordFrequencyAnalysis_path}.")
-        updateLog.print_and_log("Finished exporting word frequency analysis.")
-        calculate_time_difference(start_time, "Word frequency analysis export time")
 
     if args.precompVector:
-        start_time = datetime.now()
+        
         updateLog.print_and_log("Precomputing title vector...")
         # precompute title vector
         extract_text.precompute_title_vector(database_path=path.chunk_database_path)
         # announce finish
         updateLog.print_and_log("Title vector precomputation complete.")
-        # calculate the time done
-        calculate_time_difference(start_time, "Title vector precomputation time")
 
     if args.reorderMaterial:
         updateLog.print_and_log(f"Exporting reading material to 'Reading Material.md' in {path.ReadingMaterial_path}...")
@@ -140,9 +124,6 @@ def app():
         updateLog.print_and_log(f"Exporting notes to 'Note Review.md' in {path.Obsidian_noteReview_path}...")
         search.getNoteReviewTask()
         updateLog.print_and_log(f"Finished exporting notes to 'Note Review.md' in {path.Obsidian_noteReview_path}.")
-
-    # Calculate the total time done
-    calculate_time_difference(begin_execution, "Total execution time")
 
 if __name__ == "__main__":
     app()
