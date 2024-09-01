@@ -1,5 +1,5 @@
-#ifndef BD_HPP
-#define BD_HPP
+#ifndef DATABASE_HPP
+#define DATABASE_HPP
 
 #include <sqlite3.h>
 #include <string>
@@ -102,4 +102,4 @@ void initialize_database(const std::string& db_name, const std::map<std::string,
     sqlite3_close(db);
 }
 
-#endif // BD_HPP
+#endif // DATABASE_HPP

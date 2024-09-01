@@ -4,7 +4,7 @@
 #include "lib/vec_com.hpp"
 #include "lib/wor_frq.hpp"
 #include "lib/search.hpp"
-// #include "lib/db.hpp"
+#include "lib/db.hpp"
 
 #include<chrono>
 #include<string>
@@ -16,7 +16,7 @@ int main() {
 
     // INTERFACE_HPP::Greeting();
     // INTERFACE_HPP::Get_Request();
-    path.print_paths();
+    DATABASE_HPP::initialize_database("data/pdf_db.db");
     
     INTERFACE_HPP::Print_Operating_Time(start_time);
     return 0;
