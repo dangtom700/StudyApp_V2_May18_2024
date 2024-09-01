@@ -17,7 +17,7 @@ echo 11. Run full command
 set /p choices=Enter your choices (comma-separated): 
 
 REM Initialize the command string and valid flag
-set cmd=python source/main.py
+set cmd=python prototpye/main.py
 set valid=true
 
 REM Loop through the selected choices and build the command
