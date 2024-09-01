@@ -16,22 +16,46 @@ echo 10. --suggestTitle
 echo 11. Run full command
 set /p choices=Enter your choices (comma-separated): 
 
-REM Initialize the command string
+REM Initialize the command string and valid flag
 set cmd=python source/main.py
+set valid=true
 
 REM Loop through the selected choices and build the command
 for %%i in (%choices%) do (
-    if "%%i"=="1" set cmd=!cmd! --help
-    if "%%i"=="2" set cmd=!cmd! --extractText
-    if "%%i"=="3" set cmd=!cmd! --updateDatabase
-    if "%%i"=="4" set cmd=!cmd! --searchTitle
-    if "%%i"=="5" set cmd=!cmd! --getNoteReview
-    if "%%i"=="6" set cmd=!cmd! --analyzeWordFreq
-    if "%%i"=="7" set cmd=!cmd! --reorderMaterial
-    if "%%i"=="8" set cmd=!cmd! --processWordFreq
-    if "%%i"=="9" set cmd=!cmd! --precompVector
-    if "%%i"=="10" set cmd=!cmd! --suggestTitle
-    if "%%i"=="11" set cmd=!cmd! --extractText --updateDatabase --processWordFreq --analyzeWordFreq --precompVector --reorderMaterial
+    if "%%i"=="1" (
+        set cmd=!cmd! --help
+    ) else if "%%i"=="2" (
+        set cmd=!cmd! --extractText
+    ) else if "%%i"=="3" (
+        set cmd=!cmd! --updateDatabase
+    ) else if "%%i"=="4" (
+        set cmd=!cmd! --searchTitle
+    ) else if "%%i"=="5" (
+        set cmd=!cmd! --getNoteReview
+    ) else if "%%i"=="6" (
+        set cmd=!cmd! --analyzeWordFreq
+    ) else if "%%i"=="7" (
+        set cmd=!cmd! --reorderMaterial
+    ) else if "%%i"=="8" (
+        set cmd=!cmd! --processWordFreq
+    ) else if "%%i"=="9" (
+        set cmd=!cmd! --precompVector
+    ) else if "%%i"=="10" (
+        set cmd=!cmd! --suggestTitle
+    ) else if "%%i"=="11" (
+        set cmd=!cmd! --extractText --updateDatabase --processWordFreq --analyzeWordFreq --precompVector --reorderMaterial
+    ) else (
+        echo Invalid choice: %%i
+        set valid=false
+    )
+)
+
+REM If there is an invalid choice, exit
+if "%valid%"=="false" (
+    echo One or more invalid choices were made. Exiting.
+    pause
+    endlocal
+    exit /b 1
 )
 
 REM Confirm the command to be executed
