@@ -37,15 +37,36 @@ void print_request_list(const std::map<int, std::string>& REQUEST = REQUEST) {
         std::cout << x.first << " - " << x.second << "\n";
     }
 }
-void Get_Request(const std::map<int, std::string>& REQUEST = REQUEST) {
-    char is_request = 'n';
+std::map<int, std::string> collect_request(const std::string& request, const std::map<int, std::string>& REQUEST = REQUEST) {
+    // format string into vector int
+    std::vector<int> request_vector;
+    std::stringstream ss(request);
+    int request_int;
+    while (ss >> request_int) {
+        request_vector.push_back(request_int);
+    }
+    // check if request is valid
+    for (auto const& x : request_vector) {
+        if (REQUEST.find(x) == REQUEST.end()) {
+            std::cout << "Invalid request\n";
+            exit(0);
+        }
+    }
+    // collect request
+    std::map<int, std::string> request_map;
+    for (auto const& x : request_vector) {
+        request_map[x] = REQUEST.at(x);
+    }
+    return request_map;
+}
+std::map<int, std::string> Get_Request(const std::map<int, std::string>& REQUEST = REQUEST, char is_request = 'n') {
     std::cout << "Do you have any request?\nPress Y for yes and n for no: ";
     std::cin >> is_request;
     is_request == 'Y' or is_request == 'y' ? print_request_list() : exit_program();
-    std::cout << "Enter your request: ";
-    int request = 0;
+    std::cout << "Please enter your request in comma separated format (e.g. 1,2): ";
+    std::string request;
     std::cin >> request;
-    REQUEST.find(request) != REQUEST.end() ? response("Processing: " + REQUEST.at(request)) : exit_program();
+    return collect_request(request);
 }
 
 std::string get_current_time(){
@@ -54,5 +75,37 @@ std::string get_current_time(){
     std::stringstream ss;
     ss << std::put_time(std::localtime(&in_time_t), "%Y-%m-%d %X");
     return ss.str();
+}
+
+void Coordinate_Request(const std::map<int, std::string>& collected_request){
+    std::string base_response = "Processing request: ";
+    for (auto const& x : collected_request) {
+        switch (x.first) {
+        case 1:
+            response(base_response + x.second);
+            // extract text
+            break;
+        case 2:
+            response(base_response + x.second);
+            // update database
+            break;
+        case 3:
+            response(base_response + x.second);
+            // process word frequency
+            break;
+        case 4:
+            response(base_response + x.second);
+            // analyze word frequency
+            break;
+        case 5:
+            response(base_response + x.second);
+            // precompute vector
+            break;
+        case 6:
+            response(base_response + x.second);
+            // reorder material
+            break;
+        }
+    }
 }
 #endif // INTERFACE_HPP
