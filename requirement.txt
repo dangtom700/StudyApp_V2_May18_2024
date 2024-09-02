@@ -11,6 +11,7 @@ colorama==0.4.6
 frozenlist==1.4.1
 greenlet==3.0.3
 idna==3.7
+importlib-metadata @ file:///C:/b/abs_c1egths604/croot/importlib_metadata-suite_1704813568388/work
 joblib==1.4.2
 jsonpatch==1.33
 jsonpointer==3.0.0
@@ -18,6 +19,7 @@ langchain==0.2.12
 langchain-core==0.2.29
 langchain-text-splitters==0.2.2
 langsmith==0.1.98
+Markdown @ file:///C:/b/abs_98lv_ucina/croot/markdown_1671541919225/work
 multidict==6.0.5
 nltk==3.8.1
 numpy==1.26.4
@@ -41,3 +43,4 @@ typing_extensions==4.12.2
 tzdata==2024.1
 urllib3==2.2.2
 yarl==1.9.4
+zipp @ file:///C:/b/abs_b0beoc27oa/croot/zipp_1704206963359/work
