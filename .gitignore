@@ -1,8 +1,5 @@
 data/
-prototype/modules/__pycache__
-prototype/modules/path.py
+src/modules/__pycache__
+src/modules/path.py
 .vscode/
-src/lib/env_var.hpp
 archived
-main.exe
-StudyLogDB.exe
