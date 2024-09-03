@@ -36,7 +36,7 @@ def clean_text(text):
 
     # Define a function to filter tokens
     def pass_conditions(word):
-        return (len(word) < 12 and
+        return (len(word) < 20 and
                 len(word) > 1 and
                 word.isalpha() and 
                 not has_repeats_regex(word))
@@ -225,6 +225,7 @@ def process_chunks_in_batches(db_name: str):
         ''', word_frequencies.items())
 
         conn.commit()
+        conn.close()
 
 def batch_collect_files(folder_path: str, extension='.pdf', batch_size=100) -> Generator[list[str], None, None]:
     """
