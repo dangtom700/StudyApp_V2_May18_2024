@@ -68,7 +68,7 @@ def getNoteReviewTask() -> None:
     exportNoteReviewTask(note_list, date)
     exportStudyLogTemplate(note_list, date)
 
-def getWordFrequencyAnalysis(batch_size = 100, threshold = 0.82) -> int:
+def getWordFrequencyAnalysis(threshold = 0.82) -> int:
     conn = sqlite3.connect(path.chunk_database_path)
     cursor = conn.cursor()
 
@@ -85,71 +85,31 @@ def getWordFrequencyAnalysis(batch_size = 100, threshold = 0.82) -> int:
     avg_frequency = cursor.fetchone()[0]
     print(f"Average of frequency: {avg_frequency}")
 
+    # check out result
+    minimum_frequency = 0
+    total_frequency_above_threshold = 0
+    relative_popularity = 0
+
     print("Generating report...")
     with open(path.WordFrequencyAnalysis_path, 'w', encoding='utf-8') as f:
-        # Default parameters
-        counting_frequency = 0
-        offset = 0
         # Write the header
         f.write("# Word frequency analysis\n\n")
         # Write the main report
-        f.write("### Word frequency analysis:\n\n")
-        f.write("|Iteration|Counting frequency|Coverage|Frequency gain|Coverage gain|Word count|\n")
-        f.write("|---------|------------------|--------|--------------|-------------|----------|\n")
-        
-        coverage = counting_frequency / sum_frequency
-
-        while coverage < threshold:
-            cursor.execute("SELECT SUM(frequency) FROM (SELECT frequency FROM word_frequencies ORDER BY frequency DESC LIMIT ? OFFSET ?)", (batch_size, offset))
-            batch_sum = cursor.fetchone()[0]
-            
-            if batch_sum is None:  # In case there are no more rows to fetch
-                break
-            
-            counting_frequency += batch_sum
-            offset += batch_size
-
-            previous_coverage = coverage
-            coverage = counting_frequency / sum_frequency
-            coverage_gain = coverage - previous_coverage
-
-            f.write(f"|{int(offset / batch_size)}")
-            f.write(f"|{counting_frequency}")
-            f.write(f"|{coverage:.2%}")
-            f.write(f"|{batch_sum}")
-            f.write(f"|{coverage_gain:.2%}")
-            f.write(f"|{offset}|\n")
-
-        f.write("\n\n")
-
-        # Write the words with the best coverage
-        cursor.execute("SELECT * FROM word_frequencies ORDER BY frequency DESC LIMIT ?", (offset,))
-
-        f.write("### Words of best coverage:\n\n")
-        f.write("|Word|Frequency|Word|Frequency|Word|Frequency|Word|Frequency|")
-        f.write("\n|---|---|---|---|---|---|---|---|\n")
-        
-        # Adjust for four columns per row
-        rows = cursor.fetchall()
-        for i in range(0, len(rows), 4):
-            row_group = rows[i:i+4]
-            f.write("|")
-            for row in row_group:
-                f.write(f"{row[0]}|{row[1]}|")
-            f.write("\n")
-
-        f.write("\n\n")
 
         f.write("### Top 20% words of best coverage:\n\n")
         f.write("\nThis test to see the effect on the word coverage when eliminating the least frequent words on the overall frequency.\n\n")
+        
+        # 20/80 method
+        factor = 0.20
+
         # Write the header
-        f.write("|Min frequency | Total frequency | Number of words | Top 20% | Relative Pop. | Absolute Pop. |")
+        f.write(f"|Min frequency | Total frequency | Number of words | Top {factor * 100}% | Relative Pop. | Absolute Pop. |")
         f.write("\n|---|---|---|---|---|\n")
+
         for i in range(0, 200, 10):
             total_frequency = cursor.execute(f"SELECT SUM(frequency) FROM word_frequencies WHERE frequency > {i}").fetchone()[0]
             num_words = cursor.execute(f"SELECT COUNT(*) FROM word_frequencies WHERE frequency > {i}").fetchone()[0]
-            # 20/80
-            factor = 0.20
+            
             top_percent = round(num_words * factor)
             cursor.execute("SELECT * FROM word_frequencies ORDER BY frequency DESC")
             most_popular_percent = 0
@@ -159,11 +119,15 @@ def getWordFrequencyAnalysis(batch_size = 100, threshold = 0.82) -> int:
             popularity_top_percent = most_popular_percent / total_frequency * 100
             actual_popularity = most_popular_percent / sum_frequency * 100
 
+            if popularity_top_percent > threshold * 100:
+                minimum_frequency = i
+                total_frequency_above_threshold = total_frequency
+                relative_popularity = popularity_top_percent
+
             f.write(f"| {i} | {total_frequency} | {num_words} | {most_popular_percent} | {popularity_top_percent} | {actual_popularity} |")
         
         # Write the parameters
         f.write("Parameters:\n")
-        f.write(f"- Batch size: {batch_size}\n")
         f.write(f"- Threshold: {threshold}\n")
         f.write("\n\n")
 
@@ -171,26 +135,26 @@ def getWordFrequencyAnalysis(batch_size = 100, threshold = 0.82) -> int:
         f.write("Generated results:\n\n")
         f.write(f"- Sum of frequency: {sum_frequency}\n")
         f.write(f"- Average of frequency: {avg_frequency}\n")
-        f.write(f"- Counting frequency: {counting_frequency}\n")
-        f.write(f"- Coverage: {coverage:.2%}\n")
-        f.write(f"- Word count: {offset}\n")
+        f.write(f"- Minimum frequency: {minimum_frequency}\n")
+        f.write(f"- Total frequency above threshold: {total_frequency_above_threshold}\n")
+        f.write(f"- Relative popularity: {relative_popularity}%\n")
         f.write("\n\n")
 
         f.write("End of report.\n")
         print("Report generated.")
     
     # Copy an portion of the table to another table
-    cursor.execute("DROP TABLE IF EXISTS coverage_threshold")
-    cursor.execute("""CREATE TABLE coverage_threshold (word TEXT PRIMARY KEY, frequency INTEGER,
+    cursor.execute("DROP TABLE IF EXISTS coverage_analysis")
+    cursor.execute("""CREATE TABLE coverage_analysis (word TEXT PRIMARY KEY, frequency INTEGER,
                    FOREIGN KEY (word, frequency) REFERENCES word_frequencies(word, frequency))""")
-    cursor.execute("""INSERT INTO coverage_threshold
+    cursor.execute("""INSERT INTO coverage_analysis
                    SELECT word, frequency FROM word_frequencies
                    ORDER BY frequency DESC
-                   LIMIT ? OFFSET ?""", (offset, 0))
+                   WHERE frequency > ?""", (minimum_frequency,))
     
     # Copy
 
     # Complete transaction
     conn.commit()
     conn.close()
-    return offset
+    return cursor.execute("SELECT COUNT(*) FROM coverage_analysis").fetchone()[0]
