@@ -139,6 +139,27 @@ def getWordFrequencyAnalysis(batch_size = 100, threshold = 0.82) -> int:
             f.write("\n")
 
         f.write("\n\n")
+
+        f.write("### Top 20% words of best coverage:\n\n")
+        f.write("\nThis test to see the effect on the word coverage when eliminating the least frequent words on the overall frequency.\n\n")
+        # Write the header
+        f.write("|Min frequency | Total frequency | Number of words | Top 20% | Relative Pop. | Absolute Pop. |")
+        f.write("\n|---|---|---|---|---|\n")
+        for i in range(0, 200, 10):
+            total_frequency = cursor.execute(f"SELECT SUM(frequency) FROM word_frequencies WHERE frequency > {i}").fetchone()[0]
+            num_words = cursor.execute(f"SELECT COUNT(*) FROM word_frequencies WHERE frequency > {i}").fetchone()[0]
+            # 20/80
+            factor = 0.20
+            top_percent = round(num_words * factor)
+            cursor.execute("SELECT * FROM word_frequencies ORDER BY frequency DESC")
+            most_popular_percent = 0
+            for _ in range(top_percent):
+                most_popular_percent += cursor.fetchone()[1]
+
+            popularity_top_percent = most_popular_percent / total_frequency * 100
+            actual_popularity = most_popular_percent / sum_frequency * 100
+
+            f.write(f"| {i} | {total_frequency} | {num_words} | {most_popular_percent} | {popularity_top_percent} | {actual_popularity} |")
         
         # Write the parameters
         f.write("Parameters:\n")
@@ -159,13 +180,15 @@ def getWordFrequencyAnalysis(batch_size = 100, threshold = 0.82) -> int:
         print("Report generated.")
     
     # Copy an portion of the table to another table
-    cursor.execute("DROP TABLE IF EXISTS coverage_analysis")
-    cursor.execute("""CREATE TABLE coverage_analysis (word TEXT PRIMARY KEY, frequency INTEGER,
+    cursor.execute("DROP TABLE IF EXISTS coverage_threshold")
+    cursor.execute("""CREATE TABLE coverage_threshold (word TEXT PRIMARY KEY, frequency INTEGER,
                    FOREIGN KEY (word, frequency) REFERENCES word_frequencies(word, frequency))""")
-    cursor.execute("""INSERT INTO coverage_analysis
+    cursor.execute("""INSERT INTO coverage_threshold
                    SELECT word, frequency FROM word_frequencies
                    ORDER BY frequency DESC
                    LIMIT ? OFFSET ?""", (offset, 0))
+    
+    # Copy
 
     # Complete transaction
     conn.commit()
