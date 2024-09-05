@@ -4,6 +4,13 @@ import modules.search as search
 import modules.extract_text as extract_text
 import modules.path as path
 
+from datetime import datetime
+
+def get_time_performance(start_time, message = "Time elapsed"):
+    end_time = datetime.now()
+    time_delta = end_time - start_time
+    updateLog.print_and_log(f"{message}: {time_delta}")
+
 def app():
 
     parser = argparse.ArgumentParser(prog="Study Logging and Database",
@@ -34,6 +41,7 @@ def app():
     args = parser.parse_args()
 
     if args.extractText:
+        start_time = datetime.now()
         
         # Adjust parameters
         """
@@ -54,7 +62,7 @@ def app():
         chunk_size = 2000
         # extract_text
         updateLog.print_and_log("Extracting text from PDF files...")
-        extract_text.extract_text(CHUNK_SIZE=chunk_size)
+        extract_text.extract_text(CHUNK_SIZE=chunk_size, FOLDER_PATH=path.pdf_path, chunk_database_path=path.chunk_database_path)
         updateLog.print_and_log("Finished extracting text from PDF files.")
         # extract text from markdown files
         updateLog.print_and_log("Extracting text from markdown files...")
@@ -64,10 +72,13 @@ def app():
         updateLog.print_and_log("Updating database from log file...")
         updateLog.store_log_file_to_database(path.log_file_path)
         updateLog.print_and_log("Finished updating database from log file.")
+        # announce finish
+        get_time_performance(start_time, "Text extracting time")
 
     if args.updateDatabase:
+        start_time = datetime.now()
         
-        updateLog.print_and_log("Updating database from log file...")
+        updateLog.print_and_log("Update file information to database...")
         # create_index_tables
         updateLog.print_and_log("Extracting files from multiple folders")
         folders = [path.pdf_path, path.study_notes_folder_path]
@@ -75,15 +86,16 @@ def app():
         extract_text.create_type_index_table(folders, extensions)
         updateLog.print_and_log("Finished extracting files from multiple folders")
         # announce finish
-        updateLog.print_and_log("Finished updating database from log file.")
+        get_time_performance(start_time, "Update file information")
     
     if args.processWordFreq:
+        start_time = datetime.now()
         
         updateLog.print_and_log("Processing word frequencies in chunks...")
         # process word frequency
-        extract_text.process_word_frequencies_in_batches()
+        extract_text.process_word_frequencies_in_batches(chunk_database_path=path.chunk_database_path)
         # announce finish
-        updateLog.print_and_log("Finished processing word frequencies.")
+        get_time_performance(start_time, "Word frequency processing time")
 
     if args.analyzeWordFreq:
         
@@ -91,6 +103,8 @@ def app():
         updateLog.print_and_log("Exporting word frequency analysis...")
         search.getWordFrequencyAnalysis(threshold= 0.96)
         updateLog.log_message(f"Finished exporting word frequency analysis to 'word_frequency_analysis.md' in {path.WordFrequencyAnalysis_path}.")
+        # announce finish
+        get_time_performance(start_time, "Word frequency analysis")
 
     if args.precompVector:
         
@@ -98,7 +112,7 @@ def app():
         # precompute title vector
         extract_text.precompute_title_vector(database_path=path.chunk_database_path)
         # announce finish
-        updateLog.print_and_log("Title vector precomputation complete.")
+        get_time_performance(start_time, "Precomputing title vector")
 
     if args.reorderMaterial:
         updateLog.print_and_log(f"Exporting reading material to 'Reading Material.md' in {path.ReadingMaterial_path}...")

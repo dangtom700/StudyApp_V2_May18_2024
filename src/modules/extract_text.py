@@ -2,8 +2,7 @@ import logging
 import fitz  # PyMuPDF
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 import sqlite3
-import concurrent.futures
-import threading
+from concurrent.futures import ThreadPoolExecutor, as_completed
 import markdown
 import time
 import re
@@ -15,16 +14,17 @@ from nltk.stem import PorterStemmer
 from os import walk
 from os.path import getmtime, basename, join
 from datetime import datetime
-from modules.path import log_file_path, chunk_database_path, pdf_path
+from modules.path import log_file_path, chunk_database_path
 from collections.abc import Generator
-from modules.updateLog import print_and_log, log_message
+from modules.updateLog import print_and_log
+from functools import wraps
 
-# One time complied
+# One-time compiled
 REPEATED_CHAR_PATTERN = re.compile(r"([a-zA-Z])\1{2,}")
 stemmer = PorterStemmer()
 stop_words = set(stopwords.words('english'))
 
-def has_repeats_regex(word, n=3):
+def has_repeats_regex(word):
     return bool(REPEATED_CHAR_PATTERN.search(word))
 
 def clean_text(text):
@@ -34,19 +34,14 @@ def clean_text(text):
     # Split text into tokens
     tokens = text.split()
 
-    # Define a function to filter tokens
-    def pass_conditions(word):
-        return (len(word) < 14 and
-                len(word) > 1 and
-                word.isalpha() and 
-                not has_repeats_regex(word))
-
-    # Filter tokens based on conditions and apply stemming
+    # Filter and process tokens in one step
     filtered_tokens = []
     for token in tokens:
-        root_word = stemmer.stem(token)
-        if pass_conditions(root_word):
-            filtered_tokens.append(root_word)
+        if len(token) > 1 and len(token) < 14 and token.isalpha():
+            # Stem the token and check conditions
+            root_word = stemmer.stem(token)
+            if not has_repeats_regex(root_word):
+                filtered_tokens.append(root_word)
 
     return filtered_tokens
 
@@ -68,7 +63,24 @@ def setup_logging(log_file= log_file_path):
 
 setup_logging()
 
-# Function to extract text from a PDF file using PyMuPDF with improved error handling
+# Retry decorator with configurable retries and delays
+def retry_on_exception(retries=99, delay=5, retry_exceptions=(Exception,), log_message=None):
+    def decorator(func):
+        def wrapper(*args, **kwargs):
+            for attempt in range(retries):
+                try:
+                    return func(*args, **kwargs)
+                except retry_exceptions as e:
+                    if attempt < retries - 1:
+                        if log_message:
+                            logging.warning(f"{log_message}. Attempt {attempt + 1}/{retries}, retrying in {delay} seconds...")
+                        time.sleep(delay)
+                    else:
+                        raise
+        return wrapper
+    return decorator
+
+# Function to extract text from a PDF file
 def extract_text_from_pdf(pdf_file):
     logging.info(f"Extracting text from {pdf_file}...")
     text = ""
@@ -77,9 +89,9 @@ def extract_text_from_pdf(pdf_file):
         for page_num in range(len(doc)):
             page = doc.load_page(page_num)
             page_text = page.get_text()
-            logging.debug(f"Extracted text from page {page_num} of {pdf_file}: {page_text[:50]}...")  # Log first 50 characters for debugging
+            logging.debug(f"Extracted text from page {page_num} of {pdf_file}: {page_text[:50]}...")
             text += page_text
-    except fitz.fitz_error as e:  # Specific MuPDF error
+    except fitz.fitz_error as e:
         logging.error(f"MuPDF error in {pdf_file}: {e}")
     except Exception as e:
         logging.error(f"Error extracting text from {pdf_file}: {e}")
@@ -89,7 +101,7 @@ def extract_text_from_pdf(pdf_file):
     logging.info(f"Finished extracting text from {pdf_file}.")
     return text
 
-# Function to split text into chunks using LangChain
+# Function to split text into chunks
 def split_text_into_chunks(text, chunk_size):
     logging.info(f"Splitting text into chunks of {chunk_size} characters...")
     if not isinstance(text, str):
@@ -98,63 +110,42 @@ def split_text_into_chunks(text, chunk_size):
     text_splitter = RecursiveCharacterTextSplitter(chunk_size=chunk_size, chunk_overlap=0)
     try:
         chunks = text_splitter.split_text(text)
-        logging.debug(f"First chunk of {text[:50]}...")  # Log first 50 characters of the first chunk
+        logging.debug(f"First chunk: {chunks[0][:50]}..." if chunks else "No chunks.")
     except Exception as e:
         logging.error(f"Error splitting text: {e}")
         chunks = []
-    logging.info(f"Finished splitting text into chunks.")
+    logging.info("Finished splitting text into chunks.")
     return chunks
 
-def execute_with_retry(func, *args, retries=999, delay=10, **kwargs):
-    for attempt in range(retries):
-        try:
-            return func(*args, **kwargs)
-        except sqlite3.OperationalError as e:
-            if 'locked' in str(e):
-                logging.warning(f"{attempt+1}/{retries} Database is locked, retrying in {delay} seconds...")
-                time.sleep(delay)
-            else:
-                raise
-    raise Exception(f"Failed to execute after {retries} retries")
+# Reusable database operation with retry logic
+@retry_on_exception(retries=999, delay=5, retry_exceptions=(sqlite3.OperationalError,), log_message="Database is locked")
+def execute_db_operation(db_name, operation, *args):
+    conn = sqlite3.connect(db_name)
+    cursor = conn.cursor()
+    try:
+        operation(cursor, *args)
+        conn.commit()
+    finally:
+        conn.close()
 
 # Function to store text chunks in the SQLite database
 def store_chunks_in_db(file_name, chunks, db_name):
-    def _store():
-        conn = sqlite3.connect(db_name)
-        cursor = conn.cursor()
+    def _store_chunks(cursor, file_name, chunks):
         for index, chunk in enumerate(chunks):
             cursor.execute('''
                 INSERT INTO pdf_chunks (file_name, chunk_index, chunk_text) VALUES (?, ?, ?)
             ''', (basename(file_name), index, chunk))
-        conn.commit()
-        conn.close()
-    execute_with_retry(_store)
+    
+    execute_db_operation(db_name, _store_chunks, file_name, chunks)
     logging.info(f"Stored {len(chunks)} chunks for {file_name} in the database.")
-
-# Function to split text into chunks using LangChain
-def split_text_into_chunks(text, chunk_size):
-    logging.info(f"Splitting text into chunks of {chunk_size} characters...")
-    if not isinstance(text, str):
-        logging.error(f"Expected text to be a string but got {type(text)}: {text}")
-        return []
-    text_splitter = RecursiveCharacterTextSplitter(chunk_size=chunk_size, chunk_overlap=0)
-    try:
-        chunks = text_splitter.split_text(text)
-        logging.debug(f"First chunk of {text[:50]}...")  # Log first 50 characters of the first chunk
-    except Exception as e:
-        logging.error(f"Error splitting text: {e}")
-        chunks = []
-    logging.info(f"Finished splitting text into chunks.")
-    return chunks
 
 # Function to extract, split, and store text from a PDF file
 def extract_split_and_store_pdf(pdf_file, chunk_size, db_name):
     try:
         text = extract_text_from_pdf(pdf_file)
-        if text is None or text == "":
+        if not text:
             logging.warning(f"No text extracted from {pdf_file}.")
             return
-        logging.debug(f"Extracted text type: {type(text)}, length: {len(text)}")
         chunks = split_text_into_chunks(text, chunk_size=chunk_size)
         if not chunks:
             logging.warning(f"No chunks created for {pdf_file}.")
@@ -163,20 +154,31 @@ def extract_split_and_store_pdf(pdf_file, chunk_size, db_name):
     except Exception as e:
         logging.error(f"Error processing {pdf_file}: {e}")
 
-# Function to process multiple PDF files concurrently
-def process_files_in_parallel(pdf_files, chunk_size, db_name):
-    with concurrent.futures.ThreadPoolExecutor() as executor:
-        future_to_file = {executor.submit(extract_split_and_store_pdf, pdf_file, chunk_size, db_name): pdf_file for pdf_file in pdf_files}
-        
-        total_files = len(pdf_files)
-        completed_files = 0
+# Store text chunks in the SQLite database
+def store_chunks_in_db(file_name, chunks, db_name):
+    def _store_chunks(cursor, file_name, chunks):
+        for index, chunk in enumerate(chunks):
+            cursor.execute('''
+                INSERT INTO pdf_chunks (file_name, chunk_index, chunk_text) VALUES (?, ?, ?)
+            ''', (file_name, index, chunk))
+    
+    execute_db_operation(db_name, _store_chunks, file_name, chunks)
+    logging.info(f"Stored {len(chunks)} chunks for {file_name} in the database.")
 
-        for future in concurrent.futures.as_completed(future_to_file):
+# Process multiple PDF files concurrently
+def process_files_in_parallel(pdf_files, chunk_size, db_name):
+    total_files = len(pdf_files)
+    completed_files = 0
+
+    with ThreadPoolExecutor() as executor:
+        future_to_file = {executor.submit(extract_split_and_store_pdf, pdf_file, chunk_size, db_name): pdf_file for pdf_file in pdf_files}
+
+        for future in as_completed(future_to_file):
             pdf_file = future_to_file[future]
             try:
                 future.result()
                 completed_files += 1
-                logging.info(f"Completed {completed_files}/{total_files} file: {pdf_file}")
+                logging.info(f"Completed {completed_files}/{total_files} files: {pdf_file}")
             except Exception as e:
                 logging.error(f"Error processing {pdf_file}: {e}")
 
@@ -204,40 +206,31 @@ def retrieve_token_list(title_id: str, cursor: sqlite3.Cursor) -> list[str]:
 
     return clean_text(merged_chunk_text)
 
-# Process chunks in batches and store word frequencies
-def process_chunks_in_batches(db_name: str):
-    with sqlite3.connect(db_name) as conn:
-        cursor = conn.cursor()
+# Process chunks in batches and store word frequencies (with retry logic for DB insertion)
+def process_chunks_in_batches(cursor: sqlite3.Cursor) -> None:
+    word_frequencies = defaultdict(int)
+    title_ids = get_title_ids(cursor)
 
-        word_frequencies = defaultdict(int)
-        title_ids = get_title_ids(cursor)
+    for title_id in title_ids:
+        try:
+            token_list = retrieve_token_list(title_id, cursor)
+            for token in token_list:
+                word_frequencies[token] += 1
+        except ValueError as e:
+            logging.warning(f"Warning: {e}")
 
-        for title_id in title_ids:
-            try:
-                token_list = retrieve_token_list(title_id, cursor)
-                for token in token_list:
-                    word_frequencies[token] += 1
-            except ValueError as e:
-                print(f"Warning: {e}")
-
-        # Efficiently insert word frequencies into the database
+    @retry_on_exception(retries=999, delay=5, retry_exceptions=(sqlite3.OperationalError,), log_message="Database is locked during word frequency insertion")
+    def insert_word_frequencies(cursor):
         cursor.executemany('''
             INSERT INTO word_frequencies (word, frequency) 
             VALUES (?, ?)
             ON CONFLICT(word) DO UPDATE SET frequency = frequency + excluded.frequency
         ''', word_frequencies.items())
 
-        conn.commit()
+    insert_word_frequencies(cursor)
 
-def batch_collect_files(folder_path: str, extension='.pdf', batch_size=100) -> Generator[list[str], None, None]:
-    """
-    Generator function that yields batches of files from the specified folder.
-
-    :param folder_path: Path to the folder containing the files.
-    :param extensions: File extension to filter by (default is '.pdf').
-    :param batch_size: Number of files to include in each batch (default is 100).
-    :yield: List of file paths.
-    """
+# Batch collect files from folder
+def batch_collect_files(folder_path: str, extension='.pdf', batch_size=100):
     current_batch = []
 
     for root, _, files in walk(folder_path):
@@ -248,12 +241,13 @@ def batch_collect_files(folder_path: str, extension='.pdf', batch_size=100) -> G
                     yield current_batch
                     current_batch = []
 
-    # Yield any remaining files in the last batch
     if current_batch:
         yield current_batch
 
-def extract_text(FOLDER_PATH = pdf_path, CHUNK_SIZE = 800) -> None:
+# Extract text from PDF files in batches and store in DB
+def extract_text(FOLDER_PATH, CHUNK_SIZE, chunk_database_path):
     conn = sqlite3.connect(chunk_database_path)
+
     def create_table():
         conn.execute("DROP TABLE IF EXISTS pdf_chunks")
         conn.execute("""CREATE TABLE pdf_chunks (
@@ -264,20 +258,16 @@ def extract_text(FOLDER_PATH = pdf_path, CHUNK_SIZE = 800) -> None:
         """)
 
     logging.info(f"Starting processing of PDF files in batches...")
-    print(f"Starting processing of PDF files in batches...")
-
     create_table()
 
-    num_files = 0
     for pdf_batch in batch_collect_files(FOLDER_PATH, batch_size=100):
-        num_files += len(pdf_batch)
-        print(f"Processing {num_files} files...")
         process_files_in_parallel(pdf_batch, chunk_size=CHUNK_SIZE, db_name=chunk_database_path)
 
     logging.info("Processing complete: Extracting text from PDF files.")
-    print("Processing complete: Extracting text from PDF files.")
+    conn.close()
 
-def process_word_frequencies_in_batches():
+# Process word frequencies from chunks stored in DB
+def process_word_frequencies_in_batches(chunk_database_path):
     conn = sqlite3.connect(chunk_database_path)
     cursor = conn.cursor()
 
@@ -288,25 +278,29 @@ def process_word_frequencies_in_batches():
             frequency INTEGER)
         """)
 
+    logging.info("Starting batch processing of chunks...")
     create_table()
 
-    logging.info("Starting batch processing of chunks...")
-    process_chunks_in_batches(db_name=chunk_database_path)
-    logging.info("Processing word frequencies complete.")
-    print("Processing word frequencies complete.")
+    process_chunks_in_batches(cursor)
+    conn.commit()
+    conn.close()
 
+    logging.info("Processing word frequencies complete.")
+
+# Main function to precompute title vector
 def precompute_title_vector(database_path: str) -> None:
     conn = sqlite3.connect(database_path)
     cursor = conn.cursor()
 
-    def create_tables(title_ids: list) -> None:
+    # Function to create tables with dynamic columns
+    def create_tables(title_ids: list[str]) -> None:
         cursor.execute("DROP TABLE IF EXISTS title_analysis")
         cursor.execute("DROP TABLE IF EXISTS title_normalized")
-        # Create command strings for columns
+        
+        # Create dynamic columns for each title
         columns_INT = ', '.join([f"T_{title_id} INTEGER DEFAULT 0" for title_id in title_ids])
         columns_REAL = ', '.join([f"T_{title_id} REAL DEFAULT 0.0" for title_id in title_ids])
         
-        # Create the tables with the necessary columns
         cursor.execute(f"""
             CREATE TABLE title_analysis (
                 word TEXT PRIMARY KEY, 
@@ -321,57 +315,86 @@ def precompute_title_vector(database_path: str) -> None:
                 FOREIGN KEY(word) REFERENCES coverage_analysis(word)
             )
         """)
-
-        # Insert words into tables
+        
+        # Insert unique words into both tables
         cursor.execute("INSERT INTO title_analysis (word) SELECT DISTINCT word FROM coverage_analysis")
         cursor.execute("INSERT INTO title_normalized (word) SELECT DISTINCT word FROM coverage_analysis")
 
-    def process_title_analysis(title_ids: list[str], words: list[str], cursor: sqlite3.Cursor) -> None:
-        for title in title_ids:
-            token_list = retrieve_token_list(title_id=title, cursor=cursor)
+    # Multithreaded function to process title analysis
+    def process_title_analysis(title_ids: list[str], words: list[str]) -> None:
+        def _process_title(title_id: str):
+            token_list = retrieve_token_list(title_id=title_id, cursor=cursor)
             word_counts = {word: token_list.count(word) for word in words if word in token_list}
 
-            # Batch update the title_analysis table
+            # Batch update the title_analysis table for this title
             update_data = [(count, word) for word, count in word_counts.items()]
             cursor.executemany(
-                f"UPDATE title_analysis SET T_{title} = ? WHERE word = ?",
+                f"UPDATE title_analysis SET T_{title_id} = ? WHERE word = ?",
                 update_data
             )
-        conn.commit()
-
-    def normalize_vector(title_ids: list[str]) -> None:
-        for title in title_ids:
-            length = cursor.execute(f"SELECT SUM(T_{title} * T_{title}) FROM title_analysis").fetchone()[0]
-            length = sqrt(length)
-            cursor.execute(f"""
-                UPDATE title_normalized
-                    SET T_{title} = 
-                        (SELECT T_{title} FROM title_analysis WHERE title_normalized.word = title_analysis.word) /(1 + {length})""")
             conn.commit()
 
+        with ThreadPoolExecutor() as executor:
+            future_to_title = {executor.submit(_process_title, title_id): title_id for title_id in title_ids}
+            for future in as_completed(future_to_title):
+                title_id = future_to_title[future]  # Retrieve the corresponding title_id
+                try:
+                    future.result()  # Ensure exceptions are raised and handled
+                except Exception as e:
+                    logging.error(f"Error in processing title analysis for title ID {title_id}: {e}")
+
+    # Multithreaded function to normalize vectors
+    def normalize_vector(title_ids: list[str]) -> None:
+        def _normalize_single_title(title_id: str):
+            length = cursor.execute(f"SELECT SUM(T_{title_id} * T_{title_id}) FROM title_analysis").fetchone()[0]
+            length = sqrt(length) if length else 1  # Avoid division by zero
+            cursor.execute(f"""
+                UPDATE title_normalized
+                SET T_{title_id} = 
+                    (SELECT T_{title_id} FROM title_analysis WHERE title_normalized.word = title_analysis.word) 
+                    / (1 + {length})
+            """)
+            conn.commit()
+
+        with ThreadPoolExecutor() as executor:
+            future_to_title = {executor.submit(_normalize_single_title, title_id): title_id for title_id in title_ids}
+        
+            for future in as_completed(future_to_title):
+                title_id = future_to_title[future]  # Retrieve the corresponding title_id
+                try:
+                    future.result()  # Ensure exceptions are raised and handled
+                except Exception as e:
+                    logging.error(f"Error in normalizing vector for title ID {title_id}: {e}")
+
+    # Retrieve unique words from the coverage_analysis table
     def get_words() -> list[str]:
         cursor.execute("SELECT word FROM coverage_analysis")
         return [word[0] for word in cursor.fetchall()]
 
+    # Retrieve title IDs from the database (reuse existing function)
+    def get_title_ids() -> list[str]:
+        cursor.execute("SELECT id FROM file_list WHERE file_type = 'pdf' AND chunk_count > 0")
+        return [title[0] for title in cursor.fetchall()]
+
     # Main flow
+    try:
+        title_ids = get_title_ids()
+        words = get_words()
+        
+        print_and_log("Creating tables...")
+        execute_db_operation(database_path, create_tables, title_ids)
+        print_and_log("Finished creating tables.")
+        
+        print_and_log("Processing title analysis in parallel...")
+        process_title_analysis(title_ids, words)
+        print_and_log("Finished processing title analysis.")
+        
+        print_and_log("Normalizing vectors in parallel...")
+        normalize_vector(title_ids)
+        print_and_log("Finished normalizing vectors.")
 
-    title_ids = get_title_ids(cursor=cursor)
-    words = get_words()
-    
-    print_and_log("Creating tables...")
-    create_tables(title_ids=title_ids)
-    print_and_log("Finished creating tables.")
-    
-    print_and_log("Processing title analysis...")
-    process_title_analysis(title_ids=title_ids, words=words, cursor=cursor)
-    print_and_log("Finished processing title analysis.")
-    
-    print_and_log("Normalizing vectors...")
-    normalize_vector(title_ids=title_ids)
-    print_and_log("Finished normalizing vectors.")
-
-    conn.commit()
-    conn.close()
+    finally:
+        conn.close()
 
 def suggest_top_titles(database_path: str, prompt: str, top_n = 10):
     conn = sqlite3.connect(database_path)
@@ -413,9 +436,7 @@ def suggest_top_titles(database_path: str, prompt: str, top_n = 10):
     conn.close()
 
 def get_modification_time(file_path: str) -> tuple[str, int]:
-    # Get the modification time in seconds since EPOCH
     modification_time = getmtime(file_path)
-    # Convert the modification time to a recognizable timestamp
     formatted_modification_time = datetime.fromtimestamp(modification_time).strftime('%a, %b %d, %Y, %H:%M:%S')
     epoch_time = int(modification_time)
     return (formatted_modification_time, epoch_time)
@@ -442,55 +463,51 @@ def setup_database(reset_db: bool, db_name: str) -> None:
     conn.close()
 
 def create_unique_id(file_basename: str, epoch_time: int, chunk_count: int, starting_id: int) -> str:
-    # Step 1: Encode the file basename
-    # Sum the ASCII values of all characters, XOR by 1600, and apply & 0xFFFF
     encoded_file_name = sum(ord(char) for char in file_basename)
     encoded_file_name ^= 65536
     encoded_file_name &= 0xFFFF
-
-    # Step 2: Encode the epoch time
-    # Apply & 0xFFFF, then shift right by 1
     encoded_time = (epoch_time & 0xFFFF) >> 1
-
-    # Step 3: Encode the chunk count and starting ID
-    # Multiply, apply & 0xFFFF, then shift left by 1
     encoded_num = (chunk_count * starting_id) & 0xFFFF
     encoded_num <<= 1
-
-    # Step 4: Add redundancy bits
     redundancy = encoded_file_name ^ encoded_time ^ encoded_num
     redundancy &= 0xFFFF
-
-    # Step 4: Combine the results into a unique ID
     unique_id = f"{encoded_file_name:04X}{encoded_time:04X}{encoded_num:04X}{redundancy:04X}"
-
     return unique_id
 
 def count_chunk_for_each_title(cursor: sqlite3.Cursor, file_name: str) -> int:
     cursor.execute(f"SELECT COUNT(chunk_index) FROM pdf_chunks WHERE file_name = ?", (file_name,))
     chunk_count = cursor.fetchone()[0]
-    # print(f"Chunk count for {file_name}: {chunk_count}")
     return chunk_count
 
 def get_starting_and_ending_ids(cursor: sqlite3.Cursor, file_name: str) -> tuple[int, int]:
-    # Execute a single query to get both the starting and ending IDs
     cursor.execute('''
         SELECT MIN(id) AS starting_id, MAX(id) AS ending_id
         FROM pdf_chunks
         WHERE file_name = ?;
     ''', (file_name,))
-    
     result = cursor.fetchone()
-    
     starting_id, ending_id = result
-    # print(f"Starting ID: {starting_id}, Ending ID: {ending_id}")
     return starting_id, ending_id
+
+@retry_on_exception(retries=99, delay=5, log_message="Error inserting file metadata")
+def insert_file_metadata(cursor: sqlite3.Cursor, file_data: tuple) -> None:
+    cursor.execute(f"""INSERT INTO file_list (
+        id, 
+        file_name, 
+        file_path,
+        file_type,
+        created_time,
+        epoch_time,
+        chunk_count,
+        start_id,
+        end_id
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)""", file_data)
 
 def store_files_in_db(file_names: list[str], file_list: list[str], db_name: str, file_type: str) -> None:
     conn = sqlite3.connect(db_name)
     cursor = conn.cursor()
-    
-    for file_name, file_path in zip(file_names, file_list):
+
+    def prepare_file_data(file_name: str, file_path: str) -> tuple:
         created_time, epoch_time = get_modification_time(file_path)
         file_basename = basename(file_path)
         chunk_count = count_chunk_for_each_title(cursor, file_name=file_basename)
@@ -499,30 +516,33 @@ def store_files_in_db(file_names: list[str], file_list: list[str], db_name: str,
             starting_id = 0
             ending_id = 0
         hashed_data = create_unique_id(file_basename, epoch_time, chunk_count, starting_id)
+        return (hashed_data, file_name, file_path, file_type, created_time, epoch_time, chunk_count, starting_id, ending_id)
+
+    with ThreadPoolExecutor() as executor:
+        future_to_file = {
+            executor.submit(prepare_file_data, file_name, file_path): (file_name, file_path)
+            for file_name, file_path in zip(file_names, file_list)
+        }
         
-        cursor.execute(f"""INSERT INTO file_list (
-            id, 
-            file_name, 
-            file_path,
-            file_type,
-            created_time,
-            epoch_time,
-            chunk_count,
-            start_id,
-            end_id
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)""",
-            (hashed_data, file_name, file_path, file_type, created_time, epoch_time, chunk_count, starting_id, ending_id)
-        )
+        # Process each future result
+        for future in as_completed(future_to_file):
+            file_name, file_path = future_to_file[future]
+            try:
+                file_data = future.result()  # Get the prepared file data
+                insert_file_metadata(cursor, file_data)
+                logging.info(f"Inserted file metadata for: {file_name}")
+            except Exception as e:
+                logging.error(f"Error inserting metadata for {file_name}: {e}")
+    
     conn.commit()
     conn.close()
-# Main function
-def extract_names(raw_list: list[str], extension: list[str]) -> list[str]:
+
+def extract_names(raw_list: list[str], extension: str) -> list[str]:
     return [basename(file).removesuffix(extension) for file in raw_list if file.endswith(extension)]
 
 def create_type_index_table(collector_folder_list: list[str], extension_list: list[str]) -> None:
     print_and_log(f"Started creating file index.")
     
-    # Initialize database
     setup_database(reset_db=True, db_name=chunk_database_path)
     
     print_and_log("Started storing files in database.")
@@ -530,12 +550,18 @@ def create_type_index_table(collector_folder_list: list[str], extension_list: li
         for file_batch in batch_collect_files(folder_path=collector_folder, extension=extension, batch_size=100):
             file_names = extract_names(file_batch, extension)
             
-            for file_name, file_path_with_extension in zip(file_names, file_batch):
-                log_message(f"Processing file: {file_name}...")
-                store_files_in_db(file_names=[file_name], 
-                                  file_list=[file_path_with_extension], 
-                                  db_name=chunk_database_path, 
-                                  file_type=extension.removeprefix("."))
+            with ThreadPoolExecutor() as executor:
+                future_to_batch = {
+                    executor.submit(store_files_in_db, file_names, file_batch, chunk_database_path, extension.removeprefix(".")): file_batch
+                }
+                
+                for future in as_completed(future_to_batch):
+                    batch = future_to_batch[future]
+                    try:
+                        future.result()  # Ensure exceptions are raised and handled
+                        logging.info(f"Successfully stored batch of files: {batch}")
+                    except Exception as e:
+                        logging.error(f"Error processing file batch: {batch}: {e}")
 
     print_and_log(f"Files: file stored in database.")
     print_and_log(f"Processing complete: create file index.")
@@ -558,47 +584,34 @@ def clean_markdown_text(markdown_text) -> str:
     text = re.sub(r'<[^>]+>', '', html_content)
     return text
 
-def store_text_note_in_chunks_with_retry(file_name, chunks, db_name, MAX_RETRIES = 999, RETRY_DELAY = 10) -> None:
-    """Stores chunks in the database with retry logic."""
-    attempts = 0
-    while attempts < MAX_RETRIES:
-        try:
-            store_chunks_in_db(file_name=file_name, chunks=chunks, db_name=db_name)
-            break  # If successful, break out of the loop
-        except sqlite3.OperationalError as e:
-            if "database is locked" in str(e):
-                attempts += 1
-                time.sleep(RETRY_DELAY)
-                continue
-            else:
-                raise  # Raise other SQLite exceptions
-        except Exception as e:
-            print(f"Error while storing chunks: {e}")
-            raise  # Raise any other exceptions
-    else:
-        print(f"Failed to store chunks after {MAX_RETRIES} attempts for file {file_name}")
+@retry_on_exception(retries=99, delay=10, log_message="Error storing chunks in database")
+def store_text_note_in_chunks(file_name, chunks, db_name) -> None:
+    """Stores chunks in the database."""
+    store_chunks_in_db(file_name=file_name, chunks=chunks, db_name=db_name)
 
-def process_markdown_file(file_path, CHUNK_SIZE = 800) -> None:
+def process_markdown_file(file_path, chunk_size=800) -> None:
     """Processes a single markdown file."""
     with open(file_path, 'r', encoding='utf-8') as file:
         for raw_chunk in extract_note_text_chunk(file):
             text = clean_markdown_text(raw_chunk)
-            chunks = [text[i:i + CHUNK_SIZE] for i in range(0, len(text), CHUNK_SIZE)]
-            store_text_note_in_chunks_with_retry(file_name=basename(file_path), chunks=chunks, db_name=chunk_database_path)
+            chunks = [text[i:i + chunk_size] for i in range(0, len(text), chunk_size)]
+            store_text_note_in_chunks(file_name=basename(file_path), chunks=chunks, db_name=chunk_database_path)
 
-def process_text_note_batch_of_files(file_batch: list[str], chunk_size = 800) -> None:
+def process_markdown_file_with_retries(file_path: str, chunk_size: int) -> None:
+    """Wraps the processing of a markdown file to handle retries."""
+    retry_on_exception(retries=99, delay=10, log_message=f"Processing file {basename(file_path)}")(process_markdown_file)(file_path, chunk_size)
+
+def process_text_note_batch_of_files(file_batch: list[str], chunk_size=800) -> None:
     """Processes a batch of markdown files concurrently."""
-    threads = []
-    
-    for file_path in file_batch:
-        thread = threading.Thread(target=process_markdown_file, args=(file_path,chunk_size,))
-        thread.start()
-        threads.append(thread)
-    
-    for thread in threads:
-        thread.join()  # Wait for all threads in the batch to finish
+    with ThreadPoolExecutor() as executor:
+        futures = [executor.submit(process_markdown_file_with_retries, file_path, chunk_size) for file_path in file_batch]
+        for future in as_completed(futures):
+            try:
+                future.result()  # Ensure exceptions are raised and handled
+            except Exception as e:
+                logging.error(f"Error processing file batch: {e}")
 
-def extract_markdown_notes_in_batches(directory, chunk_size = 800) -> None:
+def extract_markdown_notes_in_batches(directory, chunk_size=800) -> None:
     """Main process to collect, extract, chunk, and store markdown files in batches using multithreading."""
     for file_batch in batch_collect_files(folder_path=directory, extension='.md'):
         process_text_note_batch_of_files(file_batch, chunk_size=chunk_size)
