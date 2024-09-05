@@ -50,12 +50,6 @@ def clean_text(text):
 
     return filtered_tokens
 
-def download_nltk():
-    print("Downloading NLTK resources...")
-    nltk.download('punkt')
-    nltk.download('stopwords')
-    print("NLTK resources downloaded.")
-
 # Setup logging to log messages to a file, with the option to reset the log file
 def setup_logging(log_file= log_file_path):
     logging.basicConfig(

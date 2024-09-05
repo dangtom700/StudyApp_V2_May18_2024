@@ -127,4 +127,3 @@ def app():
 
 if __name__ == "__main__":
     app()
-    # extract_text.download_nltk()
