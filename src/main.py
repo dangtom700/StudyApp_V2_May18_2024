@@ -128,20 +128,3 @@ def app():
 if __name__ == "__main__":
     app()
     # extract_text.download_nltk()
-    """
-    Typical usage:
-    python source/main.py --help
-    python source/main.py --extractText
-    python source/main.py --updateDatabase
-    python source/main.py --searchTitle
-    python source/main.py --getNoteReview
-    python source/main.py --analyzeWordFreq
-    python source/main.py --reorderMaterial
-    python source/main.py --processWordFreq
-    python source/main.py --precompVector
-    python source/main.py --suggestTitle
-
-    full command:
-    python source/main.py --extractText --updateDatabase --processWordFreq --analyzeWordFreq
-    python source/main.py --precompVector --reorderMaterial
-    """
