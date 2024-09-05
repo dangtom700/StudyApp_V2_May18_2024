@@ -296,83 +296,83 @@ def process_word_frequencies_in_batches():
     cursor.execute("DELETE FROM word_frequencies WHERE frequency > 10")
     print("Processing word frequencies complete.")
 
-def precompute_title_vector(database_path: str) -> None:
-    conn = sqlite3.connect(database_path)
-    cursor = conn.cursor()
+# def precompute_title_vector(database_path: str) -> None:
+#     conn = sqlite3.connect(database_path)
+#     cursor = conn.cursor()
 
-    def create_tables(title_ids: list) -> None:
-        cursor.execute("DROP TABLE IF EXISTS title_analysis")
-        cursor.execute("DROP TABLE IF EXISTS title_normalized")
-        # Create command strings for columns
-        columns_INT = ', '.join([f"T_{title_id} INTEGER DEFAULT 0" for title_id in title_ids])
-        columns_REAL = ', '.join([f"T_{title_id} REAL DEFAULT 0.0" for title_id in title_ids])
+#     def create_tables(title_ids: list) -> None:
+#         cursor.execute("DROP TABLE IF EXISTS title_analysis")
+#         cursor.execute("DROP TABLE IF EXISTS title_normalized")
+#         # Create command strings for columns
+#         columns_INT = ', '.join([f"T_{title_id} INTEGER DEFAULT 0" for title_id in title_ids])
+#         columns_REAL = ', '.join([f"T_{title_id} REAL DEFAULT 0.0" for title_id in title_ids])
         
-        # Create the tables with the necessary columns
-        cursor.execute(f"""
-            CREATE TABLE title_analysis (
-                word TEXT PRIMARY KEY, 
-                {columns_INT},
-                FOREIGN KEY(word) REFERENCES coverage_analysis(word)
-            )
-        """)
-        cursor.execute(f"""
-            CREATE TABLE title_normalized (
-                word TEXT PRIMARY KEY,
-                {columns_REAL},
-                FOREIGN KEY(word) REFERENCES coverage_analysis(word)
-            )
-        """)
+#         # Create the tables with the necessary columns
+#         cursor.execute(f"""
+#             CREATE TABLE title_analysis (
+#                 word TEXT PRIMARY KEY, 
+#                 {columns_INT},
+#                 FOREIGN KEY(word) REFERENCES coverage_analysis(word)
+#             )
+#         """)
+#         cursor.execute(f"""
+#             CREATE TABLE title_normalized (
+#                 word TEXT PRIMARY KEY,
+#                 {columns_REAL},
+#                 FOREIGN KEY(word) REFERENCES coverage_analysis(word)
+#             )
+#         """)
 
-        # Insert words into tables
-        cursor.execute("INSERT INTO title_analysis (word) SELECT DISTINCT word FROM coverage_analysis")
-        cursor.execute("INSERT INTO title_normalized (word) SELECT DISTINCT word FROM coverage_analysis")
+#         # Insert words into tables
+#         cursor.execute("INSERT INTO title_analysis (word) SELECT DISTINCT word FROM coverage_analysis")
+#         cursor.execute("INSERT INTO title_normalized (word) SELECT DISTINCT word FROM coverage_analysis")
 
-    def process_title_analysis(title_ids: list[str], words: list[str], cursor: sqlite3.Cursor) -> None:
-        for title in title_ids:
-            token_list = retrieve_token_list(title_id=title, cursor=cursor)
-            word_counts = {word: token_list.count(word) for word in words if word in token_list}
+#     def process_title_analysis(title_ids: list[str], words: list[str], cursor: sqlite3.Cursor) -> None:
+#         for title in title_ids:
+#             token_list = retrieve_token_list(title_id=title, cursor=cursor)
+#             word_counts = {word: token_list.count(word) for word in words if word in token_list}
 
-            # Batch update the title_analysis table
-            update_data = [(count, word) for word, count in word_counts.items()]
-            cursor.executemany(
-                f"UPDATE title_analysis SET T_{title} = ? WHERE word = ?",
-                update_data
-            )
-        conn.commit()
+#             # Batch update the title_analysis table
+#             update_data = [(count, word) for word, count in word_counts.items()]
+#             cursor.executemany(
+#                 f"UPDATE title_analysis SET T_{title} = ? WHERE word = ?",
+#                 update_data
+#             )
+#         conn.commit()
 
-    def normalize_vector(title_ids: list[str]) -> None:
-        for title in title_ids:
-            length = cursor.execute(f"SELECT SUM(T_{title} * T_{title}) FROM title_analysis").fetchone()[0]
-            length = sqrt(length)
-            cursor.execute(f"""
-                UPDATE title_normalized
-                    SET T_{title} = 
-                        (SELECT T_{title} FROM title_analysis WHERE title_normalized.word = title_analysis.word) /(1 + {length})""")
-            conn.commit()
+#     def normalize_vector(title_ids: list[str]) -> None:
+#         for title in title_ids:
+#             length = cursor.execute(f"SELECT SUM(T_{title} * T_{title}) FROM title_analysis").fetchone()[0]
+#             length = sqrt(length)
+#             cursor.execute(f"""
+#                 UPDATE title_normalized
+#                     SET T_{title} = 
+#                         (SELECT T_{title} FROM title_analysis WHERE title_normalized.word = title_analysis.word) /(1 + {length})""")
+#             conn.commit()
 
-    def get_words() -> list[str]:
-        cursor.execute("SELECT word FROM coverage_analysis")
-        return [word[0] for word in cursor.fetchall()]
+#     def get_words() -> list[str]:
+#         cursor.execute("SELECT word FROM coverage_analysis")
+#         return [word[0] for word in cursor.fetchall()]
 
-    # Main flow
+#     # Main flow
 
-    title_ids = get_title_ids(cursor=cursor)
-    words = get_words()
+#     title_ids = get_title_ids(cursor=cursor)
+#     words = get_words()
     
-    print_and_log("Creating tables...")
-    create_tables(title_ids=title_ids)
-    print_and_log("Finished creating tables.")
+#     print_and_log("Creating tables...")
+#     create_tables(title_ids=title_ids)
+#     print_and_log("Finished creating tables.")
     
-    print_and_log("Processing title analysis...")
-    process_title_analysis(title_ids=title_ids, words=words, cursor=cursor)
-    print_and_log("Finished processing title analysis.")
+#     print_and_log("Processing title analysis...")
+#     process_title_analysis(title_ids=title_ids, words=words, cursor=cursor)
+#     print_and_log("Finished processing title analysis.")
     
-    print_and_log("Normalizing vectors...")
-    normalize_vector(title_ids=title_ids)
-    print_and_log("Finished normalizing vectors.")
+#     print_and_log("Normalizing vectors...")
+#     normalize_vector(title_ids=title_ids)
+#     print_and_log("Finished normalizing vectors.")
 
-    conn.commit()
-    conn.close()
+#     conn.commit()
+#     conn.close()
 
 def suggest_top_titles(database_path: str, prompt: str, top_n = 10):
     conn = sqlite3.connect(database_path)
