@@ -36,14 +36,17 @@ def clean_text(text):
 
     # Define a function to filter tokens
     def pass_conditions(word):
-        return (len(word) < 20 and
+        return (len(word) < 14 and
                 len(word) > 1 and
                 word.isalpha() and 
                 not has_repeats_regex(word))
 
     # Filter tokens based on conditions and apply stemming
-    filtered_tokens = [stemmer.stem(token) for token in tokens
-                       if token not in stop_words and pass_conditions(token)]
+    filtered_tokens = []
+    for token in tokens:
+        root_word = stemmer.stem(token)
+        if pass_conditions(root_word):
+            filtered_tokens.append(root_word)
 
     return filtered_tokens
 
