@@ -446,18 +446,18 @@ def setup_database(reset_db: bool, db_name: str) -> None:
     cursor = conn.cursor()
     
     if reset_db:
-        cursor.execute(f"DROP TABLE IF EXISTS file_list")
-    cursor.execute(f"""CREATE TABLE IF NOT EXISTS file_list (
-                   id TEXT PRIMARY KEY, 
-                   file_name TEXT, 
-                   file_path TEXT, 
-                   file_type TEXT,
-                   created_time TEXT, 
-                   epoch_time INTEGER,
-                   chunk_count INTEGER,
-                   start_id INTEGER,
-                   end_id INTEGER
-                   )""")
+        cursor.execute("DROP TABLE IF EXISTS file_list")
+    cursor.execute("""CREATE TABLE IF NOT EXISTS file_list (
+                       id TEXT PRIMARY KEY, 
+                       file_name TEXT, 
+                       file_path TEXT, 
+                       file_type TEXT,
+                       created_time TEXT, 
+                       epoch_time INTEGER,
+                       chunk_count INTEGER,
+                       start_id INTEGER,
+                       end_id INTEGER
+                       )""")
 
     conn.commit()
     conn.close()
@@ -475,7 +475,7 @@ def create_unique_id(file_basename: str, epoch_time: int, chunk_count: int, star
     return unique_id
 
 def count_chunk_for_each_title(cursor: sqlite3.Cursor, file_name: str) -> int:
-    cursor.execute(f"SELECT COUNT(chunk_index) FROM pdf_chunks WHERE file_name = ?", (file_name,))
+    cursor.execute("SELECT COUNT(chunk_index) FROM pdf_chunks WHERE file_name = ?", (file_name,))
     chunk_count = cursor.fetchone()[0]
     return chunk_count
 
@@ -489,59 +489,60 @@ def get_starting_and_ending_ids(cursor: sqlite3.Cursor, file_name: str) -> tuple
     starting_id, ending_id = result
     return starting_id, ending_id
 
-@retry_on_exception(retries=99, delay=5, log_message="Error inserting file metadata")
-def insert_file_metadata(cursor: sqlite3.Cursor, file_data: tuple) -> None:
-    cursor.execute(f"""INSERT INTO file_list (
-        id, 
-        file_name, 
-        file_path,
-        file_type,
-        created_time,
-        epoch_time,
-        chunk_count,
-        start_id,
-        end_id
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)""", file_data)
+@retry_on_exception(retries=99, delay=10, log_message="Error inserting file metadata")
+def insert_file_metadata(conn: sqlite3.Connection, file_data: tuple) -> None:
+    with conn.cursor() as cursor:
+        cursor.execute("""INSERT INTO file_list (
+            id, 
+            file_name, 
+            file_path,
+            file_type,
+            created_time,
+            epoch_time,
+            chunk_count,
+            start_id,
+            end_id
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)""", file_data)
+    conn.commit()
 
 def store_files_in_db(file_names: list[str], file_list: list[str], db_name: str, file_type: str) -> None:
-    conn = sqlite3.connect(db_name)
-    cursor = conn.cursor()
-
     def prepare_file_data(file_name: str, file_path: str) -> tuple:
         created_time, epoch_time = get_modification_time(file_path)
         file_basename = basename(file_path)
+        conn = sqlite3.connect(db_name)
+        cursor = conn.cursor()
         chunk_count = count_chunk_for_each_title(cursor, file_name=file_basename)
         starting_id, ending_id = get_starting_and_ending_ids(cursor, file_name=file_basename)
         if starting_id is None or ending_id is None:
             starting_id = 0
             ending_id = 0
         hashed_data = create_unique_id(file_basename, epoch_time, chunk_count, starting_id)
+        conn.close()
         return (hashed_data, file_name, file_path, file_type, created_time, epoch_time, chunk_count, starting_id, ending_id)
 
     with ThreadPoolExecutor() as executor:
-        future_to_file = {
+        conn = sqlite3.connect(db_name)
+        futures = {
             executor.submit(prepare_file_data, file_name, file_path): (file_name, file_path)
             for file_name, file_path in zip(file_names, file_list)
         }
         
-        # Process each future result
-        for future in as_completed(future_to_file):
-            file_name, file_path = future_to_file[future]
+        for future in as_completed(futures):
+            file_name, file_path = futures[future]
             try:
                 file_data = future.result()  # Get the prepared file data
-                insert_file_metadata(cursor, file_data)
+                insert_file_metadata(conn, file_data)
                 logging.info(f"Inserted file metadata for: {file_name}")
             except Exception as e:
                 logging.error(f"Error inserting metadata for {file_name}: {e}")
-    
-    conn.commit()
-    conn.close()
+        
+        conn.close()
 
 def extract_names(raw_list: list[str], extension: str) -> list[str]:
     return [basename(file).removesuffix(extension) for file in raw_list if file.endswith(extension)]
 
 def create_type_index_table(collector_folder_list: list[str], extension_list: list[str]) -> None:
-    print_and_log(f"Started creating file index.")
+    print_and_log("Started creating file index.")
     
     setup_database(reset_db=True, db_name=chunk_database_path)
     
@@ -549,23 +550,10 @@ def create_type_index_table(collector_folder_list: list[str], extension_list: li
     for collector_folder, extension in zip(collector_folder_list, extension_list):
         for file_batch in batch_collect_files(folder_path=collector_folder, extension=extension, batch_size=100):
             file_names = extract_names(file_batch, extension)
-            
-            with ThreadPoolExecutor() as executor:
-                future_to_batch = {
-                    executor.submit(store_files_in_db, file_names, file_batch, chunk_database_path, extension.removeprefix(".")): file_batch
-                }
-                
-                for future in as_completed(future_to_batch):
-                    batch = future_to_batch[future]
-                    try:
-                        future.result()  # Ensure exceptions are raised and handled
-                        logging.info(f"Successfully stored batch of files: {batch}")
-                    except Exception as e:
-                        logging.error(f"Error processing file batch: {batch}: {e}")
-
-    print_and_log(f"Files: file stored in database.")
-    print_and_log(f"Processing complete: create file index.")
-
+            store_files_in_db(file_names, file_batch, chunk_database_path, extension.removeprefix("."))
+            print_and_log(f"Finished processing batch of {len(file_batch)} markdown files.")
+    
+    print_and_log("Finished processing markdown files.")
 def extract_note_text_chunk(file, chunk_size=4000) -> Generator[str, None, None]:
     """Extracts and cleans text chunk by chunk from a markdown file."""
     content = []
