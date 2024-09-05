@@ -112,13 +112,13 @@ def app():
         search.searchFileInDatabase(args.searchTitle)
         updateLog.print_and_log(f"Finished search.")
 
-    if args.suggestTitle:
-        prompt = input("Enter a prompt: ")
-        suggest_number = int(input("Enter the number of suggestions: "))
-        updateLog.log_message(f"Prompt: {prompt}")
-        updateLog.print_and_log(f"Suggesting {suggest_number} titles...")
-        extract_text.suggest_top_titles(path.chunk_database_path,prompt, suggest_number)
-        updateLog.print_and_log(f"Finished suggesting titles.")
+    # if args.suggestTitle:
+    #     prompt = input("Enter a prompt: ")
+    #     suggest_number = int(input("Enter the number of suggestions: "))
+    #     updateLog.log_message(f"Prompt: {prompt}")
+    #     updateLog.print_and_log(f"Suggesting {suggest_number} titles...")
+    #     extract_text.suggest_top_titles(path.chunk_database_path,prompt, suggest_number)
+    #     updateLog.print_and_log(f"Finished suggesting titles.")
 
     if args.getNoteReview:
         updateLog.print_and_log(f"Exporting notes to 'Note Review.md' in {path.Obsidian_noteReview_path}...")
