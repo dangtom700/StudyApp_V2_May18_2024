@@ -87,6 +87,7 @@ def getWordFrequencyAnalysis(threshold = 0.82) -> int:
 
     # check out result
     minimum_frequency = 0
+    percentype = 0
     total_frequency_above_threshold = 0
     relative_popularity = 0
 
@@ -121,11 +122,13 @@ def getWordFrequencyAnalysis(threshold = 0.82) -> int:
 
             if popularity_top_percent > threshold * 100:
                 minimum_frequency = i
+                percentype = top_percent
                 total_frequency_above_threshold = total_frequency
                 relative_popularity = popularity_top_percent
 
-            f.write(f"| {i} | {total_frequency} | {num_words} | {most_popular_percent} | {popularity_top_percent} | {actual_popularity} |")
-        
+            f.write(f"| {i} | {total_frequency} | {num_words} | {most_popular_percent} | {popularity_top_percent} | {actual_popularity} |\n")
+
+        f.write("\n\n")        
         # Write the parameters
         f.write("Parameters:\n")
         f.write(f"- Threshold: {threshold}\n")
@@ -137,7 +140,7 @@ def getWordFrequencyAnalysis(threshold = 0.82) -> int:
         f.write(f"- Average of frequency: {avg_frequency}\n")
         f.write(f"- Minimum frequency: {minimum_frequency}\n")
         f.write(f"- Total frequency above threshold: {total_frequency_above_threshold}\n")
-        f.write(f"- Relative popularity: {relative_popularity}%\n")
+        f.write(f"- Relative popularity: {relative_popularity:.2f}%\n")
         f.write("\n\n")
 
         f.write("End of report.\n")
@@ -149,12 +152,13 @@ def getWordFrequencyAnalysis(threshold = 0.82) -> int:
                    FOREIGN KEY (word, frequency) REFERENCES word_frequencies(word, frequency))""")
     cursor.execute("""INSERT INTO coverage_analysis
                    SELECT word, frequency FROM word_frequencies
+                   WHERE frequency > ?
                    ORDER BY frequency DESC
-                   WHERE frequency > ?""", (minimum_frequency,))
+                   LIMIT ? OFFSET 0""", (minimum_frequency, percentype,))
     
-    # Copy
+    offset = cursor.execute("SELECT COUNT(*) FROM coverage_analysis").fetchone()[0]
 
     # Complete transaction
     conn.commit()
     conn.close()
-    return cursor.execute("SELECT COUNT(*) FROM coverage_analysis").fetchone()[0]
+    return offset
