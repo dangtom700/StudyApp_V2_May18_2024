@@ -293,7 +293,7 @@ def process_word_frequencies_in_batches():
     logging.info("Starting batch processing of chunks...")
     process_chunks_in_batches(db_name=chunk_database_path)
     logging.info("Processing word frequencies complete.")
-    cursor.execute("DELETE * FROM word_frequencies WHERE frequency > 10")
+    cursor.execute("DELETE FROM word_frequencies WHERE frequency > 10")
     print("Processing word frequencies complete.")
 
 def precompute_title_vector(database_path: str) -> None:
