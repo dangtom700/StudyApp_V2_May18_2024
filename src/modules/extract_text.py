@@ -228,7 +228,6 @@ def process_chunks_in_batches(db_name: str):
         ''', word_frequencies.items())
 
         conn.commit()
-        conn.close()
 
 def batch_collect_files(folder_path: str, extension='.pdf', batch_size=100) -> Generator[list[str], None, None]:
     """
