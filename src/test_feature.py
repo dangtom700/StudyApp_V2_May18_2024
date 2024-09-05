@@ -3,6 +3,8 @@ import sqlite3
 conn = sqlite3.connect('data/chunks.db')
 cursor = conn.cursor()
 
+# 20/80
+factor = 0.20
 actual_sum_freq = cursor.execute("SELECT SUM(frequency) FROM word_frequencies").fetchone()[0]
 for i in range(0, 150, 10):
     print(f"i: {i}")
@@ -13,8 +15,7 @@ for i in range(0, 150, 10):
     num_words = cursor.execute(f"SELECT COUNT(*) FROM word_frequencies WHERE frequency > {i}").fetchone()[0]
     print(f"Number of words: {num_words}")
 
-    # 20/80
-    factor = 0.30
+    
     top_percent = round(num_words * factor)
     print(f"Top {factor * 100}%: {top_percent}")
     # Order in decending order
