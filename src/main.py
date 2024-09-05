@@ -89,7 +89,7 @@ def app():
         
         updateLog.log_message(f"Exporting word frequency analysis to 'word_frequency_analysis.md' in {path.WordFrequencyAnalysis_path}...")
         updateLog.print_and_log("Exporting word frequency analysis...")
-        search.getWordFrequencyAnalysis(threshold= 0.82)
+        search.getWordFrequencyAnalysis(threshold= 0.96)
         updateLog.log_message(f"Finished exporting word frequency analysis to 'word_frequency_analysis.md' in {path.WordFrequencyAnalysis_path}.")
 
     if args.precompVector:
