@@ -489,7 +489,7 @@ def get_starting_and_ending_ids(cursor: sqlite3.Cursor, file_name: str) -> tuple
     starting_id, ending_id = result
     return starting_id, ending_id
 
-@retry_on_exception(retries=99, delay=10, log_message="Error inserting file metadata")
+@retry_on_exception(retries=99, delay=5, log_message="Error inserting file metadata")
 def insert_file_metadata(conn: sqlite3.Connection, file_data: tuple) -> None:
     with conn.cursor() as cursor:
         cursor.execute("""INSERT INTO file_list (
