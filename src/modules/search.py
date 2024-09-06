@@ -121,24 +121,6 @@ def getWordFrequencyAnalysis(batch_size = 1000, threshold = 0.82) -> int:
             f.write(f"|{offset}|\n")
 
         f.write("\n\n")
-
-        # Write the words with the best coverage
-        cursor.execute("SELECT * FROM word_frequencies ORDER BY frequency DESC LIMIT ?", (offset,))
-
-        f.write("### Words of best coverage:\n\n")
-        f.write("|Word|Frequency|Word|Frequency|Word|Frequency|Word|Frequency|")
-        f.write("\n|---|---|---|---|---|---|---|---|\n")
-        
-        # Adjust for four columns per row
-        rows = cursor.fetchall()
-        for i in range(0, len(rows), 4):
-            row_group = rows[i:i+4]
-            f.write("|")
-            for row in row_group:
-                f.write(f"{row[0]}|{row[1]}|")
-            f.write("\n")
-
-        f.write("\n\n")
         
         # Write the parameters
         f.write("Parameters:\n")
