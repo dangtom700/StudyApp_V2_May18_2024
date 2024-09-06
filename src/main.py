@@ -1,8 +1,11 @@
 import argparse
 import modules.updateLog as updateLog
 import modules.search as search
-import modules.extract_text as extract_text
 import modules.path as path
+import modules.extract_text as extract_text
+import modules.word_freq as word_freq
+import modules.updateDB as updateDB
+import modules.precompute as precompute
 
 def app():
 
@@ -72,7 +75,7 @@ def app():
         updateLog.print_and_log("Extracting files from multiple folders")
         folders = [path.pdf_path, path.study_notes_folder_path]
         extensions = [".pdf", ".md"]
-        extract_text.create_type_index_table(folders, extensions)
+        updateDB.create_type_index_table(folders, extensions)
         updateLog.print_and_log("Finished extracting files from multiple folders")
         # announce finish
         updateLog.print_and_log("Finished updating database from log file.")
@@ -81,7 +84,7 @@ def app():
         
         updateLog.print_and_log("Processing word frequencies in chunks...")
         # process word frequency
-        extract_text.process_word_frequencies_in_batches()
+        word_freq.process_word_frequencies_in_batches()
         # announce finish
         updateLog.print_and_log("Finished processing word frequencies.")
 
