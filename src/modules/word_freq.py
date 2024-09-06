@@ -83,7 +83,7 @@ def process_chunks_in_batches(database: str) -> None:
     cwd = os.path.join(os.getcwd(), 'token')  # Get the path of the 'token' directory
 
     # Process title IDs in parallel (each thread gets its own connection)
-    with ThreadPoolExecutor() as executor:
+    with ThreadPoolExecutor(max_workers=4) as executor:
         for title_id, word_freq in zip(title_ids, executor.map(retrieve_token_list, title_ids, [database] * len(title_ids))):
             global_word_freq.update(word_freq)
 
