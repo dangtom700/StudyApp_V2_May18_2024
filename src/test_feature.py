@@ -7,33 +7,14 @@ from concurrent.futures import ThreadPoolExecutor
 from modules.path import token_json_path, chunk_database_path
 from modules.updateLog import print_and_log
 
-# Enable WAL mode to allow concurrent write operations
-def enable_wal_mode(database_path):
-    conn = sqlite3.connect(database_path)
-    cursor = conn.cursor()
-    cursor.execute('PRAGMA journal_mode=WAL;')
-    conn.commit()
-    conn.close()
-
 # Get the list of title IDs from the JSON filenames (removing the ".json" extension)
 def get_title_ids(path: str) -> list[str]:
     return [title.removesuffix(".json") for title in listdir(path)]
-
-# Add column for the title if it doesn't already exist
-def add_column_if_not_exists(cursor, title_id):
-    try:
-        cursor.execute(f"ALTER TABLE title_analysis ADD COLUMN T_{title_id} INTEGER DEFAULT 0")
-    except sqlite3.OperationalError:
-        # The column already exists, so we just continue
-        pass
 
 # Precompute word frequencies for a specific title and insert them into the title_analysis table
 def precompute_title_analysis(database_path: str, title_id: str, words: list[str]):
     conn = sqlite3.connect(database_path)
     cursor = conn.cursor()
-
-    # Ensure the column for this title exists in the table
-    add_column_if_not_exists(cursor, title_id)
 
     # Load the token counts from the JSON file
     path = join(token_json_path, f"{title_id}.json")
@@ -71,10 +52,9 @@ def normalize_vector(database_path: str, title_id: str):
 
 # Main process to vectorize word frequencies for all titles and normalize them
 def vectorize_title(database_path: str):
-    enable_wal_mode(database_path)  # Enable WAL mode for better concurrency
-
     conn = sqlite3.connect(database_path, check_same_thread=False)
     cursor = conn.cursor()
+    cursor.execute('PRAGMA journal_mode=WAL;')
 
     # Retrieve the list of title IDs from the JSON directory
     title_ids = get_title_ids(path=token_json_path)
@@ -111,6 +91,9 @@ def vectorize_title(database_path: str):
     # Log the start of the vectorization process and create necessary tables
     print_and_log("Vectorizing titles...")
     create_tables(title_ids=title_ids)
+    
+    conn.commit()
+    conn.close()
 
     # Use multithreading to speed up the processing of each title
     with ThreadPoolExecutor(max_workers=4) as executor:
@@ -124,8 +107,6 @@ def vectorize_title(database_path: str):
             executor.submit(normalize_vector, database_path=database_path, title_id=title_id)
 
     print_and_log("All titles vectorized.")
-    conn.commit()
-    conn.close()
 
 # Call the main function to vectorize and normalize the titles
 vectorize_title(database_path=chunk_database_path)
