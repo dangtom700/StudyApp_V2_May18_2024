@@ -7,26 +7,45 @@ from concurrent.futures import ThreadPoolExecutor
 from modules.path import token_json_path, chunk_database_path
 from modules.updateLog import print_and_log
 
+# Enable WAL mode to allow concurrent write operations
+def enable_wal_mode(database_path):
+    conn = sqlite3.connect(database_path)
+    cursor = conn.cursor()
+    cursor.execute('PRAGMA journal_mode=WAL;')
+    conn.commit()
+    conn.close()
+
 # Get the list of title IDs from the JSON filenames (removing the ".json" extension)
 def get_title_ids(path: str) -> list[str]:
     return [title.removesuffix(".json") for title in listdir(path)]
+
+# Add column for the title if it doesn't already exist
+def add_column_if_not_exists(cursor, title_id):
+    try:
+        cursor.execute(f"ALTER TABLE title_analysis ADD COLUMN T_{title_id} INTEGER DEFAULT 0")
+    except sqlite3.OperationalError:
+        # The column already exists, so we just continue
+        pass
 
 # Precompute word frequencies for a specific title and insert them into the title_analysis table
 def precompute_title_analysis(database_path: str, title_id: str, words: list[str]):
     conn = sqlite3.connect(database_path)
     cursor = conn.cursor()
 
+    # Ensure the column for this title exists in the table
+    add_column_if_not_exists(cursor, title_id)
+
+    # Load the token counts from the JSON file
     path = join(token_json_path, f"{title_id}.json")
-    with open(path, "r") as f:
+    with open(path, "r", encoding="utf-8") as f:
         tokens = json.load(f)
 
     # Get word counts for the specified words
-    word_counts = {word: tokens[word] for word in words if word in tokens}
+    word_counts = {word: tokens.get(word, 0) for word in words}
 
+    # Update the table with the word counts
     for word, count in word_counts.items():
-        # If the word doesn't exist, insert it with the word and the count for T_{title_id}
-        query = f"INSERT INTO title_analysis (word, T_{title_id}) VALUES (?, ?)"
-        cursor.execute(query, (word, count))
+        cursor.execute(f"UPDATE title_analysis SET T_{title_id} = ? WHERE word = ?", (count, word))
 
     conn.commit()
     conn.close()
@@ -44,14 +63,16 @@ def normalize_vector(database_path: str, title_id: str):
     cursor.execute(f"""
         UPDATE title_normalized
         SET T_{title_id} = 
-            (SELECT T_{title_id} FROM title_analysis WHERE title_normalized.word = title_analysis.word) / (1 + {length})
-    """)
+            (SELECT T_{title_id} FROM title_analysis WHERE title_normalized.word = title_analysis.word) / (1 + ?)
+    """, (length,))
 
     conn.commit()
     conn.close()
 
 # Main process to vectorize word frequencies for all titles and normalize them
 def vectorize_title(database_path: str):
+    enable_wal_mode(database_path)  # Enable WAL mode for better concurrency
+
     conn = sqlite3.connect(database_path, check_same_thread=False)
     cursor = conn.cursor()
 
