@@ -68,7 +68,7 @@ def getNoteReviewTask() -> None:
     exportNoteReviewTask(note_list, date)
     exportStudyLogTemplate(note_list, date)
 
-def getWordFrequencyAnalysis(batch_size = 100, threshold = 0.82) -> int:
+def getWordFrequencyAnalysis(batch_size = 1000, threshold = 0.82) -> int:
     conn = sqlite3.connect(path.chunk_database_path)
     cursor = conn.cursor()
 
