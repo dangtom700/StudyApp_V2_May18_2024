@@ -77,7 +77,7 @@ def store_files_in_db(file_names: list[str],
             epoch_time,
             chunk_count,
             start_id
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)""",
             (hashed_data, file_name, file_path, file_type, created_time, epoch_time, chunk_count, starting_id,)
         )
     conn.commit()
@@ -100,7 +100,7 @@ def create_type_index_table(collector_folder_list: list[str], extension_list: li
             created_time TEXT,
             epoch_time INTEGER DEFAULT 0,
             chunk_count INTEGER DEFAULT 0,
-            start_id INTEGER DEFAULT 0,
+            start_id INTEGER DEFAULT 0
         )""")
 
     print_and_log("Started creating table.")
@@ -112,7 +112,6 @@ def create_type_index_table(collector_folder_list: list[str], extension_list: li
             file_names = extract_names(file_batch, extension)
             
             for file_name, file_path_with_extension in zip(file_names, file_batch):
-                print_and_log(f"Processing file: {file_name}...")
                 store_files_in_db(file_names=[file_name], 
                                   file_list=[file_path_with_extension], 
                                   file_type=extension.removeprefix("."),
