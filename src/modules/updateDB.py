@@ -1,10 +1,9 @@
 import sqlite3
-from os.path import getmtime
+from os.path import getmtime, basename
 from datetime import datetime
 from modules.path import chunk_database_path
 from modules.updateLog import print_and_log
 from modules.extract_text import batch_collect_files
-from os import basename
 
 def get_modification_time(file_path: str) -> tuple[str, int]:
     # Get the modification time in seconds since EPOCH
