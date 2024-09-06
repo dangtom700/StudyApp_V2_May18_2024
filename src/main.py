@@ -36,7 +36,7 @@ def app():
 
     args = parser.parse_args()
 
-    if args.extractText:
+    if args.extractText: # function is functioning properly
         
         # Adjust parameters
         """
@@ -68,7 +68,7 @@ def app():
         updateLog.store_log_file_to_database(path.log_file_path)
         updateLog.print_and_log("Finished updating database from log file.")
 
-    if args.updateDatabase:
+    if args.updateDatabase: # function is functioning properly
         
         updateLog.print_and_log("Updating database from log file...")
         # create_index_tables
@@ -80,7 +80,7 @@ def app():
         # announce finish
         updateLog.print_and_log("Finished updating database from log file.")
     
-    if args.processWordFreq:
+    if args.processWordFreq: # function is functioning properly
         
         updateLog.print_and_log("Processing word frequencies in chunks...")
         # process word frequency
@@ -88,7 +88,7 @@ def app():
         # announce finish
         updateLog.print_and_log("Finished processing word frequencies.")
 
-    if args.analyzeWordFreq:
+    if args.analyzeWordFreq: # function is functioning properly
         
         updateLog.log_message(f"Exporting word frequency analysis to 'word_frequency_analysis.md' in {path.WordFrequencyAnalysis_path}...")
         updateLog.print_and_log("Exporting word frequency analysis...")
@@ -103,7 +103,7 @@ def app():
         # announce finish
         updateLog.print_and_log("Title vector precomputation complete.")
 
-    if args.reorderMaterial:
+    if args.reorderMaterial: # function is functioning properly
         updateLog.print_and_log(f"Exporting reading material to 'Reading Material.md' in {path.ReadingMaterial_path}...")
         updateLog.categorize_pdf_files_by_month_year()
         updateLog.print_and_log(f"Finished exporting reading material to 'Reading Material.md' in {path.ReadingMaterial_path}.")

@@ -26,7 +26,7 @@ def clean_text(text) -> dict[str, int]:
 
     # Define a function to filter tokens
     def pass_conditions(word):
-        return (len(word) < 12 and
+        return (len(word) < 16 and
                 word.isalpha() and 
                 not has_repeats_regex(word))
 
