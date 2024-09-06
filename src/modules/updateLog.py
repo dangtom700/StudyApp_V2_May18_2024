@@ -7,6 +7,7 @@ import shutil
 
 def getCurrentTime() -> str:
     return time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
+
 def log_message(message: str, message_type = "PROGRESS") -> None:
     database_name = log_database_path
     current_time = getCurrentTime()
