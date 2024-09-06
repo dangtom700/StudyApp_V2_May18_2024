@@ -62,26 +62,24 @@ def retrieve_token_list(title_id: str, cursor: sqlite3.Cursor) -> dict[str, int]
     return clean_text(merged_chunk_text)
 
 # Process chunks in batches and store word frequencies
-def process_chunks_in_batches(db_name: str):
-    with sqlite3.connect(db_name) as conn:
-        cursor = conn.cursor()
+def process_chunks_in_batches(cursor: sqlite3.Cursor) -> None:
 
-        word_frequencies = dict()
-        title_ids = get_title_ids(cursor)
+    word_frequencies = dict()
+    title_ids = get_title_ids(cursor)
 
-        # Process title IDs in parallel
-        with ThreadPoolExecutor(max_workers=4) as executor:
-            for title_id in title_ids:
-                sample = executor.submit(retrieve_token_list, title_id, cursor)
-                word_frequencies.update(sample.result())
-                dump(word_frequencies, open('data\\word_freq.json', 'a', encoding='utf-8'), ensure_ascii=False, indent=4)
+    # Process title IDs in parallel
+    with ThreadPoolExecutor() as executor:
+        for title_id in title_ids:
+            sample = executor.submit(retrieve_token_list, title_id, cursor)
+            word_frequencies.update(sample.result())
+            dump(word_frequencies, open('data\\word_freq.json', 'a', encoding='utf-8'), ensure_ascii=False, indent=4)
 
-        # Efficiently insert word frequencies into the database
-        cursor.executemany('''
-            INSERT INTO word_frequencies (word, frequency) 
-            VALUES (?, ?)
-            ON CONFLICT(word) DO UPDATE SET frequency = frequency + excluded.frequency
-        ''', word_frequencies.items())
+    # Efficiently insert word frequencies into the database
+    cursor.executemany('''
+        INSERT INTO word_frequencies (word, frequency) 
+        VALUES (?, ?)
+        ON CONFLICT(word) DO UPDATE SET frequency = frequency + excluded.frequency
+    ''', word_frequencies.items())
 
 
         # for title_id in title_ids:
@@ -102,7 +100,7 @@ def process_chunks_in_batches(db_name: str):
         # conn.commit()
 
 def process_word_frequencies_in_batches():
-    conn = sqlite3.connect(chunk_database_path)
+    conn = sqlite3.connect(chunk_database_path, check_same_thread=False)
     cursor = conn.cursor()
 
     def create_table():
@@ -115,7 +113,9 @@ def process_word_frequencies_in_batches():
     create_table()
 
     print_and_log("Starting batch processing of chunks...")
-    process_chunks_in_batches(db_name=chunk_database_path)
+    process_chunks_in_batches(cursor)
+    conn.commit()
+    conn.close()
     print_and_log("Processing word frequencies complete.")
     cursor.execute("DELETE FROM word_frequencies WHERE frequency > 10")
     print("Processing word frequencies complete.")
