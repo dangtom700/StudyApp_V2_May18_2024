@@ -1,5 +1,6 @@
 import sqlite3
 import re
+from collections import defaultdict
 from modules.path import chunk_database_path
 from nltk.stem import PorterStemmer
 from nltk.corpus import stopwords
@@ -7,7 +8,7 @@ from modules.updateLog import print_and_log
 from concurrent.futures import ThreadPoolExecutor
 from json import dump
 
-# One time complied
+# One-time compiled regex pattern
 REPEATED_CHAR_PATTERN = re.compile(r"([a-zA-Z])\1{2,}")
 stemmer = PorterStemmer()
 stop_words = set(stopwords.words('english'))
@@ -29,7 +30,7 @@ def clean_text(text) -> dict[str, int]:
                 not has_repeats_regex(word))
 
     # Filter tokens based on conditions and apply stemming
-    filtered_tokens = dict()
+    filtered_tokens = defaultdict(int)
     for token in tokens:
         root_word = stemmer.stem(token)
         if pass_conditions(root_word):
@@ -61,43 +62,18 @@ def retrieve_token_list(title_id: str, cursor: sqlite3.Cursor) -> dict[str, int]
 
     return clean_text(merged_chunk_text)
 
-# Process chunks in batches and store word frequencies
+# Process chunks in batches and store word frequencies in individual JSON files
 def process_chunks_in_batches(cursor: sqlite3.Cursor) -> None:
-
-    word_frequencies = dict()
     title_ids = get_title_ids(cursor)
 
     # Process title IDs in parallel
     with ThreadPoolExecutor() as executor:
-        for title_id in title_ids:
-            sample = executor.submit(retrieve_token_list, title_id, cursor)
-            word_frequencies.update(sample.result())
-            dump(word_frequencies, open('data\\word_freq.json', 'a', encoding='utf-8'), ensure_ascii=False, indent=4)
+        for title_id, word_freq in zip(title_ids, executor.map(retrieve_token_list, title_ids, [cursor] * len(title_ids))):
+            # Dump word frequencies for each title into a separate JSON file
+            with open(f'data\\{title_id}.json', 'w', encoding='utf-8') as f:
+                dump(word_freq, f, ensure_ascii=False, indent=4)
 
-    # Efficiently insert word frequencies into the database
-    cursor.executemany('''
-        INSERT INTO word_frequencies (word, frequency) 
-        VALUES (?, ?)
-        ON CONFLICT(word) DO UPDATE SET frequency = frequency + excluded.frequency
-    ''', word_frequencies.items())
-
-
-        # for title_id in title_ids:
-        #     try:
-        #         token_list = retrieve_token_list(title_id, cursor)
-        #         for token in token_list:
-        #             word_frequencies[token] += 1
-        #     except ValueError as e:
-        #         print(f"Warning: {e}")
-
-        # # Efficiently insert word frequencies into the database
-        # cursor.executemany('''
-        #     INSERT INTO word_frequencies (word, frequency) 
-        #     VALUES (?, ?)
-        #     ON CONFLICT(word) DO UPDATE SET frequency = frequency + excluded.frequency
-        # ''', word_frequencies.items())
-
-        # conn.commit()
+    print_and_log("All titles processed and word frequencies stored in individual JSON files.")
 
 def process_word_frequencies_in_batches():
     conn = sqlite3.connect(chunk_database_path, check_same_thread=False)
@@ -117,5 +93,3 @@ def process_word_frequencies_in_batches():
     conn.commit()
     conn.close()
     print_and_log("Processing word frequencies complete.")
-    cursor.execute("DELETE FROM word_frequencies WHERE frequency > 10")
-    print("Processing word frequencies complete.")
