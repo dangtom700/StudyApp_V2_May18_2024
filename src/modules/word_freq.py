@@ -85,7 +85,10 @@ def process_chunks_in_batches(database: str) -> None:
     # Process title IDs in parallel (each thread gets its own connection)
     with ThreadPoolExecutor(max_workers=4) as executor:
         for title_id, word_freq in zip(title_ids, executor.map(retrieve_token_list, title_ids, [database] * len(title_ids))):
-            global_word_freq.update(word_freq)
+
+            # Update global word frequencies
+            for word, freq in word_freq.items():
+                global_word_freq[word] += freq
 
             # Dump word frequencies for each title into a separate JSON file
             json_file_path = os.path.join(cwd, f'{title_id}.json')
