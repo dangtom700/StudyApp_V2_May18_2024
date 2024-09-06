@@ -83,7 +83,7 @@ def process_chunks_in_batches(database: str) -> None:
     cwd = os.path.join(os.getcwd(), 'token')  # Get the path of the 'token' directory
 
     # Process title IDs in parallel (each thread gets its own connection)
-    with ThreadPoolExecutor(max_workers=4) as executor:
+    with ThreadPoolExecutor() as executor:
         for title_id, word_freq in zip(title_ids, executor.map(retrieve_token_list, title_ids, [database] * len(title_ids))):
             global_word_freq.update(word_freq)
 
@@ -120,6 +120,7 @@ def process_word_frequencies_in_batches():
 
     print_and_log("Starting batch processing of chunks...")
     process_chunks_in_batches(database=chunk_database_path)
+    print_and_log("Processing word frequencies complete.")
+    cursor.execute("DELETE FROM word_frequencies WHERE frequency < 10")
     conn.commit()
     conn.close()
-    print_and_log("Processing word frequencies complete.")
