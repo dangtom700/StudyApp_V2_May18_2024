@@ -3,3 +3,4 @@ src/modules/__pycache__
 src/modules/path.py
 .vscode/
 archived
+token/
