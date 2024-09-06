@@ -95,13 +95,13 @@ def app():
         search.getWordFrequencyAnalysis(threshold= 0.96)
         updateLog.log_message(f"Finished exporting word frequency analysis to 'word_frequency_analysis.md' in {path.WordFrequencyAnalysis_path}.")
 
-    # if args.precompVector:
+    if args.precompVector:
         
-    #     updateLog.print_and_log("Precomputing title vector...")
-    #     # precompute title vector
-    #     extract_text.precompute_title_vector(database_path=path.chunk_database_path)
-    #     # announce finish
-    #     updateLog.print_and_log("Title vector precomputation complete.")
+        updateLog.print_and_log("Precomputing title vector...")
+        # precompute title vector
+        precompute.vectorize_title(database_path=path.chunk_database_path)
+        # announce finish
+        updateLog.print_and_log("Title vector precomputation complete.")
 
     if args.reorderMaterial:
         updateLog.print_and_log(f"Exporting reading material to 'Reading Material.md' in {path.ReadingMaterial_path}...")
