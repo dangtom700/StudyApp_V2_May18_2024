@@ -81,4 +81,4 @@ def categorize_pdf_files_by_month_year(destination_path = ReadingMaterial_path) 
 
 def print_and_log(message: str, message_type = "PROGRESS") -> None:
     print(message)
-    log_message(message)
+    log_message(message, message_type)
