@@ -2,7 +2,8 @@ import os
 import sqlite3
 import re
 from collections import defaultdict
-from modules.path import chunk_database_path
+from shutil import rmtree
+from modules.path import chunk_database_path, token_json_path
 from nltk.stem import PorterStemmer
 from nltk.corpus import stopwords
 from modules.updateLog import print_and_log
@@ -75,7 +76,9 @@ def process_chunks_in_batches(database: str) -> None:
     conn = sqlite3.connect(database)
     cursor = conn.cursor()
 
-    title_ids = get_title_ids(cursor)
+    pdf_titles = get_title_ids(cursor)
+    # get extracted titles only
+    all_titles = cursor.execute("SELECT id FROM file_list WHERE chunk_count > 0 AND start_id > 0").fetchall()
     global_word_freq = defaultdict(int)
 
     # Ensure the directory exists
@@ -84,12 +87,14 @@ def process_chunks_in_batches(database: str) -> None:
 
     # Process title IDs in parallel (each thread gets its own connection)
     with ThreadPoolExecutor(max_workers=4) as executor:
-        for title_id, word_freq in zip(title_ids, executor.map(retrieve_token_list, title_ids, [database] * len(title_ids))):
+        for title_id, word_freq in zip(all_titles, executor.map(retrieve_token_list, all_titles, [database] * len(all_titles))):
 
             # Update global word frequencies
             for word, freq in word_freq.items():
                 global_word_freq[word] += freq
 
+            if title_id not in pdf_titles:
+                continue
             # Dump word frequencies for each title into a separate JSON file
             json_file_path = os.path.join(cwd, f'{title_id}.json')
             with open(json_file_path, 'w', encoding='utf-8') as f:
@@ -112,6 +117,11 @@ def process_word_frequencies_in_batches():
     conn = sqlite3.connect(chunk_database_path, check_same_thread=False)
     cursor = conn.cursor()
 
+    def empty_folder(folder_path: str) -> None:
+        if os.path.exists(folder_path):
+            rmtree(folder_path)
+        os.makedirs(folder_path)
+
     def create_table():
         cursor.execute("DROP TABLE IF EXISTS word_frequencies")
         cursor.execute("""CREATE TABLE word_frequencies (
@@ -120,6 +130,8 @@ def process_word_frequencies_in_batches():
         """)
 
     create_table()
+
+    empty_folder(folder_path=token_json_path)
 
     print_and_log("Starting batch processing of chunks...")
     process_chunks_in_batches(database=chunk_database_path)
