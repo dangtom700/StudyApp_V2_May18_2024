@@ -68,7 +68,7 @@ def getNoteReviewTask() -> None:
     exportNoteReviewTask(note_list, date)
     exportStudyLogTemplate(note_list, date)
 
-def getWordFrequencyAnalysis(threshold = 0.82) -> int:
+def getWordFrequencyAnalysis(batch_size = 1000, threshold = 0.82) -> int:
     conn = sqlite3.connect(path.chunk_database_path)
     cursor = conn.cursor()
 
@@ -111,24 +111,25 @@ def getWordFrequencyAnalysis(threshold = 0.82) -> int:
             total_frequency = cursor.execute(f"SELECT SUM(frequency) FROM word_frequencies WHERE frequency > {i}").fetchone()[0]
             num_words = cursor.execute(f"SELECT COUNT(*) FROM word_frequencies WHERE frequency > {i}").fetchone()[0]
             
-            top_percent = round(num_words * factor)
-            cursor.execute("SELECT * FROM word_frequencies ORDER BY frequency DESC")
-            most_popular_percent = 0
-            for _ in range(top_percent):
-                most_popular_percent += cursor.fetchone()[1]
+            if batch_sum is None:  # In case there are no more rows to fetch
+                break
+            
+            counting_frequency += batch_sum
+            offset += batch_size
 
-            popularity_top_percent = most_popular_percent / total_frequency * 100
-            actual_popularity = most_popular_percent / sum_frequency * 100
+            previous_coverage = coverage
+            coverage = counting_frequency / sum_frequency
+            coverage_gain = coverage - previous_coverage
 
-            if popularity_top_percent > threshold * 100:
-                minimum_frequency = i
-                percentype = top_percent
-                total_frequency_above_threshold = total_frequency
-                relative_popularity = popularity_top_percent
+            f.write(f"|{int(offset / batch_size)}")
+            f.write(f"|{counting_frequency}")
+            f.write(f"|{coverage:.2%}")
+            f.write(f"|{batch_sum}")
+            f.write(f"|{coverage_gain:.2%}")
+            f.write(f"|{offset}|\n")
 
-            f.write(f"| {i} | {total_frequency} | {num_words} | {most_popular_percent} | {popularity_top_percent} | {actual_popularity} |\n")
-
-        f.write("\n\n")        
+        f.write("\n\n")
+        
         # Write the parameters
         f.write("Parameters:\n")
         f.write(f"- Threshold: {threshold}\n")

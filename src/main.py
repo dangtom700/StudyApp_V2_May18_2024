@@ -1,15 +1,11 @@
 import argparse
 import modules.updateLog as updateLog
 import modules.search as search
-import modules.extract_text as extract_text
 import modules.path as path
-
-from datetime import datetime
-
-def get_time_performance(start_time, message = "Time elapsed"):
-    end_time = datetime.now()
-    time_delta = end_time - start_time
-    updateLog.print_and_log(f"{message}: {time_delta}")
+import modules.extract_text as extract_text
+import modules.word_freq as word_freq
+import modules.updateDB as updateDB
+import modules.precompute as precompute
 
 def app():
 
@@ -40,8 +36,7 @@ def app():
 
     args = parser.parse_args()
 
-    if args.extractText:
-        start_time = datetime.now()
+    if args.extractText: # function is functioning properly
         
         # Adjust parameters
         """
@@ -75,29 +70,27 @@ def app():
         # announce finish
         get_time_performance(start_time, "Text extracting time")
 
-    if args.updateDatabase:
-        start_time = datetime.now()
+    if args.updateDatabase: # function is functioning properly
         
         updateLog.print_and_log("Update file information to database...")
         # create_index_tables
         updateLog.print_and_log("Extracting files from multiple folders")
         folders = [path.pdf_path, path.study_notes_folder_path]
         extensions = [".pdf", ".md"]
-        extract_text.create_type_index_table(folders, extensions)
+        updateDB.create_type_index_table(folders, extensions)
         updateLog.print_and_log("Finished extracting files from multiple folders")
         # announce finish
         get_time_performance(start_time, "Update file information")
     
-    if args.processWordFreq:
-        start_time = datetime.now()
+    if args.processWordFreq: # function is functioning properly
         
         updateLog.print_and_log("Processing word frequencies in chunks...")
         # process word frequency
-        extract_text.process_word_frequencies_in_batches(chunk_database_path=path.chunk_database_path)
+        word_freq.process_word_frequencies_in_batches()
         # announce finish
         get_time_performance(start_time, "Word frequency processing time")
 
-    if args.analyzeWordFreq:
+    if args.analyzeWordFreq: # function is functioning properly
         
         updateLog.log_message(f"Exporting word frequency analysis to 'word_frequency_analysis.md' in {path.WordFrequencyAnalysis_path}...")
         updateLog.print_and_log("Exporting word frequency analysis...")
@@ -110,11 +103,11 @@ def app():
         
         updateLog.print_and_log("Precomputing title vector...")
         # precompute title vector
-        extract_text.precompute_title_vector(database_path=path.chunk_database_path)
+        precompute.vectorize_title(database_path=path.chunk_database_path)
         # announce finish
         get_time_performance(start_time, "Precomputing title vector")
 
-    if args.reorderMaterial:
+    if args.reorderMaterial: # function is functioning properly
         updateLog.print_and_log(f"Exporting reading material to 'Reading Material.md' in {path.ReadingMaterial_path}...")
         updateLog.categorize_pdf_files_by_month_year()
         updateLog.print_and_log(f"Finished exporting reading material to 'Reading Material.md' in {path.ReadingMaterial_path}.")
@@ -126,13 +119,13 @@ def app():
         search.searchFileInDatabase(args.searchTitle)
         updateLog.print_and_log(f"Finished search.")
 
-    if args.suggestTitle:
-        prompt = input("Enter a prompt: ")
-        suggest_number = int(input("Enter the number of suggestions: "))
-        updateLog.log_message(f"Prompt: {prompt}")
-        updateLog.print_and_log(f"Suggesting {suggest_number} titles...")
-        extract_text.suggest_top_titles(path.chunk_database_path,prompt, suggest_number)
-        updateLog.print_and_log(f"Finished suggesting titles.")
+    # if args.suggestTitle:
+    #     prompt = input("Enter a prompt: ")
+    #     suggest_number = int(input("Enter the number of suggestions: "))
+    #     updateLog.log_message(f"Prompt: {prompt}")
+    #     updateLog.print_and_log(f"Suggesting {suggest_number} titles...")
+    #     extract_text.suggest_top_titles(path.chunk_database_path,prompt, suggest_number)
+    #     updateLog.print_and_log(f"Finished suggesting titles.")
 
     if args.getNoteReview:
         updateLog.print_and_log(f"Exporting notes to 'Note Review.md' in {path.Obsidian_noteReview_path}...")
@@ -141,21 +134,3 @@ def app():
 
 if __name__ == "__main__":
     app()
-    # extract_text.download_nltk()
-    """
-    Typical usage:
-    python source/main.py --help
-    python source/main.py --extractText
-    python source/main.py --updateDatabase
-    python source/main.py --searchTitle
-    python source/main.py --getNoteReview
-    python source/main.py --analyzeWordFreq
-    python source/main.py --reorderMaterial
-    python source/main.py --processWordFreq
-    python source/main.py --precompVector
-    python source/main.py --suggestTitle
-
-    full command:
-    python source/main.py --extractText --updateDatabase --processWordFreq --analyzeWordFreq
-    python source/main.py --precompVector --reorderMaterial
-    """
