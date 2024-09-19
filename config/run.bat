@@ -6,14 +6,9 @@ echo Choose options (e.g., 2,3,4,6):
 echo 1. --help
 echo 2. --extractText
 echo 3. --updateDatabase
-echo 4. --searchTitle
-echo 5. --getNoteReview
-echo 6. --analyzeWordFreq
-echo 7. --reorderMaterial
-echo 8. --processWordFreq
-echo 9. --precompVector
-echo 10. --suggestTitle
-echo 11. Run full command
+echo 4. --analyzeWordFreq
+echo 5. --processWordFreq
+echo 6. Run full command
 set /p choices=Enter your choices (comma-separated): 
 
 REM Initialize the command string and valid flag
@@ -29,21 +24,11 @@ for %%i in (%choices%) do (
     ) else if "%%i"=="3" (
         set cmd=!cmd! --updateDatabase
     ) else if "%%i"=="4" (
-        set cmd=!cmd! --searchTitle
-    ) else if "%%i"=="5" (
-        set cmd=!cmd! --getNoteReview
-    ) else if "%%i"=="6" (
         set cmd=!cmd! --analyzeWordFreq
-    ) else if "%%i"=="7" (
-        set cmd=!cmd! --reorderMaterial
-    ) else if "%%i"=="8" (
+    ) else if "%%i"=="5" (
         set cmd=!cmd! --processWordFreq
-    ) else if "%%i"=="9" (
-        set cmd=!cmd! --precompVector
-    ) else if "%%i"=="10" (
-        set cmd=!cmd! --suggestTitle
-    ) else if "%%i"=="11" (
-        set cmd=!cmd! --extractText --updateDatabase --processWordFreq --analyzeWordFreq --precompVector --reorderMaterial
+    ) else if "%%i"=="6" (
+        set cmd=!cmd! --extractText --updateDatabase --processWordFreq --analyzeWordFreq
     ) else (
         echo Invalid choice: %%i
         set valid=false
