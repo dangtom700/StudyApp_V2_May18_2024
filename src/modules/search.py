@@ -78,6 +78,7 @@ def getWordFrequencyAnalysis(BATCH_SIZE = 1000, threshold = 0.82, minimum_freque
     batch_sum = 0
     offset = 0
     total_frequency = cursor.execute("SELECT SUM(frequency) FROM word_frequencies").fetchone()[0]
+    print(f"Total frequency: {total_frequency}")
     while batch_sum/total_frequency < threshold:
         batch_sum += cursor.execute("SELECT SUM(frequency) FROM word_frequencies LIMIT ? OFFSET ?", (BATCH_SIZE, offset)).fetchone()[0]
         offset += BATCH_SIZE

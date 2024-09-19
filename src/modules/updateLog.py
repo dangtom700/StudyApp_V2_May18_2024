@@ -1,9 +1,7 @@
 import sqlite3
 import time
 from modules.path import log_database_path, chunk_database_path
-from os import makedirs
-from os.path import basename, join, exists
-import shutil
+import datetime
 
 def getCurrentTime() -> str:
     return time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
@@ -38,7 +36,7 @@ def print_and_log(message: str, message_type = "PROGRESS") -> None:
     print(message)
     log_message(message, message_type)
 
-def get_time_performance(start_time, message: str) -> None:
-    end_time = time.time()
-    time_performance = end_time - start_time
-    print_and_log(f"{message} took {time_performance} seconds to run.")
+def get_time_performance(start_time: datetime.datetime, message: str) -> None:
+    end_time = datetime.datetime.now()
+    time_diff = end_time - start_time
+    print_and_log(f"{message} took {time_diff} seconds")

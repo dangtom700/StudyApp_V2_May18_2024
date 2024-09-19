@@ -74,7 +74,7 @@ def app():
         # announce finish
         updateLog.get_time_performance(start_time, "Update file information")
     
-    if args.processWordFreq: # function is functioning properly
+    if args.processWordFreq:
         start_time = datetime.now()
         
         updateLog.print_and_log("Processing word frequencies in chunks...")
@@ -86,10 +86,8 @@ def app():
     if args.analyzeWordFreq: # function is functioning properly
         start_time = datetime.now()
         
-        updateLog.log_message(f"Exporting word frequency analysis to 'word_frequency_analysis.md' in {path.WordFrequencyAnalysis_path}...")
         updateLog.print_and_log("Exporting word frequency analysis...")
         search.getWordFrequencyAnalysis(threshold= 0.96)
-        updateLog.log_message(f"Finished exporting word frequency analysis to 'word_frequency_analysis.md' in {path.WordFrequencyAnalysis_path}.")
         # announce finish
         updateLog.get_time_performance(start_time, "Word frequency analysis")
 
