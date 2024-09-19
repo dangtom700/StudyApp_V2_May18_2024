@@ -1,6 +1,6 @@
 import sqlite3
 import time
-from modules.path import log_database_path, chunk_database_path, ReadingMaterial_path
+from modules.path import log_database_path, chunk_database_path
 from os import makedirs
 from os.path import basename, join, exists
 import shutil
@@ -34,52 +34,11 @@ def store_log_file_to_database(log_file_path: str) -> None:
     with open(log_file_path, 'w') as log_file:
         pass
 
-def categorize_pdf_files_by_month_year(destination_path = ReadingMaterial_path) -> None:
-    def convert_date(date: str) -> str:
-        # Sun, Apr 14, 2024, 22:21:05 to create 2024-04 as a folder to sort files
-        date = date.split(", ")
-        year = date[2]
-        month = date[1][:3]
-        return f"{year}-{month}"
-    def filter_date(raw_data: dict) -> dict:
-        # organize by month and year
-        date_to_pdf = {}
-        for pdf_name in raw_data.keys():
-            date = convert_date(raw_data[pdf_name])
-            if date not in date_to_pdf:
-                date_to_pdf[date] = []
-            date_to_pdf[date].append(pdf_name)
-
-        return date_to_pdf
-    conn = sqlite3.connect(chunk_database_path)
-    cursor = conn.cursor()
-    cursor.execute("SELECT file_path, created_time FROM file_list WHERE file_type = 'pdf'")
-    rows = cursor.fetchall()
-    rows = {row[0]: row[1] for row in rows}
-    conn.close()
-    
-    print(f"There are {len(rows)} pdf files found in the database.")
-    counter = 0
-
-    filtered_data = filter_date(rows)
-
-    # copy files from the original folder to the destination folder
-    for date in filtered_data.keys():
-        pdf_list = filtered_data[date]
-        if not exists(join(destination_path, date)):
-            makedirs(join(destination_path, date))
-        
-        destination_file = join(destination_path, date)
-        
-        for pdf_path in pdf_list:
-            if exists(join(destination_path, date, basename(pdf_path))):
-                continue
-            # destination_file = join(destination_path, date, basename(pdf_path))
-            shutil.copy2(pdf_path, destination_file)
-
-            counter += 1
-            print(f"Found file {counter}: {pdf_path} has not been sorted yet.")
-
 def print_and_log(message: str, message_type = "PROGRESS") -> None:
     print(message)
     log_message(message, message_type)
+
+def get_time_performance(start_time, message: str) -> None:
+    end_time = time.time()
+    time_performance = end_time - start_time
+    print_and_log(f"{message} took {time_performance} seconds to run.")

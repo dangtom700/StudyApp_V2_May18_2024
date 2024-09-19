@@ -77,8 +77,6 @@ def process_chunks_in_batches(database: str) -> None:
     cursor = conn.cursor()
 
     pdf_titles = get_title_ids(cursor)
-    # get extracted titles only
-    all_titles = cursor.execute("SELECT id FROM file_list WHERE chunk_count > 0 AND start_id > 0").fetchall()
     global_word_freq = defaultdict(int)
 
     # Ensure the directory exists
@@ -87,7 +85,7 @@ def process_chunks_in_batches(database: str) -> None:
 
     # Process title IDs in parallel (each thread gets its own connection)
     with ThreadPoolExecutor(max_workers=4) as executor:
-        for title_id, word_freq in zip(all_titles, executor.map(retrieve_token_list, all_titles, [database] * len(all_titles))):
+        for title_id, word_freq in zip(pdf_titles, executor.map(retrieve_token_list, pdf_titles, [database] * len(pdf_titles))):
 
             # Update global word frequencies
             for word, freq in word_freq.items():

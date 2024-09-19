@@ -1,11 +1,11 @@
 import argparse
+from datetime import datetime
 import modules.updateLog as updateLog
 import modules.search as search
 import modules.path as path
 import modules.extract_text as extract_text
 import modules.word_freq as word_freq
 import modules.updateDB as updateDB
-import modules.precompute as precompute
 
 def app():
 
@@ -27,16 +27,11 @@ def app():
     parser.add_argument("--updateDatabase", action= 'store_true', help="Create index tables and analyze word frequencies all in one")
     parser.add_argument("--processWordFreq", action= 'store_true', help="Create index tables and analyze word frequencies all in one")
     parser.add_argument("--analyzeWordFreq", action= 'store_true', help="Export a list of word frequency analysis in .md format")
-    parser.add_argument("--precompVector", action= 'store_true', help="Precompute the title vector")
-    parser.add_argument("--reorderMaterial", action= 'store_true', help="Categorize PDF files by month and year")
-    # very seasonal use
-    parser.add_argument("--searchTitle", type=str, help="Search for files in the specified folder path")
-    parser.add_argument("--suggestTitle", action= 'store_true', help="Suggest pdf files for an input prompt")
-    parser.add_argument("--getNoteReview", action= 'store_true', help="Export a list of notes to review in .md format")
 
     args = parser.parse_args()
 
     if args.extractText: # function is functioning properly
+        start_time = datetime.now()
         
         # Adjust parameters
         """
@@ -59,18 +54,15 @@ def app():
         updateLog.print_and_log("Extracting text from PDF files...")
         extract_text.extract_text(CHUNK_SIZE=chunk_size, FOLDER_PATH=path.pdf_path, chunk_database_path=path.chunk_database_path)
         updateLog.print_and_log("Finished extracting text from PDF files.")
-        # extract text from markdown files
-        updateLog.print_and_log("Extracting text from markdown files...")
-        extract_text.extract_markdown_notes_in_batches(path.study_notes_folder_path, chunk_size=chunk_size)
-        updateLog.print_and_log("Finished extracting text from markdown files.")
         # update_database
         updateLog.print_and_log("Updating database from log file...")
         updateLog.store_log_file_to_database(path.log_file_path)
         updateLog.print_and_log("Finished updating database from log file.")
         # announce finish
-        get_time_performance(start_time, "Text extracting time")
+        updateLog.get_time_performance(start_time, "Text extracting time")
 
     if args.updateDatabase: # function is functioning properly
+        start_time = datetime.now()
         
         updateLog.print_and_log("Update file information to database...")
         # create_index_tables
@@ -80,57 +72,26 @@ def app():
         updateDB.create_type_index_table(folders, extensions)
         updateLog.print_and_log("Finished extracting files from multiple folders")
         # announce finish
-        get_time_performance(start_time, "Update file information")
+        updateLog.get_time_performance(start_time, "Update file information")
     
     if args.processWordFreq: # function is functioning properly
+        start_time = datetime.now()
         
         updateLog.print_and_log("Processing word frequencies in chunks...")
         # process word frequency
         word_freq.process_word_frequencies_in_batches()
         # announce finish
-        get_time_performance(start_time, "Word frequency processing time")
+        updateLog.get_time_performance(start_time, "Word frequency processing time")
 
     if args.analyzeWordFreq: # function is functioning properly
+        start_time = datetime.now()
         
         updateLog.log_message(f"Exporting word frequency analysis to 'word_frequency_analysis.md' in {path.WordFrequencyAnalysis_path}...")
         updateLog.print_and_log("Exporting word frequency analysis...")
         search.getWordFrequencyAnalysis(threshold= 0.96)
         updateLog.log_message(f"Finished exporting word frequency analysis to 'word_frequency_analysis.md' in {path.WordFrequencyAnalysis_path}.")
         # announce finish
-        get_time_performance(start_time, "Word frequency analysis")
-
-    if args.precompVector:
-        
-        updateLog.print_and_log("Precomputing title vector...")
-        # precompute title vector
-        precompute.vectorize_title(database_path=path.chunk_database_path)
-        # announce finish
-        get_time_performance(start_time, "Precomputing title vector")
-
-    if args.reorderMaterial: # function is functioning properly
-        updateLog.print_and_log(f"Exporting reading material to 'Reading Material.md' in {path.ReadingMaterial_path}...")
-        updateLog.categorize_pdf_files_by_month_year()
-        updateLog.print_and_log(f"Finished exporting reading material to 'Reading Material.md' in {path.ReadingMaterial_path}.")
-
-    # very seasonal use
-    if args.searchTitle:
-        updateLog.print_and_log(f"Searching for keyword '{args.searchTitle}'...")
-        updateLog.print_and_log(f"Searching for files in database...")
-        search.searchFileInDatabase(args.searchTitle)
-        updateLog.print_and_log(f"Finished search.")
-
-    # if args.suggestTitle:
-    #     prompt = input("Enter a prompt: ")
-    #     suggest_number = int(input("Enter the number of suggestions: "))
-    #     updateLog.log_message(f"Prompt: {prompt}")
-    #     updateLog.print_and_log(f"Suggesting {suggest_number} titles...")
-    #     extract_text.suggest_top_titles(path.chunk_database_path,prompt, suggest_number)
-    #     updateLog.print_and_log(f"Finished suggesting titles.")
-
-    if args.getNoteReview:
-        updateLog.print_and_log(f"Exporting notes to 'Note Review.md' in {path.Obsidian_noteReview_path}...")
-        search.getNoteReviewTask()
-        updateLog.print_and_log(f"Finished exporting notes to 'Note Review.md' in {path.Obsidian_noteReview_path}.")
+        updateLog.get_time_performance(start_time, "Word frequency analysis")
 
 if __name__ == "__main__":
     app()
