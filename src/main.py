@@ -66,20 +66,19 @@ def app():
         
         updateLog.print_and_log("Update file information to database...")
         # create_index_tables
-        updateLog.print_and_log("Extracting files from multiple folders")
-        folders = [path.pdf_path, path.study_notes_folder_path]
-        extensions = [".pdf", ".md"]
-        updateDB.create_type_index_table(folders, extensions)
-        updateLog.print_and_log("Finished extracting files from multiple folders")
+        updateLog.print_and_log("Extracting files...")
+        updateDB.create_index_table(path.pdf_path, "pdf")
+        updateLog.print_and_log("Finished extracting files.")
         # announce finish
         updateLog.get_time_performance(start_time, "Update file information")
     
     if args.processWordFreq:
         start_time = datetime.now()
-        
-        updateLog.print_and_log("Processing word frequencies in chunks...")
-        # process word frequency
+
+        updateLog.print_and_log("Processing word frequencies...")
         word_freq.process_word_frequencies_in_batches()
+        updateLog.print_and_log("Finished processing word frequencies.")
+        
         # announce finish
         updateLog.get_time_performance(start_time, "Word frequency processing time")
 

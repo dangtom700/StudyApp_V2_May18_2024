@@ -2,7 +2,7 @@ import sqlite3
 from os.path import getmtime, basename
 from datetime import datetime
 from modules.path import chunk_database_path
-from modules.updateLog import print_and_log
+from os.path import join
 from modules.extract_text import batch_collect_files
 
 def get_modification_time(file_path: str) -> tuple[str, int]:
@@ -14,47 +14,32 @@ def get_modification_time(file_path: str) -> tuple[str, int]:
     return (formatted_modification_time, epoch_time)
 
 def create_unique_id(file_basename: str, epoch_time: int, chunk_count: int, starting_id: int) -> str:
-    # Step 1: Encode the file basename
-    # Sum the ASCII values of all characters, XOR by 1600, and apply & 0xFFFF
     encoded_file_name = sum(ord(char) for char in file_basename)
     encoded_file_name ^= 65536
-    encoded_file_name &= 0xFFFF
-
-    # Step 2: Encode the epoch time
-    # Apply & 0xFFFF, then shift right by 1
-    encoded_time = (epoch_time & 0xFFFF) >> 1
-
-    # Step 3: Encode the chunk count and starting ID
-    # Multiply, apply & 0xFFFF, then shift left by 1
-    encoded_num = (chunk_count * starting_id) & 0xFFFF
-    encoded_num <<= 1
-
-    # Step 4: Add redundancy bits
+    encoded_file_name &= 0xFFFFFF
+    encoded_time = (epoch_time & 0xFFFFFF) >> 2
+    encoded_num = (chunk_count * starting_id) & 0xFFFF << 1
     redundancy = encoded_file_name ^ encoded_time ^ encoded_num
-    redundancy &= 0xFFFF
-
-    # Step 4: Combine the results into a unique ID
-    unique_id = f"{encoded_file_name:04X}{encoded_time:04X}{encoded_num:04X}{redundancy:04X}"
+    redundancy &= 0xFF
+    unique_id = f"{encoded_file_name:06X}{encoded_time:06X}{encoded_num:04X}{redundancy:02X}"
 
     return unique_id
 
 def count_chunk_for_each_title(cursor: sqlite3.Cursor, file_name: str) -> int:
-    cursor.execute(f"SELECT COUNT(chunk_index) FROM pdf_chunks WHERE file_name = ?", (file_name,))
+    cursor.execute(f"SELECT COUNT(id) FROM pdf_chunks WHERE file_name = ?", (file_name,))
     chunk_count = cursor.fetchone()[0]
     # print(f"Chunk count for {file_name}: {chunk_count}")
     return chunk_count
 
-def get_starting_and_ending_ids(cursor: sqlite3.Cursor, file_name: str) -> int:
-    # Execute a single query to get both the starting and ending IDs
-    cursor.execute('''
-        SELECT MIN(id) AS starting_id
-        FROM pdf_chunks
-        WHERE file_name = ?;
-    ''', (file_name,))
-    
-    return cursor.fetchone()[0]
+def get_starting_and_ending_ids(cursor: sqlite3.Cursor, file_name: str) -> tuple[int, int]:
+    start_id = cursor.execute(f"SELECT MIN(id) FROM pdf_chunks WHERE file_name = ?", (file_name,)).fetchone()[0]
+    end_id = cursor.execute(f"SELECT MAX(id) FROM pdf_chunks WHERE file_name = ?", (file_name,)).fetchone()[0]
+    if start_id is None or end_id is None:
+        start_id, end_id = 0, 0
+    return start_id, end_id
 
-def store_files_in_db(file_names: list[str], 
+def store_files_in_db(file_names: list[str],
+                      folder_path: str,
                       file_list: list[str], 
                       file_type: str, 
                       conn: sqlite3.Connection, 
@@ -63,10 +48,12 @@ def store_files_in_db(file_names: list[str],
     for file_name, file_path in zip(file_names, file_list):
         created_time, epoch_time = get_modification_time(file_path)
         file_basename = basename(file_path)
-        chunk_count = count_chunk_for_each_title(cursor, file_name=file_basename)
-        starting_id = get_starting_and_ending_ids(cursor, file_name=file_basename)
-        starting_id = starting_id if starting_id is not None else 0
+        full_path = join(folder_path, file_basename) if folder_path else file_path
+        chunk_count = count_chunk_for_each_title(cursor, file_name=full_path)
+        starting_id, ending_id = get_starting_and_ending_ids(cursor, file_name=full_path)
         hashed_data = create_unique_id(file_basename, epoch_time, chunk_count, starting_id)
+
+        print(created_time, epoch_time, chunk_count, starting_id, ending_id, hashed_data)
         
         cursor.execute(f"""INSERT INTO file_list (
             id, 
@@ -76,46 +63,38 @@ def store_files_in_db(file_names: list[str],
             created_time,
             epoch_time,
             chunk_count,
-            start_id
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)""",
-            (hashed_data, file_name, file_path, file_type, created_time, epoch_time, chunk_count, starting_id,)
+            start_id,
+            end_id
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+            (hashed_data, file_basename, file_path, file_type, created_time, epoch_time, chunk_count, starting_id, ending_id)
         )
     conn.commit()
 # Main function
 def extract_names(raw_list: list[str], extension: list[str]) -> list[str]:
     return [basename(file).removesuffix(extension) for file in raw_list if file.endswith(extension)]
 
-def create_type_index_table(collector_folder_list: list[str], extension_list: list[str]) -> None:
-    print_and_log(f"Started creating file index.")
+def create_index_table(folder_path: str, extension: str) -> None:
     conn = sqlite3.connect(chunk_database_path)
     cursor = conn.cursor()
-
-    def create_table():
-        cursor.execute("DROP TABLE IF EXISTS file_list")
-        cursor.execute("""CREATE TABLE file_list (
-            id TEXT PRIMARY KEY,
-            file_name TEXT,
-            file_path TEXT,
-            file_type TEXT,
-            created_time TEXT,
-            epoch_time INTEGER DEFAULT 0,
-            chunk_count INTEGER DEFAULT 0,
-            start_id INTEGER DEFAULT 0
-        )""")
-
-    print_and_log("Started creating table.")
-    create_table()
-    print_and_log("Started storing files in database.")
-    for collector_folder, extension in zip(collector_folder_list, extension_list):
-        # Each folder has a different type of files
-        for file_batch in batch_collect_files(folder_path=collector_folder, extension=extension, batch_size=100):
-            file_names = extract_names(file_batch, extension)
-            
-            for file_name, file_path_with_extension in zip(file_names, file_batch):
-                store_files_in_db(file_names=[file_name], 
-                                  file_list=[file_path_with_extension], 
-                                  file_type=extension.removeprefix("."),
-                                  conn=conn, 
-                                  cursor=cursor)
+    cursor.execute("""CREATE TABLE IF NOT EXISTS file_list (
+        id TEXT PRIMARY KEY,
+        file_name TEXT NOT NULL,
+        file_path TEXT NOT NULL,
+        file_type TEXT NOT NULL,
+        created_time TEXT NOT NULL,
+        epoch_time INTEGER NOT NULL,
+        chunk_count INTEGER NOT NULL,
+        start_id INTEGER NOT NULL,
+        end_id INTEGER NOT NULL
+    )""")
     conn.commit()
+    conn.execute("SELECT * FROM pdf_chunks ORDER BY file_name")
+    for file_batch in batch_collect_files(folder_path=folder_path, extension=extension):
+        store_files_in_db(file_names=extract_names(file_batch, extension),
+                        folder_path=folder_path,
+                        file_list=file_batch,
+                        file_type=extension,
+                        conn=conn,
+                        cursor=cursor)
+        
     conn.close()

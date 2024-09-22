@@ -42,7 +42,7 @@ def clean_text(text) -> dict[str, int]:
 
 # Retrieve title IDs from the database
 def get_title_ids(cursor: sqlite3.Cursor) -> list[str]:
-    cursor.execute("SELECT id FROM file_list WHERE file_type = 'pdf' AND chunk_count > 0")
+    cursor.execute("SELECT file_name FROM file_list WHERE file_type = 'pdf' AND chunk_count > 0")
     return [title[0] for title in cursor.fetchall()]
 
 # Retrieve and clean text chunks for a single title (each thread gets its own connection and cursor)
@@ -52,7 +52,7 @@ def retrieve_token_list(title_id: str, database: str) -> dict[str, int]:
     cursor = conn.cursor()
 
     try:
-        cursor.execute("SELECT chunk_count, start_id FROM file_list WHERE id = ?", (title_id,))
+        cursor.execute("SELECT chunk_count, start_id FROM file_list WHERE file_name = ?", (title_id,))
         result = cursor.fetchone()
 
         if result is None:
