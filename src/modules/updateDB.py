@@ -76,6 +76,8 @@ def extract_names(raw_list: list[str], extension: list[str]) -> list[str]:
 def create_index_table(folder_path: str, extension: str) -> None:
     conn = sqlite3.connect(chunk_database_path)
     cursor = conn.cursor()
+    # Reset the table if it already exists
+    cursor.execute("DROP TABLE IF EXISTS file_list")
     cursor.execute("""CREATE TABLE IF NOT EXISTS file_list (
         id TEXT PRIMARY KEY,
         file_name TEXT NOT NULL,
