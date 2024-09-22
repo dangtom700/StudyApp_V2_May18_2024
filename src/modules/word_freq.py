@@ -1,6 +1,7 @@
 import os
 import sqlite3
 import re
+import nltk
 from collections import defaultdict
 from shutil import rmtree
 from modules.path import chunk_database_path, token_json_path
@@ -23,12 +24,11 @@ def clean_text(text) -> dict[str, int]:
     text = re.sub(r'[^\w\s]', '', text).lower()
 
     # Split text into tokens
-    tokens = text.split()
+    tokens = nltk.word_tokenize(text)
 
     # Define a function to filter tokens
     def pass_conditions(word):
-        return (len(word) < 16 and
-                word.isalpha() and 
+        return (word.isalpha() and 
                 not has_repeats_regex(word))
 
     # Filter tokens based on conditions and apply stemming
@@ -65,7 +65,7 @@ def retrieve_token_list(title_id: str, database: str) -> dict[str, int]:
             LIMIT ? OFFSET ?""", (chunk_count, start_id))
         
         cleaned_chunks = [chunk[0] for chunk in cursor.fetchall()]
-        merged_chunk_text = "".join(cleaned_chunks)
+        merged_chunk_text = " ".join(cleaned_chunks)
     finally:
         conn.close()  # Close the connection to avoid memory leaks
 
@@ -134,6 +134,5 @@ def process_word_frequencies_in_batches():
     print_and_log("Starting batch processing of chunks...")
     process_chunks_in_batches(database=chunk_database_path)
     print_and_log("Processing word frequencies complete.")
-    cursor.execute("DELETE FROM word_frequencies WHERE frequency < 10")
     conn.commit()
     conn.close()

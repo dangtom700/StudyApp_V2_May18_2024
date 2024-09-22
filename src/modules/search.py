@@ -68,34 +68,67 @@ def getNoteReviewTask() -> None:
     exportNoteReviewTask(note_list, date)
     exportStudyLogTemplate(note_list, date)
 
-def getWordFrequencyAnalysis(BATCH_SIZE = 1000, threshold = 0.82, minimum_frequency = 10) -> int:
+import sqlite3
+
+def getWordFrequencyAnalysis(BATCH_SIZE=1000, threshold=0.96) -> int:
+    # Connect to the database
     conn = sqlite3.connect(path.chunk_database_path)
     cursor = conn.cursor()
 
-    # Order the table in descending order
-    cursor.execute("SELECT * FROM word_frequencies ORDER BY frequency DESC")
-
-    batch_sum = 0
-    offset = 0
+    # Get the total sum of frequencies
     total_frequency = cursor.execute("SELECT SUM(frequency) FROM word_frequencies").fetchone()[0]
     print(f"Total frequency: {total_frequency}")
-    while batch_sum/total_frequency < threshold:
-        batch_sum += cursor.execute("SELECT SUM(frequency) FROM word_frequencies LIMIT ? OFFSET ?", (BATCH_SIZE, offset)).fetchone()[0]
+
+    # Initialize batch processing variables
+    inserted_sum = 0
+    offset = 0
+
+    # Threshold limit based on the total frequency
+    threshold_value = total_frequency * threshold
+
+    # Create the coverage_analysis table
+    cursor.execute("DROP TABLE IF EXISTS coverage_analysis")
+    cursor.execute("""
+        CREATE TABLE coverage_analysis (
+            word TEXT PRIMARY KEY, 
+            frequency INTEGER,
+            FOREIGN KEY (word, frequency) REFERENCES word_frequencies(word, frequency)
+        )
+    """)
+
+    # Loop to insert rows in batches of 1000 and check the cumulative frequency
+    while inserted_sum < threshold_value:
+        # Select the next batch of 1000 rows
+        rows = cursor.execute("""
+            SELECT word, frequency FROM word_frequencies 
+            ORDER BY frequency DESC 
+            LIMIT ? OFFSET ?
+        """, (BATCH_SIZE, offset)).fetchall()
+
+        if not rows:
+            # If no more rows are available, break the loop
+            break
+
+        # Insert the current batch into the coverage_analysis table
+        cursor.executemany("""
+            INSERT INTO coverage_analysis (word, frequency) 
+            VALUES (?, ?)
+        """, rows)
+
+        # Update the sum of the inserted frequencies
+        batch_sum = sum(row[1] for row in rows)
+        inserted_sum += batch_sum
+        print(f"Inserted batch sum: {batch_sum}, Total inserted sum: {inserted_sum}")
+
+        # Move the offset for the next batch
         offset += BATCH_SIZE
 
-    # Copy an portion of the table to another table
-    cursor.execute("DROP TABLE IF EXISTS coverage_analysis")
-    cursor.execute("""CREATE TABLE coverage_analysis (word TEXT PRIMARY KEY, frequency INTEGER,
-                   FOREIGN KEY (word, frequency) REFERENCES word_frequencies(word, frequency))""")
-    cursor.execute("""INSERT INTO coverage_analysis
-                   SELECT word, frequency FROM word_frequencies
-                   WHERE frequency > ?
-                   ORDER BY frequency DESC
-                   LIMIT ? OFFSET 0""", (minimum_frequency, offset,))
-    
-    offset = cursor.execute("SELECT COUNT(*) FROM coverage_analysis").fetchone()[0]
+    # Get the number of rows inserted into the coverage_analysis table
+    rows_inserted = cursor.execute("SELECT COUNT(*) FROM coverage_analysis").fetchone()[0]
 
-    # Complete transaction
+    # Complete transaction and close the connection
     conn.commit()
     conn.close()
-    return offset
+
+    return rows_inserted
+
