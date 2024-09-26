@@ -42,8 +42,8 @@ def clean_text(text) -> dict[str, int]:
 
 # Retrieve title IDs from the database
 def get_title_ids(cursor: sqlite3.Cursor) -> list[str]:
-    cursor.execute("SELECT file_name FROM file_list WHERE file_type = 'pdf' AND chunk_count > 0")
-    return [title[0] for title in cursor.fetchall()]
+    cursor.execute("SELECT id, file_name FROM file_list WHERE file_type = 'pdf' AND chunk_count > 0")
+    return {title[1]: title[0] for title in cursor.fetchall()}
 
 # Retrieve and clean text chunks for a single title (each thread gets its own connection and cursor)
 def retrieve_token_list(title_id: str, database: str) -> dict[str, int]:
@@ -76,7 +76,8 @@ def process_chunks_in_batches(database: str) -> None:
     conn = sqlite3.connect(database)
     cursor = conn.cursor()
 
-    pdf_titles = get_title_ids(cursor)
+    fetched_result = get_title_ids(cursor)
+    pdf_titles = list(fetched_result.keys())
     global_word_freq = defaultdict(int)
 
     # Ensure the directory exists
@@ -94,7 +95,7 @@ def process_chunks_in_batches(database: str) -> None:
             if title_id not in pdf_titles:
                 continue
             # Dump word frequencies for each title into a separate JSON file
-            json_file_path = os.path.join(cwd, f'{title_id}.json')
+            json_file_path = os.path.join(cwd, f'title_{fetched_result[title_id]}.json')
             with open(json_file_path, 'w', encoding='utf-8') as f:
                 dump(word_freq, f, ensure_ascii=False, indent=4)
 
