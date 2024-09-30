@@ -6,6 +6,8 @@
 
 This project creates a CLI application that can keep track of my study progress through dashboards. The CLI application can be used for generating study dashboard and executing primary functions.
 
+Note: This project has been re-purposed to prepare for data preparation for future intense number computation projects using different languages, such as C++ and Java
+
 ## Project Details
 
 ### Project Objectives
