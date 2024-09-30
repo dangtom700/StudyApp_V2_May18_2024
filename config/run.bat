@@ -48,7 +48,7 @@ echo Running: %cmd%
 
 REM Get the start time
 for /F "tokens=1-4 delims=:.," %%a in ("%time%") do (
-    set /A startTimeInSeconds=%%a*3600 + %%b*60 + %%c
+    set /A startTimeInSeconds=1%%a*3600 + 1%%b*60 + 1%%c - 110000
     set startMilliseconds=%%d
 )
 
@@ -57,7 +57,7 @@ REM Run the constructed command
 
 REM Get the end time
 for /F "tokens=1-4 delims=:.," %%a in ("%time%") do (
-    set /A endTimeInSeconds=%%a*3600 + %%b*60 + %%c
+    set /A endTimeInSeconds=1%%a*3600 + 1%%b*60 + 1%%c - 110000
     set endMilliseconds=%%d
 )
 
@@ -67,7 +67,7 @@ set /A elapsedMilliseconds=endMilliseconds-startMilliseconds
 
 REM Adjust milliseconds if necessary
 if %elapsedMilliseconds% lss 0 (
-    set /A elapsedMilliseconds+=100
+    set /A elapsedMilliseconds+=1000
     set /A elapsedTime-=1
 )
 

@@ -81,8 +81,8 @@ def process_chunks_in_batches(database: str) -> None:
     global_word_freq = defaultdict(int)
 
     # Ensure the directory exists
-    os.makedirs('token', exist_ok=True)
-    cwd = os.path.join(os.getcwd(), 'token')  # Get the path of the 'token' directory
+    os.makedirs(token_json_path, exist_ok=True)
+    cwd = os.path.join(os.getcwd(), token_json_path)  # Get the path of the 'token' directory
 
     # Process title IDs in parallel (each thread gets its own connection)
     with ThreadPoolExecutor(max_workers=4) as executor:

@@ -14,11 +14,10 @@ def get_modification_time(file_path: str) -> tuple[str, int]:
     return (formatted_modification_time, epoch_time)
 
 def create_unique_id(file_basename: str, epoch_time: int, chunk_count: int, starting_id: int) -> str:
-    encoded_file_name = sum(ord(char) for char in file_basename)
-    encoded_file_name ^= 65536
+    encoded_file_name = sum(ord(char) for char in file_basename) * max(1, chunk_count)
     encoded_file_name &= 0xFFFFFF
     encoded_time = (epoch_time & 0xFFFFFF) >> 2
-    encoded_num = (chunk_count * starting_id) & 0xFFFF << 1
+    encoded_num = (starting_id) & 0xFFFF
     redundancy = encoded_file_name ^ encoded_time ^ encoded_num
     redundancy &= 0xFF
     unique_id = f"{encoded_file_name:06X}{encoded_time:06X}{encoded_num:04X}{redundancy:02X}"
