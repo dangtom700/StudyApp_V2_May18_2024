@@ -19,7 +19,7 @@ stop_words = set(stopwords.words('english'))
 def has_repeats_regex(word, n=3):
     return bool(REPEATED_CHAR_PATTERN.search(word))
 
-def clean_text(text) -> dict[str, int]:
+def clean_text(text):
     # Remove punctuation and convert to lowercase
     text = re.sub(r'[^\w\s]', '', text).lower()
 
@@ -29,7 +29,8 @@ def clean_text(text) -> dict[str, int]:
     # Define a function to filter tokens
     def pass_conditions(word):
         return (word.isalpha() and 
-                not has_repeats_regex(word))
+                not has_repeats_regex(word) and 
+                word not in stop_words)
 
     # Filter tokens based on conditions and apply stemming
     filtered_tokens = defaultdict(int)
@@ -41,13 +42,12 @@ def clean_text(text) -> dict[str, int]:
     return filtered_tokens
 
 # Retrieve title IDs from the database
-def get_title_ids(cursor: sqlite3.Cursor) -> list[str]:
+def get_title_ids(cursor):
     cursor.execute("SELECT id, file_name FROM file_list WHERE file_type = 'pdf' AND chunk_count > 0")
     return {title[1]: title[0] for title in cursor.fetchall()}
 
-# Retrieve and clean text chunks for a single title (each thread gets its own connection and cursor)
-def retrieve_token_list(title_id: str, database: str) -> dict[str, int]:
-    # Create a new connection and cursor for this thread
+# Retrieve and clean text chunks for a single title using a generator
+def retrieve_token_list(title_id, database):
     conn = sqlite3.connect(database)
     cursor = conn.cursor()
 
@@ -63,16 +63,24 @@ def retrieve_token_list(title_id: str, database: str) -> dict[str, int]:
         cursor.execute("""
             SELECT chunk_text FROM pdf_chunks
             LIMIT ? OFFSET ?""", (chunk_count, start_id))
-        
-        cleaned_chunks = [chunk[0] for chunk in cursor.fetchall()]
-        merged_chunk_text = " ".join(cleaned_chunks)
+
+        clean_text_dict = defaultdict(int)
+
+        # Process each chunk one at a time to minimize memory usage
+        for chunk in cursor:
+            chunk_result = clean_text(chunk[0])
+            for word, freq in chunk_result.items():
+                clean_text_dict[word] += freq
+
+    except Exception as e:
+        print_and_log(f"Error retrieving token list for title ID {title_id}: {e}")
     finally:
         conn.close()  # Close the connection to avoid memory leaks
 
-    return clean_text(merged_chunk_text)
+    return clean_text_dict
 
 # Process chunks in batches and store word frequencies in individual JSON files
-def process_chunks_in_batches(database: str) -> None:
+def process_chunks_in_batches(database):
     conn = sqlite3.connect(database)
     cursor = conn.cursor()
 
@@ -92,31 +100,33 @@ def process_chunks_in_batches(database: str) -> None:
             for word, freq in word_freq.items():
                 global_word_freq[word] += freq
 
-            if title_id not in pdf_titles:
-                continue
-            # Dump word frequencies for each title into a separate JSON file
+            # Dump word frequencies for each title into a separate JSON file immediately
             json_file_path = os.path.join(cwd, f'title_{fetched_result[title_id]}.json')
             with open(json_file_path, 'w', encoding='utf-8') as f:
                 dump(word_freq, f, ensure_ascii=False, indent=4)
 
     print_and_log("All titles processed and word frequencies stored in individual JSON files.")
 
-    # Insert global word frequencies into the database
-    cursor.executemany('''
-        INSERT INTO word_frequencies (word, frequency)
-        VALUES (?, ?)
-        ON CONFLICT(word) DO UPDATE SET frequency = frequency + excluded.frequency
-    ''', global_word_freq.items())
+    # Insert global word frequencies into the database in small batches
+    batch_size = 1000
+    items = list(global_word_freq.items())
+    for i in range(0, len(items), batch_size):
+        cursor.executemany('''
+            INSERT INTO word_frequencies (word, frequency)
+            VALUES (?, ?)
+            ON CONFLICT(word) DO UPDATE SET frequency = frequency + excluded.frequency
+        ''', items[i:i + batch_size])
 
     conn.commit()
     conn.close()
     print_and_log("Global word frequencies inserted into the database.")
 
+# Main function to process word frequencies in batches
 def process_word_frequencies_in_batches():
     conn = sqlite3.connect(chunk_database_path, check_same_thread=False)
     cursor = conn.cursor()
 
-    def empty_folder(folder_path: str) -> None:
+    def empty_folder(folder_path):
         if os.path.exists(folder_path):
             rmtree(folder_path)
         os.makedirs(folder_path)
