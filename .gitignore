@@ -4,3 +4,5 @@ src/modules/path.py
 .vscode/
 archived
 token/
+src/lib/env.hpp
+src/main.exe
