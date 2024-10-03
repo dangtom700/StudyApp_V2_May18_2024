@@ -1,7 +1,6 @@
 import argparse
 from datetime import datetime
 import modules.updateLog as updateLog
-import modules.search as search
 import modules.path as path
 import modules.extract_text as extract_text
 import modules.word_freq as word_freq
@@ -86,7 +85,7 @@ def app():
         start_time = datetime.now()
         
         updateLog.print_and_log("Exporting word frequency analysis...")
-        search.getWordFrequencyAnalysis(threshold= 0.96)
+        word_freq.getWordFrequencyAnalysis(threshold= 0.96)
         # announce finish
         updateLog.get_time_performance(start_time, "Word frequency analysis")
 

@@ -3,16 +3,11 @@ import fitz  # PyMuPDF
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 import sqlite3
 from concurrent.futures import ThreadPoolExecutor, as_completed
-import markdown
 import time
-import re
-from nltk.corpus import stopwords
 from os import walk
 from os.path import basename, join
 from modules.path import log_file_path, chunk_database_path, pdf_path
 from collections.abc import Generator
-from modules.updateLog import print_and_log
-from functools import wraps
 
 # Setup logging to log messages to a file, with the option to reset the log file
 def setup_logging(log_file= log_file_path):
@@ -189,56 +184,3 @@ def extract_text(FOLDER_PATH, CHUNK_SIZE, chunk_database_path):
 
     logging.info("Processing complete: Extracting text from PDF files.")
     conn.close()
-
-def extract_note_text_chunk(file, chunk_size=4000) -> Generator[str, None, None]:
-    """Extracts and cleans text chunk by chunk from a markdown file."""
-    content = []
-    for line in file:
-        content.append(line)
-        if sum(len(c) for c in content) >= chunk_size:
-            yield ''.join(content)
-            content = []
-    
-    if content:
-        yield ''.join(content)
-
-def clean_markdown_text(markdown_text) -> str:
-    """Converts markdown text to plain text by removing HTML tags."""
-    html_content = markdown.markdown(markdown_text)
-    text = re.sub(r'<[^>]+>', '', html_content)
-    return text
-
-@retry_on_exception(retries=99, delay=10, log_message="Error storing chunks in database")
-def store_text_note_in_chunks(file_name, chunks, db_name) -> None:
-    """Stores chunks in the database."""
-    store_chunks_in_db(file_name=file_name, chunks=chunks, db_name=db_name)
-
-def process_markdown_file(file_path, chunk_size=800) -> None:
-    """Processes a single markdown file."""
-    with open(file_path, 'r', encoding='utf-8') as file:
-        for raw_chunk in extract_note_text_chunk(file):
-            text = clean_markdown_text(raw_chunk)
-            chunks = [text[i:i + chunk_size] for i in range(0, len(text), chunk_size)]
-            store_text_note_in_chunks(file_name=basename(file_path), chunks=chunks, db_name=chunk_database_path)
-
-def process_markdown_file_with_retries(file_path: str, chunk_size: int) -> None:
-    """Wraps the processing of a markdown file to handle retries."""
-    retry_on_exception(retries=99, delay=10, log_message=f"Processing file {basename(file_path)}")(process_markdown_file)(file_path, chunk_size)
-
-def process_text_note_batch_of_files(file_batch: list[str], chunk_size=800) -> None:
-    """Processes a batch of markdown files concurrently."""
-    with ThreadPoolExecutor() as executor:
-        futures = [executor.submit(process_markdown_file_with_retries, file_path, chunk_size) for file_path in file_batch]
-        for future in as_completed(futures):
-            try:
-                future.result()  # Ensure exceptions are raised and handled
-            except Exception as e:
-                logging.error(f"Error processing file batch: {e}")
-
-def extract_markdown_notes_in_batches(directory, chunk_size=800) -> None:
-    """Main process to collect, extract, chunk, and store markdown files in batches using multithreading."""
-    for file_batch in batch_collect_files(folder_path=directory, extension='.md'):
-        process_text_note_batch_of_files(file_batch, chunk_size=chunk_size)
-        print_and_log(f"Finished processing batch of {len(file_batch)} markdown files.")
-
-    print_and_log("Finished processing markdown files.")
