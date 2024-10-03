@@ -1,0 +1,1 @@
+REM compile the C++ program including the main.cpp and headers in lib folder
