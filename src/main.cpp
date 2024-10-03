@@ -1,22 +1,35 @@
 #include <iostream>
 #include <filesystem>
+#include <vector>
+#include <map>
 
 #include "lib\utilities.hpp"
 #include "lib\env.hpp"
+#include "lib\transform.hpp"
+
+struct DataEntry {
+    std::filesystem::path path;
+    int sum;
+    int num_unique_tokens;
+    std::map<std::string, int> filtered_tokens;
+    double relational_distance;
+};
 
 int main() {
-    // Use json_path from ENV_HPP
     std::filesystem::path target_folder = ENV_HPP::json_path;
+    std::vector<std::filesystem::path> json_files = UTILITIES_HPP::Basic::list_directory(target_folder, false);
+    std::vector<std::filesystem::path> filtered_files = UTILITIES_HPP::Basic::filter_by_extension(json_files, ".json");
 
-    for (int i = 0; i < 3; i++) {
+    for (const std::filesystem::path& file : filtered_files) {
+        std::map<std::string, int> json_map = TRANSFORMER::json_to_map(file);
 
-        // Move up one level and list again
-        target_folder = UTILITIES_HPP::Basic::move_one_level_up(target_folder);
-
-        // Print the new target folder
-        std::cout << target_folder << std::endl;
-
+        DataEntry row = {
+            .path = file,
+            .sum = TRANSFORMER::compute_sum_token_json(json_map),
+            .num_unique_tokens = TRANSFORMER::count_unique_tokens(json_map),
+            .filtered_tokens = TRANSFORMER::token_filter(json_map, ENV_HPP::max_length, ENV_HPP::min_value),
+            .relational_distance = TRANSFORMER::Pythagoras(row.filtered_tokens)};
     }
-    
+
     return 0; // End of program
 }
