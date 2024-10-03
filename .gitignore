@@ -4,7 +4,6 @@ src/modules/path.py
 .vscode/
 archived
 token/
-src/lib/env.hpp
 src/main.exe
 src/lib/json_fwd.hpp
 src/lib/json.hpp
