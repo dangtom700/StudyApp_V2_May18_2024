@@ -24,11 +24,11 @@ namespace TRANSFORMER {
     }
 
     // Filter a set of tokens by maximum length and minimum frequency
-    std::map<std::string, int> token_filter(const std::map<std::string, int>& tokens, int max_length, int min_value) {
-        std::map<std::string, int> result;
-        for (const auto& [key, value] : tokens) {
-            if (key.length() <= max_length && value >= min_value) {
-                result[key] = value;
+    std::vector<std::tuple<std::string, int, double>> token_filter(const std::map<std::string, int>& tokens, const int& max_length, const int& min_value, const double& relational_distance) {
+        std::vector<std::tuple<std::string, int, double>> result;
+        for (const std::pair<std::string, int>& token : tokens) {
+            if(token.first.length() <= max_length && token.second >= min_value) {
+                result.push_back({token.first, token.second, static_cast<double>(token.second) / relational_distance});
             }
         }
         return result;

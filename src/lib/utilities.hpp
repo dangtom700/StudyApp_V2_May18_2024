@@ -13,9 +13,8 @@ struct DataEntry {  // Make sure this struct is defined
     std::filesystem::path path;
     int sum;
     int num_unique_tokens;
-    std::map<std::string, int> filtered_tokens;
+    std::vector<std::tuple<std::string, int, double>> filtered_tokens;
     double relational_distance;
-    std::vector<double> weight_list;
 };
 
 namespace UTILITIES_HPP {
@@ -79,9 +78,8 @@ namespace UTILITIES_HPP {
                 return;
             }
 
-            int counter = 0;
-            for (const auto& [key, value] : entry.filtered_tokens) {
-                filtered_file << key << ", " << value << ", " << entry.weight_list[counter] << std::endl;
+            for (const std::tuple<std::string, int, double>& token : entry.filtered_tokens) {
+                filtered_file << std::get<0>(token) << ", " << std::get<1>(token) << ", " << std::get<2>(token) << std::endl;
             }
         }
 

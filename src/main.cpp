@@ -28,14 +28,13 @@ int main() {
             std::map<std::string,int> json_map = TRANSFORMER::json_to_map(file);
 
             DataEntry row = {
-                file,
-                TRANSFORMER::compute_sum_token_json(json_map),
-                TRANSFORMER::count_unique_tokens(json_map),
-                TRANSFORMER::token_filter(json_map, ENV_HPP::max_length, ENV_HPP::min_value),
-                TRANSFORMER::Pythagoras(row.filtered_tokens),
-                TRANSFORMER::compute_relational_distance(row.filtered_tokens, row.relational_distance),
+                .path = file,
+                .sum = TRANSFORMER::compute_sum_token_json(json_map),
+                .num_unique_tokens = TRANSFORMER::count_unique_tokens(json_map),
+                .relational_distance = TRANSFORMER::Pythagoras(json_map),
             };
 
+            row.filtered_tokens = TRANSFORMER::token_filter(json_map, ENV_HPP::max_length, ENV_HPP::min_value, row.relational_distance);
             UTILITIES_HPP::Basic::data_entry_dump(row);
 
             std::cout << "Processed: " << file << std::endl;
