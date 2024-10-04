@@ -9,10 +9,6 @@
 #include "lib/env.hpp"
 #include "lib/transform.hpp"
 
-void phase1(std::vector<std::filesystem::path> filtered_files){
-    
-}
-
 int main() {
     try {
         std::filesystem::path target_folder = ENV_HPP::json_path;
