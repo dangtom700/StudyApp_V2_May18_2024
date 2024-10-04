@@ -13,6 +13,7 @@ namespace ENV_HPP {
     std::filesystem::path logging_path = data_root / ("progress.log");
     std::filesystem::path processed_data_path = data_root / ("processed_data");
     std::filesystem::path data_dumper_path = processed_data_path / ("data_dumper.csv");
+    std::filesystem::path filtered_data_path = processed_data_path / ("token_filter.csv");
 
     const int max_length = 14;
     const int min_value = 3;

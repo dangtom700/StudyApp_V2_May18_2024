@@ -60,6 +60,14 @@ namespace UTILITIES_HPP {
                 return;
             }
             file << "Path, Sum, Unique Tokens, Relational Distance" << std::endl;
+
+            std::ofstream filtered_file(ENV_HPP::filtered_data_path.string());
+            if (!filtered_file.is_open()) {
+                std::cout << "Could not open filtered file" << std::endl;
+                return;
+            }
+
+            filtered_file << "Path, Token, Frequency, Relational Distance" << std::endl;
         }
 
         // Dump the contents of a DataEntry to a file
@@ -72,14 +80,14 @@ namespace UTILITIES_HPP {
             main_file << entry.path.stem() << ", " << entry.sum << ", " << entry.num_unique_tokens << ", " << entry.relational_distance << std::endl;
 
             // Construct the path for the filtered file
-            std::ofstream filtered_file(ENV_HPP::processed_data_path / ("filtered") / (entry.path.stem().string() + ".csv"));
+            std::ofstream filtered_file(ENV_HPP::filtered_data_path.string(), std::ios::app);// Append to file
             if (!filtered_file.is_open()) {
                 std::cout << "Could not open filtered file" << std::endl;
                 return;
             }
 
             for (const std::tuple<std::string, int, double>& token : entry.filtered_tokens) {
-                filtered_file << std::get<0>(token) << ", " << std::get<1>(token) << ", " << std::get<2>(token) << std::endl;
+                filtered_file << entry.path.stem() << ", " << std::get<0>(token) << ", " << std::get<1>(token) << ", " << std::get<2>(token) << std::endl;
             }
         }
 
