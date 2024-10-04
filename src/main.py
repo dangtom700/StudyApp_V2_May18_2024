@@ -26,6 +26,7 @@ def app():
     parser.add_argument("--updateDatabase", action= 'store_true', help="Create index tables and analyze word frequencies all in one")
     parser.add_argument("--processWordFreq", action= 'store_true', help="Create index tables and analyze word frequencies all in one")
     parser.add_argument("--analyzeWordFreq", action= 'store_true', help="Export a list of word frequency analysis in .md format")
+    parser.add_argument("--promptFindingReference", type=str, help="Prompt to find references in full database based on context of search")
 
     args = parser.parse_args()
 
@@ -88,6 +89,16 @@ def app():
         word_freq.getWordFrequencyAnalysis(threshold= 0.96)
         # announce finish
         updateLog.get_time_performance(start_time, "Word frequency analysis")
+
+    if args.promptFindingReference:
+        start_time = datetime.now()
+        
+        updateLog.print_and_log("Finding references...")
+        # Some logic goes right here
+        
+
+        # announce finish
+        updateLog.get_time_performance(start_time, "Finding references")
 
 if __name__ == "__main__":
     app()
