@@ -23,18 +23,6 @@ namespace TRANSFORMER {
         return result;
     }
 
-    // Compute the weight of a token based on its frequency
-    double compute_value(int individual, int whole, int sum, const std::string& token) {
-        if (token.length() >= 14) {
-            return 0;
-        }
-        double result = 1.0 / individual; // create indices
-        result = (result < 0.0001) ? 0 : result * 10; // eliminate very small numbers
-        result *= result * whole / sum; // normalize to the excerpt
-        result *= std::log(result); // normalize to the whole database
-        return result;
-    }
-
     // Filter a set of tokens by maximum length and minimum frequency
     std::map<std::string, int> token_filter(const std::map<std::string, int>& tokens, int max_length, int min_value) {
         std::map<std::string, int> result;
@@ -75,7 +63,16 @@ namespace TRANSFORMER {
         for (const auto& [key, value] : tokens) {
             result += value * value;
         }
-        return std::sqrt(result);
+        return std::sqrt(static_cast<double>(result));
+    }
+
+    // Compute the relational distance of each token in the given map
+    std::vector<double> compute_relational_distance(const std::map<std::string, int>& tokens, const double& relational_distance) {
+        std::vector<double> result;
+        for (const auto& [key, value] : tokens) {
+            result.push_back(static_cast<double>(value) / relational_distance);
+        }
+        return result;
     }
 
 } // namespace TRANSFORMER

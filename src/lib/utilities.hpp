@@ -6,7 +6,7 @@
 #include <fstream>
 #include <vector>
 #include <iostream>
-#include <map>
+#include <tuple>
 #include "env.hpp"  // Include ENV_HPP definition
 
 struct DataEntry {  // Make sure this struct is defined
@@ -15,6 +15,7 @@ struct DataEntry {  // Make sure this struct is defined
     int num_unique_tokens;
     std::map<std::string, int> filtered_tokens;
     double relational_distance;
+    std::vector<double> weight_list;
 };
 
 namespace UTILITIES_HPP {
@@ -78,8 +79,9 @@ namespace UTILITIES_HPP {
                 return;
             }
 
+            int counter = 0;
             for (const auto& [key, value] : entry.filtered_tokens) {
-                filtered_file << key << ", " << value << std::endl;
+                filtered_file << key << ", " << value << ", " << entry.weight_list[counter] << std::endl;
             }
         }
 
