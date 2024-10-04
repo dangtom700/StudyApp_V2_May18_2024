@@ -36,9 +36,8 @@ int main() {
 
             row.filtered_tokens = TRANSFORMER::token_filter(json_map, ENV_HPP::max_length, ENV_HPP::min_value, row.relational_distance);
             UTILITIES_HPP::Basic::data_entry_dump(row);
-
-            std::cout << "Processed: " << file << std::endl;
         }
+        std::cout << "Computing relational distance data finished" << std::endl;
     } catch (const std::exception& e) {
         std::cerr << "Error: " << e.what() << std::endl;
         return EXIT_FAILURE;
