@@ -194,7 +194,72 @@ namespace FEATURE {
                 execute_sql(db, create_table_sql);
             }
 
-            
+            bool trigger_once = true;
+
+            for (const std::filesystem::path& file : filtered_files) {
+                if (trigger_once && is_dumped) {
+                    UTILITIES_HPP::Basic::reset_file_info_dumper(ENV_HPP::data_info_path);
+                }
+
+                // Process the file
+                DataInfo entry = {
+                    .file_name = file.stem().string(),
+                    .file_path = file.string(),
+                    .last_write_time = UPDATE_INFO::get_last_write_time(file),
+                    .epoch_time = UPDATE_INFO::get_epoch_time(file),
+                    .chunk_count = UPDATE_INFO::count_chunk_for_each_title(db, file.string()),
+                    .starting_id = UPDATE_INFO::get_starting_id(db, file.string()),
+                    .ending_id = UPDATE_INFO::get_ending_id(db, file.string())
+                };
+
+                entry.id = UPDATE_INFO::create_unique_id(entry.file_path, entry.epoch_time, entry.chunk_count, entry.starting_id);
+
+                // Export data info
+                if (is_dumped) UTILITIES_HPP::Basic::data_info_dump(entry);
+
+                // Update or append the row into the database
+                if (reset_table) {
+                    // Insert the row
+                    std::string insert_sql = R"(
+                        INSERT INTO FILE_INFO (id, file_name, file_path, last_write_time, epoch_time, chunk_count, starting_id, ending_id)
+                        VALUES (?, ?, ?, ?, ?, ?, ?, ?);
+                    )";
+                    sqlite3_stmt* stmt;
+                    sqlite3_prepare_v2(db, insert_sql.c_str(), -1, &stmt, NULL);
+                    sqlite3_bind_text(stmt, 1, entry.id.c_str(), -1, SQLITE_STATIC);
+                    sqlite3_bind_text(stmt, 2, entry.file_name.c_str(), -1, SQLITE_STATIC);
+                    sqlite3_bind_text(stmt, 3, entry.file_path.c_str(), -1, SQLITE_STATIC);
+                    sqlite3_bind_text(stmt, 4, entry.last_write_time.c_str(), -1, SQLITE_STATIC);
+                    sqlite3_bind_int(stmt, 5, entry.epoch_time);
+                    sqlite3_bind_int(stmt, 6, entry.chunk_count);
+                    sqlite3_bind_int(stmt, 7, entry.starting_id);
+                    sqlite3_bind_int(stmt, 8, entry.ending_id);
+                    sqlite3_step(stmt);
+                    sqlite3_finalize(stmt);
+                } else {
+                    // Update the row
+                    std::string update_sql = R"(
+                        UPDATE FILE_INFO
+                        SET last_write_time = ?, epoch_time = ?, chunk_count = ?, starting_id = ?, ending_id = ?
+                        WHERE id = ?;
+                    )";
+                    sqlite3_stmt* stmt;
+                    sqlite3_prepare_v2(db, update_sql.c_str(), -1, &stmt, NULL);
+                    sqlite3_bind_text(stmt, 1, entry.last_write_time.c_str(), -1, SQLITE_STATIC);
+                    sqlite3_bind_int(stmt, 2, entry.epoch_time);
+                    sqlite3_bind_int(stmt, 3, entry.chunk_count);
+                    sqlite3_bind_int(stmt, 4, entry.starting_id);
+                    sqlite3_bind_int(stmt, 5, entry.ending_id);
+                    sqlite3_bind_text(stmt, 6, entry.id.c_str(), -1, SQLITE_STATIC);
+                    sqlite3_step(stmt);
+                    sqlite3_finalize(stmt);
+                }
+
+                if (show_progress) std::cout << "Processed: " << file << std::endl;
+            }
+
+            sqlite3_close(db);
+            std::cout << "Computing resource data finished" << std::endl;
         } catch (const std::exception& e) {
             std::cerr << "Error: " << e.what() << std::endl;
         }
