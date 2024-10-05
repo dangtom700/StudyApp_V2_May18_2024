@@ -8,11 +8,12 @@
 
 
 void option0(void){
-    std::cout << "This program is created as an integrated part of the word tokenizer project" \
-    "to compute the relational distance of each token in a given JSON file." \
-    "The relational distance is the Euclidean norm of the vector of token frequencies." \
-    "While Python provides a wide range of Natural Language Processing libraries, Python is not so fast at number crunching and heavy data processing." \
-    "The C++ program is written to resolve this issue." << std::endl;
+    std::cout << "This program is created as an integrated part of the word tokenizer project\n" \
+    "to compute the relational distance of each token in a given JSON file.\n" \
+    "The relational distance is the Euclidean norm of the vector of token frequencies.\n" \
+    "While Python provides a wide range of Natural Language Processing libraries,\n" \
+    "Python is not so fast at number crunching and heavy data processing.\n" \
+    "The C++ program is written to resolve this issue without using external libraries." << std::endl;
 }
 
 void option1(void){
@@ -44,6 +45,7 @@ int main() {
    std::cout << "2. Update database information" << std::endl;
 
     int option = 0;
+    std::cout << "Please select an option: ";
     std::cin >> option;
 
     switch (option) {
