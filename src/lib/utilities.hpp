@@ -81,6 +81,16 @@ namespace UTILITIES_HPP {
             filtered_file << "Path, Token, Frequency, Relational Distance" << std::endl;
         }
 
+        // reset file info dumper
+        void reset_file_info_dumper(const std::filesystem::path& path) {
+            std::ofstream file(path);
+            if (!file.is_open()) {
+                std::cout << "Could not open file" << std::endl;
+                return;
+            }
+            file << "ID, File Name, File Path, Last Write Time, Epoch Time, Chunk Count, Starting ID, Ending ID" << std::endl;
+        }
+
         // Dump the contents of a DataEntry to a file
         void data_entry_dump(const DataEntry& entry) {
             std::ofstream main_file(ENV_HPP::data_dumper_path.string(), std::ios::app); // Append to file
@@ -100,6 +110,24 @@ namespace UTILITIES_HPP {
             for (const std::tuple<std::string, int, double>& token : entry.filtered_tokens) {
                 filtered_file << entry.path.stem() << ", " << std::get<0>(token) << ", " << std::get<1>(token) << ", " << std::get<2>(token) << std::endl;
             }
+        }
+
+        // Dump the contents of a DataInfo to a file
+        void data_info_dump(const DataInfo& info) {
+            std::ofstream file(ENV_HPP::data_info_path.string(), std::ios::app); // Append to file
+            if (!file.is_open()) {
+                std::cout << "Could not open file" << std::endl;
+                return;
+            }
+            file << info.id << ", "
+                 << info.file_name << ", "
+                 << info.file_path << ", "
+                 << info.last_write_time << ", "
+                 << info.epoch_time << ", "
+                 << info.chunk_count << ", "
+                 << info.starting_id << ", "
+                 << info.ending_id
+                 << std::endl;
         }
 
         // Extract specific data from given directory with other instructions
