@@ -131,7 +131,7 @@ namespace UTILITIES_HPP {
         }
 
         // Extract specific data from given directory with other instructions
-        std::vector<std::filesystem::path> extract_data_files(const std::filesystem::path& target_folder, const bool& show_index = false, const std::string& extension) {
+        std::vector<std::filesystem::path> extract_data_files(const std::filesystem::path& target_folder, const bool& show_index, const std::string& extension) {
             std::vector<std::filesystem::path> collected_files = UTILITIES_HPP::Basic::list_directory(target_folder, show_index);
             return UTILITIES_HPP::Basic::filter_by_extension(collected_files, extension);
         }
