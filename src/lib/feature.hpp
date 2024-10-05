@@ -24,11 +24,12 @@ namespace FEATURE {
      * @throws std::runtime_error if the query fails with an error message.
      */
     void execute_sql(sqlite3* db, const std::string& sql) {
-        char* errMsg;
-        int exit = sqlite3_exec(db, sql.c_str(), nullptr, 0, &errMsg);
+        char* error_message = nullptr;
+        int exit = sqlite3_exec(db, sql.c_str(), nullptr, nullptr, &error_message);
         if (exit != SQLITE_OK) {
-            std::cerr << "Error executing SQL: " << errMsg << std::endl;
-            sqlite3_free(errMsg);
+            std::cerr << "Error executing SQL: " << error_message << std::endl;
+            sqlite3_free(error_message);
+            throw std::runtime_error("SQL execution failed");
         }
     }
 
@@ -56,126 +57,102 @@ namespace FEATURE {
                 return;
             }
 
-            // Create table if reset_table is true
+            // Disable synchronous mode to speed up inserts (optional)
+            execute_sql(db, "PRAGMA synchronous = OFF;");
+
+            // Create tables if reset_table is true
             if (reset_table) {
                 std::string create_table_sql = R"(
-                    DROP TABLE IF EXISTS DataDump;
-                    CREATE TABLE IF NOT EXISTS DataDump (
-                        file_name TEXT PRIMARY KEY
-                        Total_tokens INTEGER
-                        Unique_tokens INTEGER
+                    DROP TABLE IF EXISTS file_token;
+                    CREATE TABLE IF NOT EXISTS file_token (
+                        file_name TEXT PRIMARY KEY,
+                        Total_tokens INTEGER,
+                        Unique_tokens INTEGER,
                         Relational_distance REAL
                     );
                 )";
-                
                 execute_sql(db, create_table_sql);
-                std::cout << "Table created successfully" << std::endl;
 
                 create_table_sql = R"(
-                    DROP TABLE IF EXISTS RelationalDistance;
-                    CREATE TABLE IF NOT EXISTS RelationalDistance (
-                        file_name TEXT PRIMARY KEY
-                        Token TEST PRIMARY KEY
-                        Frequency INTEGER
-                        Relational_distance REAL
+                    DROP TABLE IF EXISTS relation_distance;
+                    CREATE TABLE IF NOT EXISTS relation_distance (
+                        file_name TEXT,
+                        Token TEXT,
+                        Frequency INTEGER,
+                        Relational_distance REAL,
+                        PRIMARY KEY (file_name, Token)
                     );
                 )";
                 execute_sql(db, create_table_sql);
-                std::cout << "Table created successfully" << std::endl;
+                std::cout << "Tables created successfully" << std::endl;
             }
 
-            bool tirgger_once = true;
+            // Start a transaction to speed up multiple inserts
+            execute_sql(db, "BEGIN TRANSACTION;");
+
+            bool trigger_once = true;
             for (const std::filesystem::path& file : filtered_files) {
-                if (tirgger_once && is_dumped) {
-                    tirgger_once = false;
+                if (trigger_once && is_dumped) {
+                    trigger_once = false;
                     UTILITIES_HPP::Basic::reset_data_dumper(ENV_HPP::data_dumper_path);
                 }
 
                 std::map<std::string, int> json_map = TRANSFORMER::json_to_map(file);
 
                 DataEntry row = {
-                    .path = file,
+                    .path = file.stem().generic_string(),
                     .sum = TRANSFORMER::compute_sum_token_json(json_map),
                     .num_unique_tokens = TRANSFORMER::count_unique_tokens(json_map),
                     .relational_distance = TRANSFORMER::Pythagoras(json_map),
                 };
-                
-                row.filtered_tokens = TRANSFORMER::token_filter(json_map,
-                                                                ENV_HPP::max_length,
-                                                                ENV_HPP::min_value,
-                                                                row.relational_distance);
+
+                row.filtered_tokens = TRANSFORMER::token_filter(json_map, ENV_HPP::max_length, ENV_HPP::min_value, row.relational_distance);
 
                 // Dump the contents of a DataEntry to a file
-                if(is_dumped) UTILITIES_HPP::Basic::data_entry_dump(row);
+                if (is_dumped) UTILITIES_HPP::Basic::data_entry_dump(row);
 
-                // Update or insert the row into the database
-                if (reset_table) {
-                    // Insert the row into the database
-                    std::string insert_sql = R"(
-                        INSERT INTO DataDump (file_name, Total_tokens, Unique_tokens, Relational_distance)
-                        VALUES (?, ?, ?, ?);
-                    )";
-                    sqlite3_stmt* stmt;
-                    sqlite3_prepare_v2(db, insert_sql.c_str(), -1, &stmt, NULL);
-                    sqlite3_bind_text(stmt, 1, row.path.string().c_str(), -1, SQLITE_STATIC);
-                    sqlite3_bind_int(stmt, 2, row.sum);
-                    sqlite3_bind_int(stmt, 3, row.num_unique_tokens);
-                    sqlite3_bind_double(stmt, 4, row.relational_distance);
+                // Insert the row into file_token table using a prepared statement
+                std::string insert_sql = R"(
+                    INSERT OR REPLACE INTO file_token (file_name, Total_tokens, Unique_tokens, Relational_distance)
+                    VALUES (?, ?, ?, ?);
+                )";
+                sqlite3_stmt* stmt;
+                sqlite3_prepare_v2(db, insert_sql.c_str(), -1, &stmt, nullptr);
+                sqlite3_bind_text(stmt, 1, row.path.c_str(), -1, SQLITE_STATIC);
+                sqlite3_bind_int(stmt, 2, row.sum);
+                sqlite3_bind_int(stmt, 3, row.num_unique_tokens);
+                sqlite3_bind_double(stmt, 4, row.relational_distance);
+                sqlite3_step(stmt);
+                sqlite3_finalize(stmt);
+
+                // Insert the filtered tokens into relation_distance table using a prepared statement
+                insert_sql = R"(
+                    INSERT OR REPLACE INTO relation_distance (file_name, Token, Frequency, Relational_distance)
+                    VALUES (?, ?, ?, ?);
+                )";
+                sqlite3_prepare_v2(db, insert_sql.c_str(), -1, &stmt, nullptr);
+                for (const auto& token : row.filtered_tokens) {
+                    sqlite3_bind_text(stmt, 1, row.path.c_str(), -1, SQLITE_STATIC);
+                    sqlite3_bind_text(stmt, 2, std::get<0>(token).c_str(), -1, SQLITE_STATIC);
+                    sqlite3_bind_int(stmt, 3, std::get<1>(token));
+                    sqlite3_bind_double(stmt, 4, std::get<2>(token));
                     sqlite3_step(stmt);
-                    sqlite3_finalize(stmt);
-
-                    // Insert the filtered token into a dedicated table
-                    insert_sql = R"(
-                        INSERT INTO RelationalDistance (file_name, Token, Frequency, Relational_distance)
-                        VALUES (?, ?, ?, ?);
-                    )";
-                    stmt;
-                    sqlite3_prepare_v2(db, insert_sql.c_str(), -1, &stmt, NULL);
-
-                    for (const std::tuple<std::string, int, double>& token : row.filtered_tokens) {
-                        sqlite3_bind_text(stmt, 1, row.path.string().c_str(), -1, SQLITE_STATIC);
-                        sqlite3_bind_text(stmt, 2, std::get<0>(token).c_str(), -1, SQLITE_STATIC);
-                        sqlite3_bind_int(stmt, 3, std::get<1>(token));
-                        sqlite3_bind_double(stmt, 4, std::get<2>(token));
-                        sqlite3_step(stmt);
-                    }
-                    sqlite3_finalize(stmt);
-                } else {
-                    // Update or append the row into the database
-                    std::string update_sql = R"(
-                        UPDATE DataDump
-                        SET Total_tokens = ?, Unique_tokens = ?, Relational_distance = ?
-                        WHERE file_name = ?;
-                    )";
-                    sqlite3_stmt* stmt;
-                    sqlite3_prepare_v2(db, update_sql.c_str(), -1, &stmt, NULL);
-                    sqlite3_bind_int(stmt, 1, row.sum);
-                    sqlite3_bind_int(stmt, 2, row.num_unique_tokens);
-                    sqlite3_bind_double(stmt, 3, row.relational_distance);
-                    sqlite3_bind_text(stmt, 4, row.path.string().c_str(), -1, SQLITE_STATIC);
-                    sqlite3_step(stmt);
-                    sqlite3_finalize(stmt);
-
-                    // Update or append the filtered token into a dedicated table
-                    update_sql = R"(
-                        UPDATE RelationalDistance
-                        SET Frequency = ?, Relational_distance = ?
-                        WHERE file_name = ? AND Token = ?;
-                    )";
-                    stmt;
-                    sqlite3_prepare_v2(db, update_sql.c_str(), -1, &stmt, NULL);
-                    for (const std::tuple<std::string, int, double>& token : row.filtered_tokens) {
-                        sqlite3_bind_int(stmt, 1, std::get<1>(token));
-                        sqlite3_bind_double(stmt, 2, std::get<2>(token));
-                        sqlite3_bind_text(stmt, 3, row.path.string().c_str(), -1, SQLITE_STATIC);
-                        sqlite3_bind_text(stmt, 4, std::get<0>(token).c_str(), -1, SQLITE_STATIC);
-                        sqlite3_step(stmt);
-                    }
-                    sqlite3_finalize(stmt);
+                    sqlite3_reset(stmt); // Reset the statement for re-use
                 }
+                sqlite3_finalize(stmt);
 
-                if (show_progress) std::cout << "Processed: " << file << std::endl;
+                if (show_progress) {
+                    std::cout << "Processed: " << file << std::endl;
+                }
             }
+
+            // Commit the transaction to apply all inserts
+            execute_sql(db, "COMMIT TRANSACTION;");
+
+            // Re-enable synchronous mode (optional, depending on your use case)
+            execute_sql(db, "PRAGMA synchronous = FULL;");
+
+            // Close the SQLite database connection
             sqlite3_close(db);
             std::cout << "Computing relational distance data finished" << std::endl;
         } catch (const std::exception& e) {
@@ -215,6 +192,7 @@ namespace FEATURE {
             
             if (reset_table) {
                 std::string create_table_sql = R"(
+                    DROP TABLE IF EXISTS FILE_INFO;
                     CREATE TABLE IF NOT EXISTS FILE_INFO (
                     id TEXT PRIMARY KEY,
                     file_name TEXT NOT NULL,

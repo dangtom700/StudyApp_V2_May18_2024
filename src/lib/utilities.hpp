@@ -10,7 +10,7 @@
 #include "env.hpp"  // Include ENV_HPP definition
 
 struct DataEntry {  // Make sure this struct is defined
-    std::filesystem::path path;
+    std::string path;
     int sum;
     int num_unique_tokens;
     std::vector<std::tuple<std::string, int, double>> filtered_tokens;
@@ -98,7 +98,7 @@ namespace UTILITIES_HPP {
                 std::cout << "Could not open main file" << std::endl;
                 return;
             }
-            main_file << entry.path.stem() << ", " << entry.sum << ", " << entry.num_unique_tokens << ", " << entry.relational_distance << std::endl;
+            main_file << entry.path << ", " << entry.sum << ", " << entry.num_unique_tokens << ", " << entry.relational_distance << std::endl;
 
             // Construct the path for the filtered file
             std::ofstream filtered_file(ENV_HPP::filtered_data_path.string(), std::ios::app);// Append to file
@@ -108,7 +108,7 @@ namespace UTILITIES_HPP {
             }
 
             for (const std::tuple<std::string, int, double>& token : entry.filtered_tokens) {
-                filtered_file << entry.path.stem() << ", " << std::get<0>(token) << ", " << std::get<1>(token) << ", " << std::get<2>(token) << std::endl;
+                filtered_file << entry.path << ", " << std::get<0>(token) << ", " << std::get<1>(token) << ", " << std::get<2>(token) << std::endl;
             }
         }
 
