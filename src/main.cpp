@@ -14,8 +14,8 @@ int main() {
     std::cout << "Number of files: " << filtered_files.size() << std::endl;
 
     std::cout << "Computing relational distance data..." << std::endl;
-    FEATURE::computeRelationalDistance(filtered_files);
-    std::cout << "Computing relational distance data finished" << std::endl;
+    FEATURE::computeRelationalDistance(filtered_files, false);
+    std::cout << "Finished: Relational distance data computed" << std::endl;
 
     return 0; // End of program
 }

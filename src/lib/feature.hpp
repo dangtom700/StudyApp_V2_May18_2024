@@ -19,7 +19,7 @@ namespace FEATURE {
      *
      * @param filtered_files A vector of file paths to process.
      */
-    void computeRelationalDistance(const std::vector<std::filesystem::path>& filtered_files) {
+    void computeRelationalDistance(const std::vector<std::filesystem::path>& filtered_files, bool show_progress = true) {
         try {
             bool trigger_once = true;
             for (const std::filesystem::path& file : filtered_files) {
@@ -38,6 +38,10 @@ namespace FEATURE {
 
                 row.filtered_tokens = TRANSFORMER::token_filter(json_map, ENV_HPP::max_length, ENV_HPP::min_value, row.relational_distance);
                 UTILITIES_HPP::Basic::data_entry_dump(row);
+
+                if (show_progress) {
+                    std::cout << "Processed: " << file << std::endl;
+                }
             }
             std::cout << "Computing relational distance data finished" << std::endl;
         } catch (const std::exception& e) {
