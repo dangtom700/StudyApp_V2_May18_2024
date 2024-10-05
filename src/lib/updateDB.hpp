@@ -83,16 +83,13 @@ namespace UPDATE_INFO {
         ss << std::hex << encoded_file_name;
         result.append(ss.str());
 
-        unsigned int encoded_time = (epoch_time & 0xFFFFFFFF) << 1;
-        ss << std::hex << encoded_time;
+        ss << std::hex << epoch_time;
         result.append(ss.str());
 
-
-        unsigned int encoded_starting_id = (starting_id & 0xFFFF);
-        ss << std::hex << encoded_starting_id;
+        ss << std::hex << starting_id;
         result.append(ss.str());
 
-        int redundancy = encoded_file_name ^ encoded_time ^ encoded_starting_id;
+        int redundancy = encoded_file_name ^ epoch_time ^ starting_id;
         ss << std::hex << redundancy;
         result.append(ss.str());
         
