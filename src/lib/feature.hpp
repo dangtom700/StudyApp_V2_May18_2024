@@ -6,6 +6,7 @@
 #include <map>
 #include <fstream>
 #include <memory> // For smart pointers
+#include <sqlite3.h>
 
 #include "utilities.hpp"
 #include "env.hpp"
@@ -47,6 +48,10 @@ namespace FEATURE {
         } catch (const std::exception& e) {
             std::cerr << "Error: " << e.what() << std::endl;
         }        
+    }
+
+    void populate_database(sqlite3* db, std::vector<std::filesystem::path> filtered_files) {
+
     }
 }
 
