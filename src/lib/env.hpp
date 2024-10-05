@@ -4,6 +4,9 @@
 #include <filesystem>
 
 namespace ENV_HPP {
+    // source paths
+    std::filesystem::path resource_path = "D:\\READING LIST";
+
     // get the main.cpp working directory, then go up one level, go onw level down to data folder
     std::filesystem::path data_root = std::filesystem::current_path() / ("data");
 
