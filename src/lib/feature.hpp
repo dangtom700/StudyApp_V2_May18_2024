@@ -14,6 +14,15 @@
 #include "updateDB.hpp"
 
 namespace FEATURE {
+    
+    /**
+     * Execute a SQL query on the given database.
+     *
+     * @param db The database to execute the query on.
+     * @param sql The SQL query to execute.
+     *
+     * @throws std::runtime_error if the query fails with an error message.
+     */
     void execute_sql(sqlite3* db, const std::string& sql) {
         char* errMsg;
         int exit = sqlite3_exec(db, sql.c_str(), nullptr, 0, &errMsg);
@@ -23,6 +32,17 @@ namespace FEATURE {
         }
     }
 
+    /**
+     * Compute the relational distance of each token in the given map of strings to
+     * integers and store the result in a SQLite database.
+     *
+     * @param filtered_files A vector of file paths to process.
+     * @param show_progress If true, print progress messages to the console.
+     * @param reset_table If true, reset the table before adding new data.
+     * @param is_dumped If true, dump the data to a file.
+     *
+     * @throws std::runtime_error if the database connection or query fails.
+     */
     void computeRelationalDistance(const std::vector<std::filesystem::path>& filtered_files,
                                 const bool show_progress = true,
                                 const bool reset_table = true,
@@ -164,6 +184,21 @@ namespace FEATURE {
     }
 
 
+    /**
+     * @brief Compute and store resource data from the given filtered files
+     * 
+     * @param filtered_files A vector of file paths to compute resource data from
+     * @param show_progress Whether to show progress in the console
+     * @param reset_table Whether to reset the resource data table, default is true
+     * @param is_dumped Whether to dump resource data to a file, default is true
+     * 
+     * This function will compute resource data from the given filtered files and store it in a database.
+     * The resource data includes the last write time, epoch time, chunk count, starting id, and ending id.
+     * The function will also dump the resource data to a file if is_dumped is true.
+     * If reset_table is true, the resource data table will be reset before computing the resource data.
+     * If show_progress is true, the progress will be shown in the console.
+     * If an error occurs, an error message will be printed to the console.
+     */
     void computeResourceData(const std::vector<std::filesystem::path>& filtered_files,
                              const bool& show_progress = true,
                              const bool& reset_table = true,
