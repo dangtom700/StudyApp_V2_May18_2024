@@ -17,6 +17,17 @@ struct DataEntry {  // Make sure this struct is defined
     double relational_distance;
 };
 
+struct DataInfo {
+    std::string id;
+    std::string file_name;
+    std::string file_path;
+    std::string last_write_time;
+    int epoch_time;
+    int chunk_count;
+    int starting_id;
+    int ending_id;
+};
+
 namespace UTILITIES_HPP {
     namespace Basic {
 
@@ -89,6 +100,12 @@ namespace UTILITIES_HPP {
             for (const std::tuple<std::string, int, double>& token : entry.filtered_tokens) {
                 filtered_file << entry.path.stem() << ", " << std::get<0>(token) << ", " << std::get<1>(token) << ", " << std::get<2>(token) << std::endl;
             }
+        }
+
+        // Extract specific data from given directory with other instructions
+        std::vector<std::filesystem::path> extract_data_files(const std::filesystem::path& target_folder, const bool& show_index = false, const std::string& extension) {
+            std::vector<std::filesystem::path> collected_files = UTILITIES_HPP::Basic::list_directory(target_folder, show_index);
+            return UTILITIES_HPP::Basic::filter_by_extension(collected_files, extension);
         }
 
     } // namespace Basic
