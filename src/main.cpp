@@ -1,12 +1,10 @@
 #include <iostream>
 #include <filesystem>
 #include <vector>
-#include <sqlite3.h>
 
 #include "lib/feature.hpp"
 #include "lib/env.hpp"
 #include "lib/utilities.hpp"
-#include "lib/updateDB.hpp"
 
 
 void option0(void){
@@ -21,12 +19,16 @@ void option1(void){
     std::vector<std::filesystem::path> filtered_files = UTILITIES_HPP::Basic::extract_data_files(ENV_HPP::json_path, true, ".json");
 
     std::cout << "Computing relational distance data..." << std::endl;
-    FEATURE::computeRelationalDistance(filtered_files, false);
+    FEATURE::computeRelationalDistance(filtered_files, true, true, true);
     std::cout << "Finished: Relational distance data computed" << std::endl;
 }
 
 void option2(void){
-    
+    std::vector<std::filesystem::path> filtered_files = UTILITIES_HPP::Basic::extract_data_files(ENV_HPP::resource_path, true, ".pdf");
+
+    std::cout << "Updating database information..." << std::endl;
+    FEATURE::computeResourceData(filtered_files, true, true, true);
+    std::cout << "Finished: Database information updated" << std::endl;
 }
 
 int main() {
@@ -58,6 +60,8 @@ int main() {
             std::cout << "Invalid option" << std::endl;
             break;
     }
+
+    std::cout << "Finished program" << std::endl;
 
     return 0; // End of program
 }
