@@ -29,6 +29,42 @@ struct DataInfo {
 
 namespace UTILITIES_HPP {
     namespace Basic {
+        std::string decToHexa(int n){
+            // ans string to store hexadecimal number
+            std::string ans = "";
+        
+            while (n != 0) {
+                // remainder variable to store remainder
+                int rem = 0;
+                
+                // ch variable to store each character
+                char ch;
+                // storing remainder in rem variable.
+                rem = n % 16;
+
+                // check if temp < 10
+                if (rem < 10) {
+                    ch = rem + 48;
+                }
+                else {
+                    ch = rem + 55;
+                }
+                
+                // updating the ans string with the character variable
+                ans += ch;
+                n = n / 16;
+            }
+            
+            // reversing the ans string to get the final result
+            int i = 0, j = ans.size() - 1;
+            while(i <= j)
+            {
+            std::swap(ans[i], ans[j]);
+            i++;
+            j--;
+            }
+            return ans;
+        }
         /**
          * @brief Compute the maximum of two integers using bitwise operations
          * @details This function takes two integers as input and returns the maximum of the two using bitwise operations.
