@@ -103,9 +103,7 @@ namespace UPDATE_INFO {
         std::stringstream ss;
         ss << std::hex << encoded_file_name << std::hex << encoded_starting_id;
         uint32_t redundancy = encoded_file_name ^ encoded_starting_id;
-        redundancy &= 0xFF;
-        ss << std::hex << encoded_file_name * encoded_starting_id << std::hex << redundancy;
-        return ss.str();
+        return UTILITIES_HPP::Basic::decToHexa(encoded_file_name * encoded_starting_id) + UTILITIES_HPP::Basic::decToHexa(redundancy);
     }
 
     /**
