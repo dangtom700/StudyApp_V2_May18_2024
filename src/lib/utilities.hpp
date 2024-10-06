@@ -21,7 +21,6 @@ struct DataInfo {
     std::string id;
     std::string file_name;
     std::string file_path;
-    std::string last_write_time;
     int epoch_time;
     int chunk_count;
     int starting_id;
@@ -30,6 +29,19 @@ struct DataInfo {
 
 namespace UTILITIES_HPP {
     namespace Basic {
+        /**
+         * @brief Compute the maximum of two integers using bitwise operations
+         * @details This function takes two integers as input and returns the maximum of the two using bitwise operations.
+         *          This is a more efficient way than using the ternary operator or an if-else statement.
+         * @param a an integer
+         * @param b an integer
+         * @return the maximum of a and b
+         */
+        int max(int a, int b){
+                int c = a - b;
+                int flag = (c >> 31) & 1;
+                return (a * !flag) + (b * flag);
+        }
 
         // List the files in the given directory and return them in a vector
         std::vector<std::filesystem::path> list_directory(const std::filesystem::path& path, bool show_index = false) {
@@ -88,7 +100,7 @@ namespace UTILITIES_HPP {
                 std::cout << "Could not open file" << std::endl;
                 return;
             }
-            file << "ID, File Name, File Path, Last Write Time, Epoch Time, Chunk Count, Starting ID, Ending ID" << std::endl;
+            file << "ID, File Name, File Path, Epoch Time, Chunk Count, Starting ID, Ending ID" << std::endl;
         }
 
         // Dump the contents of a DataEntry to a file
@@ -122,7 +134,6 @@ namespace UTILITIES_HPP {
             file << info.id << ", "
                  << info.file_name << ", "
                  << info.file_path << ", "
-                 << info.last_write_time << ", "
                  << info.epoch_time << ", "
                  << info.chunk_count << ", "
                  << info.starting_id << ", "
