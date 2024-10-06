@@ -8,6 +8,7 @@
 #include <iostream>
 #include <tuple>
 #include "env.hpp"  // Include ENV_HPP definition
+#include <algorithm>
 
 struct DataEntry {  // Make sure this struct is defined
     std::string path;
@@ -29,42 +30,30 @@ struct DataInfo {
 
 namespace UTILITIES_HPP {
     namespace Basic {
-        std::string decToHexa(int n){
-            // ans string to store hexadecimal number
-            std::string ans = "";
-        
-            while (n != 0) {
-                // remainder variable to store remainder
-                int rem = 0;
-                
-                // ch variable to store each character
-                char ch;
-                // storing remainder in rem variable.
-                rem = n % 16;
+        std::string convertToBackslash(const std::string& path) {
+        std::string modified_path = path;
+        std::replace(modified_path.begin(), modified_path.end(), '/', '\\');
+        return modified_path;
+        }
 
-                // check if temp < 10
-                if (rem < 10) {
-                    ch = rem + 48;
-                }
-                else {
-                    ch = rem + 55;
-                }
-                
-                // updating the ans string with the character variable
-                ans += ch;
+        std::string decToHexa(int n) {
+            if (n == 0) return "0";  // Handle the case when the number is 0
+
+            std::string ans = "";
+            const std::string hexChars = "0123456789ABCDEF";  // Characters used in hexadecimal representation
+
+            // Convert the decimal number to hexadecimal
+            while (n != 0) {
+                int rem = n % 16;
+                ans += hexChars[rem];  // Append the corresponding character to the result string
                 n = n / 16;
             }
-            
-            // reversing the ans string to get the final result
-            int i = 0, j = ans.size() - 1;
-            while(i <= j)
-            {
-            std::swap(ans[i], ans[j]);
-            i++;
-            j--;
-            }
+
+            // Reverse the string to get the correct hexadecimal representation
+            std::reverse(ans.begin(), ans.end());
             return ans;
         }
+
         /**
          * @brief Compute the maximum of two integers using bitwise operations
          * @details This function takes two integers as input and returns the maximum of the two using bitwise operations.

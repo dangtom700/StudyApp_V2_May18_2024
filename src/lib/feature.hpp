@@ -231,11 +231,11 @@ namespace FEATURE {
                 // Process the file
                 DataInfo entry = {
                     .file_name = file.stem().generic_string(),
-                    .file_path = file.generic_string(),
+                    .file_path = UTILITIES_HPP::Basic::convertToBackslash(file.generic_string()),
                     .epoch_time = UPDATE_INFO::get_epoch_time(file),
                     .chunk_count = UPDATE_INFO::count_chunk_for_each_title(db, entry.file_path),
                     .starting_id = UPDATE_INFO::get_starting_id(db, entry.file_path),
-                    .ending_id = UPDATE_INFO::get_ending_id(db, entry.file_path)
+                    .ending_id = UPDATE_INFO::get_ending_id(db, entry.file_path),
                 };
 
                 entry.id = UPDATE_INFO::create_unique_id(entry.file_path, entry.epoch_time, entry.chunk_count, entry.starting_id);

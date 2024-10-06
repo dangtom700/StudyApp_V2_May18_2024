@@ -28,7 +28,7 @@ void option2(void){// Not yet optimized
     std::vector<std::filesystem::path> filtered_files = UTILITIES_HPP::Basic::extract_data_files(ENV_HPP::resource_path, false, ".pdf");
 
     std::cout << "Updating database information..." << std::endl;
-    FEATURE::computeResourceData(filtered_files, true, true, true);
+    FEATURE::computeResourceData(filtered_files, false, true, true);
     std::cout << "Finished: Database information updated" << std::endl;
 }
 
