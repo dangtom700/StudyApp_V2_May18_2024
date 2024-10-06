@@ -22,7 +22,23 @@ namespace UPDATE_INFO {
      * @return The last write time of the file in epoch time format
      */
     int get_epoch_time(const std::filesystem::path& path) {
-        return (int)std::filesystem::last_write_time(path).time_since_epoch().count();
+        try {
+            // Get the last write time of the file
+            auto ftime = std::filesystem::last_write_time(path);
+
+            // Convert file time to system time
+            auto sctp = std::chrono::time_point_cast<std::chrono::system_clock::duration>(
+                ftime - decltype(ftime)::clock::now() + std::chrono::system_clock::now()
+            );
+
+            // Get the epoch time in seconds
+            auto epoch_time = std::chrono::system_clock::to_time_t(sctp);
+
+            return static_cast<int>(epoch_time);
+        } catch (const std::filesystem::filesystem_error& e) {
+            std::cerr << "Error getting last write time for file: " << e.what() << std::endl;
+            return -1; // Return -1 to indicate an error occurred
+        }
     }
 
     /**
@@ -71,29 +87,25 @@ namespace UPDATE_INFO {
      * redundancy.
      */
     std::string create_unique_id(const std::filesystem::path& path, const int& epoch_time, const int& chunk_count, const int& starting_id) {
-        std::stringstream ss;
-        std::string result;
-
-        unsigned int encoded_file_name = 0;
-        unsigned int chunk_factor = 1 << (chunk_count - 1);
-        for (char c : path.string()) {
-            encoded_file_name += int(c);
-        }
-        encoded_file_name *= chunk_factor;
-        ss << std::hex << encoded_file_name;
-        result.append(ss.str());
-
-        ss << std::hex << epoch_time;
-        result.append(ss.str());
-
-        ss << std::hex << starting_id;
-        result.append(ss.str());
-
-        int redundancy = encoded_file_name ^ epoch_time ^ starting_id;
-        ss << std::hex << redundancy;
-        result.append(ss.str());
+        uint64_t encoded_file_name = 0;
         
-        return result;
+        for(char c : path.generic_string()) {
+            encoded_file_name += (uint8_t)c;
+        }
+        encoded_file_name *= UTILITIES_HPP::Basic::max(1, chunk_count);
+        encoded_file_name *= epoch_time;
+        encoded_file_name &= 0xFFFFFFFFFFFFFFFF;
+
+        int mod_starting_id = starting_id == 0 ? epoch_time%3600 : starting_id;
+        uint32_t encoded_starting_id = mod_starting_id * ((chunk_count + 1) << 1);
+        encoded_starting_id &= 0xFFFFFFFF;
+
+        std::stringstream ss;
+        ss << std::hex << encoded_file_name << std::hex << encoded_starting_id;
+        uint32_t redundancy = encoded_file_name ^ encoded_starting_id;
+        redundancy &= 0xFF;
+        ss << std::hex << encoded_file_name * encoded_starting_id << std::hex << redundancy;
+        return ss.str();
     }
 
     /**
