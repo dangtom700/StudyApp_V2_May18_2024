@@ -39,24 +39,24 @@ def app():
         """
         chunk_size = 2000
         # extract_text
-        updateLog.print_and_log("Extracting text from PDF files...")
+        print("Extracting text from PDF files...")
         extract_text.extract_text(CHUNK_SIZE=chunk_size, FOLDER_PATH=path.pdf_path, chunk_database_path=path.chunk_database_path)
-        updateLog.print_and_log("Finished extracting text from PDF files.")
+        print("Finished extracting text from PDF files.")
         # update_database
-        updateLog.print_and_log("Updating database from log file...")
+        print("Updating database from log file...")
         updateLog.store_log_file_to_database(path.log_file_path)
-        updateLog.print_and_log("Finished updating database from log file.")
+        print("Finished updating database from log file.")
         # announce finish
         updateLog.get_time_performance(start_time, "Text extracting time")
     
     if args.processWordFreq:
         start_time = datetime.now()
 
-        updateLog.print_and_log("Processing word frequencies...")
+        print("Processing word frequencies...")
         word_freq.process_word_frequencies_in_batches()
-        updateLog.print_and_log("Finished processing word frequencies.")
+        print("Finished processing word frequencies.")
 
-        updateLog.print_and_log("Exporting word frequency analysis...")
+        print("Exporting word frequency analysis...")
         word_freq.getWordFrequencyAnalysis(threshold= 0.96)
         
         # announce finish
@@ -65,7 +65,7 @@ def app():
     if args.promptFindingReference:
         start_time = datetime.now()
         
-        updateLog.print_and_log("Finding references...")
+        print("Finding references...")
         # Some logic goes right here
         
 

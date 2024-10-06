@@ -32,11 +32,7 @@ def store_log_file_to_database(log_file_path: str) -> None:
     with open(log_file_path, 'w') as log_file:
         pass
 
-def print_and_log(message: str, message_type = "PROGRESS") -> None:
-    print(message)
-    log_message(message, message_type)
-
 def get_time_performance(start_time: datetime.datetime, message: str) -> None:
     end_time = datetime.datetime.now()
     time_diff = end_time - start_time
-    print_and_log(f"{message} took {time_diff} seconds")
+    print(f"{message} took {time_diff} seconds")

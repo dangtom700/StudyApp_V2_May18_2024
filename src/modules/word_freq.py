@@ -7,7 +7,6 @@ from shutil import rmtree
 from modules.path import chunk_database_path, token_json_path
 from nltk.stem import PorterStemmer
 from nltk.corpus import stopwords
-from modules.updateLog import print_and_log
 from concurrent.futures import ThreadPoolExecutor
 from json import dump
 
@@ -73,7 +72,7 @@ def retrieve_token_list(title_id, database):
                 clean_text_dict[word] += freq
 
     except Exception as e:
-        print_and_log(f"Error retrieving token list for title ID {title_id}: {e}")
+        print(f"Error retrieving token list for title ID {title_id}: {e}")
     finally:
         conn.close()  # Close the connection to avoid memory leaks
 
@@ -105,7 +104,7 @@ def process_chunks_in_batches(database):
             with open(json_file_path, 'w', encoding='utf-8') as f:
                 dump(word_freq, f, ensure_ascii=False, indent=4)
 
-    print_and_log("All titles processed and word frequencies stored in individual JSON files.")
+    print("All titles processed and word frequencies stored in individual JSON files.")
 
     # Insert global word frequencies into the database in small batches
     batch_size = 1000
@@ -119,7 +118,7 @@ def process_chunks_in_batches(database):
 
     conn.commit()
     conn.close()
-    print_and_log("Global word frequencies inserted into the database.")
+    print("Global word frequencies inserted into the database.")
 
 # Main function to process word frequencies in batches
 def process_word_frequencies_in_batches():
@@ -142,9 +141,9 @@ def process_word_frequencies_in_batches():
 
     empty_folder(folder_path=token_json_path)
 
-    print_and_log("Starting batch processing of chunks...")
+    print("Starting batch processing of chunks...")
     process_chunks_in_batches(database=chunk_database_path)
-    print_and_log("Processing word frequencies complete.")
+    print("Processing word frequencies complete.")
     conn.commit()
     conn.close()
 
