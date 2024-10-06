@@ -24,7 +24,7 @@ void option1(void){// Up and running, memory saved, optimized for data insertion
     std::cout << "Finished: Relational distance data computed" << std::endl;
 }
 
-void option2(void){// Not yet optimized
+void option2(void){// Up and running, memory saved, optimized for data insertion speed and efficiency
     std::vector<std::filesystem::path> filtered_files = UTILITIES_HPP::Basic::extract_data_files(ENV_HPP::resource_path, false, ".pdf");
 
     std::cout << "Updating database information..." << std::endl;

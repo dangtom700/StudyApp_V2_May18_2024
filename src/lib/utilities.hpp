@@ -8,6 +8,7 @@
 #include <iostream>
 #include <tuple>
 #include "env.hpp"  // Include ENV_HPP definition
+#include <algorithm>
 
 struct DataEntry {  // Make sure this struct is defined
     std::string path;
@@ -30,9 +31,28 @@ struct DataInfo {
 namespace UTILITIES_HPP {
     namespace Basic {
         std::string convertToBackslash(const std::string& path) {
-        std::string modified_path = path;
-        std::replace(modified_path.begin(), modified_path.end(), '/', '\\');
-        return modified_path;
+            std::string modified_path = path;
+            std::replace(modified_path.begin(), modified_path.end(), '/', '\\');
+            return modified_path;
+        }
+
+        std::string decToHexa(int n) {
+            if (n == 0) return "0";  // Handle the case when the number is 0
+
+            std::string ans = "";
+            const std::string hexChars = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";  // Characters used in hexadecimal representation
+            const int base = hexChars.length();
+
+            // Convert the decimal number to hexadecimal
+            while (n != 0) {
+                int rem = n % base;
+                ans += hexChars[rem];  // Append the corresponding character to the result string
+                n = n / base;
+            }
+
+            // Reverse the string to get the correct hexadecimal representation
+            std::reverse(ans.begin(), ans.end());
+            return ans;
         }
 
         /**
@@ -126,13 +146,17 @@ namespace UTILITIES_HPP {
             }
 
             for (const std::tuple<std::string, int, double>& token : entry.filtered_tokens) {
-                filtered_file << entry.path << ", " << std::get<0>(token) << ", " << std::get<1>(token) << ", " << std::get<2>(token) << std::endl;
+                filtered_file << entry.path << ", " 
+                              << std::get<0>(token) << ", " 
+                              << std::get<1>(token) << ", " 
+                              << std::get<2>(token)
+                              << std::endl;
             }
         }
 
         // Dump the contents of a DataInfo to a file
         void data_info_dump(const DataInfo& info) {
-            std::ofstream file(ENV_HPP::data_info_path.string(), std::ios::app); // Append to file
+            std::ofstream file(ENV_HPP::data_info_path.string(), std::ios::app | std::ios::binary);
             if (!file.is_open()) {
                 std::cout << "Could not open file" << std::endl;
                 return;

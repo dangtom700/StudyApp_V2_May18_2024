@@ -196,8 +196,8 @@ namespace FEATURE {
             // Create or reset the table if required
             if (reset_table) {
                 std::string create_table_sql = R"(
-                    DROP TABLE IF EXISTS FILE_INFO;
-                    CREATE TABLE IF NOT EXISTS FILE_INFO (
+                    DROP TABLE IF EXISTS file_info;
+                    CREATE TABLE IF NOT EXISTS file_info (
                         id TEXT PRIMARY KEY,
                         file_name TEXT NOT NULL,
                         file_path TEXT NOT NULL,
@@ -215,7 +215,7 @@ namespace FEATURE {
 
             // Prepare the insert statement (using "INSERT OR REPLACE" to handle both insert/update)
             std::string insert_sql = R"(
-                INSERT OR REPLACE INTO FILE_INFO (id, file_name, file_path, epoch_time, chunk_count, starting_id, ending_id)
+                INSERT OR REPLACE INTO file_info (id, file_name, file_path, epoch_time, chunk_count, starting_id, ending_id)
                 VALUES (?, ?, ?, ?, ?, ?, ?);
             )";
             sqlite3_stmt* stmt;
@@ -254,7 +254,7 @@ namespace FEATURE {
 
                 // Execute the statement
                 if (sqlite3_step(stmt) != SQLITE_DONE) {
-                    std::cerr << "Error inserting into FILE_INFO: " << sqlite3_errmsg(db) << std::endl;
+                    std::cerr << "Error inserting into file_info: " << sqlite3_errmsg(db) << std::endl;
                 }
 
                 // Reset the statement to use it again
