@@ -86,24 +86,33 @@ namespace UPDATE_INFO {
      * calculated by XORing the encoded values together. The resulting string is concatenation of the encoded values and the
      * redundancy.
      */
+
     std::string create_unique_id(const std::filesystem::path& path, const int& epoch_time, const int& chunk_count, const int& starting_id) {
+        // Calculate encoded file name
         uint64_t encoded_file_name = 0;
-        
-        for(char c : path.generic_string()) {
-            encoded_file_name += (uint8_t)c;
+        for (char c : path.generic_string()) {
+            encoded_file_name += static_cast<uint8_t>(c);
         }
-        encoded_file_name *= UTILITIES_HPP::Basic::max(1, chunk_count);
+        encoded_file_name *= std::max(1, chunk_count);  // Ensure chunk_count is at least 1
         encoded_file_name *= epoch_time;
-        encoded_file_name &= 0xFFFFFFFFFFFFFFFF;
+        encoded_file_name &= 0xFFFFFFFFFFFFFFFF;  // Limit to 64 bits
 
-        int mod_starting_id = starting_id == 0 ? epoch_time%3600 : starting_id;
-        uint32_t encoded_starting_id = mod_starting_id * ((chunk_count + 1) << 1);
-        encoded_starting_id &= 0xFFFFFFFF;
+        // Calculate encoded starting ID
+        int mod_starting_id = (starting_id == 0) ? (epoch_time % 3600) : starting_id;
+        uint32_t encoded_starting_id = static_cast<uint32_t>(mod_starting_id * ((chunk_count + 1) << 1));
+        encoded_starting_id &= 0xFFFFFFFF;  // Limit to 32 bits
 
+        // Use stringstream to generate hexadecimal representation
         std::stringstream ss;
-        ss << std::hex << encoded_file_name << std::hex << encoded_starting_id;
-        uint32_t redundancy = encoded_file_name ^ encoded_starting_id;
-        return UTILITIES_HPP::Basic::decToHexa(encoded_file_name * encoded_starting_id) + UTILITIES_HPP::Basic::decToHexa(redundancy);
+        ss << std::hex << encoded_file_name << std::setw(8) << std::setfill('0') << encoded_starting_id;
+
+        // Calculate redundancy value
+        uint32_t redundancy = static_cast<uint32_t>(encoded_file_name ^ encoded_starting_id);
+
+        // Append redundancy value in hexadecimal format
+        ss << std::setw(8) << std::setfill('0') << redundancy;
+
+        return ss.str();
     }
 
     /**

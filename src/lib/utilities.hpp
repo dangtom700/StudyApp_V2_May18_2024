@@ -40,13 +40,13 @@ namespace UTILITIES_HPP {
             if (n == 0) return "0";  // Handle the case when the number is 0
 
             std::string ans = "";
-            const std::string hexChars = "0123456789ABCDEF";  // Characters used in hexadecimal representation
+            const std::string hexChars = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";  // Characters used in hexadecimal representation
 
             // Convert the decimal number to hexadecimal
             while (n != 0) {
-                int rem = n % 16;
+                int rem = n % 62;
                 ans += hexChars[rem];  // Append the corresponding character to the result string
-                n = n / 16;
+                n = n / 62;
             }
 
             // Reverse the string to get the correct hexadecimal representation
