@@ -4,7 +4,6 @@ import modules.updateLog as updateLog
 import modules.path as path
 import modules.extract_text as extract_text
 import modules.word_freq as word_freq
-import modules.updateDB as updateDB
 
 def app():
 
@@ -12,20 +11,9 @@ def app():
                                      description="This project is to meant to store record of learning activities. The files and record of activities are then transfer into database that show user the timeline and activities done in that day.",
                                      add_help=True,
                                      allow_abbrev=True)
-    """
-    Operation order:
-    1. Extract text from PDF files
-    2. Update database
-    3. Process word frequencies
-    4. Analyze word frequencies
-    5.1. Count word frequencies according to title
-    5.2. Vectorize titles
-    6. Categorize reading material
-    """
+
     parser.add_argument("--extractText", action= 'store_true', help= 'Extract text from PDF files and store in database')
-    parser.add_argument("--updateDatabase", action= 'store_true', help="Create index tables and analyze word frequencies all in one")
     parser.add_argument("--processWordFreq", action= 'store_true', help="Create index tables and analyze word frequencies all in one")
-    parser.add_argument("--analyzeWordFreq", action= 'store_true', help="Export a list of word frequency analysis in .md format")
     parser.add_argument("--promptFindingReference", type=str, help="Prompt to find references in full database based on context of search")
 
     args = parser.parse_args()
@@ -60,17 +48,6 @@ def app():
         updateLog.print_and_log("Finished updating database from log file.")
         # announce finish
         updateLog.get_time_performance(start_time, "Text extracting time")
-
-    if args.updateDatabase: # function is functioning properly
-        start_time = datetime.now()
-        
-        updateLog.print_and_log("Update file information to database...")
-        # create_index_tables
-        updateLog.print_and_log("Extracting files...")
-        updateDB.create_index_table(path.pdf_path, "pdf")
-        updateLog.print_and_log("Finished extracting files.")
-        # announce finish
-        updateLog.get_time_performance(start_time, "Update file information")
     
     if args.processWordFreq:
         start_time = datetime.now()
@@ -78,17 +55,12 @@ def app():
         updateLog.print_and_log("Processing word frequencies...")
         word_freq.process_word_frequencies_in_batches()
         updateLog.print_and_log("Finished processing word frequencies.")
+
+        updateLog.print_and_log("Exporting word frequency analysis...")
+        word_freq.getWordFrequencyAnalysis(threshold= 0.96)
         
         # announce finish
         updateLog.get_time_performance(start_time, "Word frequency processing time")
-
-    if args.analyzeWordFreq: # function is functioning properly
-        start_time = datetime.now()
-        
-        updateLog.print_and_log("Exporting word frequency analysis...")
-        word_freq.getWordFrequencyAnalysis(threshold= 0.96)
-        # announce finish
-        updateLog.get_time_performance(start_time, "Word frequency analysis")
 
     if args.promptFindingReference:
         start_time = datetime.now()

@@ -43,7 +43,7 @@ def clean_text(text):
 
 # Retrieve title IDs from the database
 def get_title_ids(cursor):
-    cursor.execute("SELECT id, file_name FROM file_list WHERE file_type = 'pdf' AND chunk_count > 0")
+    cursor.execute("SELECT id, file_name FROM file_info WHERE chunk_count > 0")
     return {title[1]: title[0] for title in cursor.fetchall()}
 
 # Retrieve and clean text chunks for a single title using a generator
@@ -52,7 +52,7 @@ def retrieve_token_list(title_id, database):
     cursor = conn.cursor()
 
     try:
-        cursor.execute("SELECT chunk_count, start_id FROM file_list WHERE file_name = ?", (title_id,))
+        cursor.execute("SELECT chunk_count, starting_id FROM file_info WHERE file_name = ?", (title_id,))
         result = cursor.fetchone()
 
         if result is None:
