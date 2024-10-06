@@ -8,7 +8,6 @@
 #include <iostream>
 #include <tuple>
 #include "env.hpp"  // Include ENV_HPP definition
-#include <algorithm>
 
 struct DataEntry {  // Make sure this struct is defined
     std::string path;
@@ -34,24 +33,6 @@ namespace UTILITIES_HPP {
         std::string modified_path = path;
         std::replace(modified_path.begin(), modified_path.end(), '/', '\\');
         return modified_path;
-        }
-
-        std::string decToHexa(int n) {
-            if (n == 0) return "0";  // Handle the case when the number is 0
-
-            std::string ans = "";
-            const std::string hexChars = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";  // Characters used in hexadecimal representation
-
-            // Convert the decimal number to hexadecimal
-            while (n != 0) {
-                int rem = n % 62;
-                ans += hexChars[rem];  // Append the corresponding character to the result string
-                n = n / 62;
-            }
-
-            // Reverse the string to get the correct hexadecimal representation
-            std::reverse(ans.begin(), ans.end());
-            return ans;
         }
 
         /**

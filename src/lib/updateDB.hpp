@@ -9,12 +9,36 @@
 #include <iomanip>
 #include <chrono>
 #include <sstream>
+#include <algorithm>
 
 #include "env.hpp"
 #include "utilities.hpp"
 
 namespace UPDATE_INFO {
-    
+    /**
+     * Converts a decimal number to a hexadecimal string using Base62 encoding.
+     * This function is used to shorten the file name in the database.
+     *
+     * @param n The decimal number to be converted.
+     * @return The hexadecimal string representation of the number.
+     */
+    std::string decToHexa(int n) {
+        if (n == 0) return "0";  // Handle the case when the number is 0
+
+        std::string ans = "";
+        const std::string hexChars = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";  // Characters used in hexadecimal representation
+
+        // Convert the decimal number to hexadecimal
+        while (n != 0) {
+            int rem = n % 62;
+            ans += hexChars[rem];  // Append the corresponding character to the result string
+            n = n / 62;
+        }
+
+        // Reverse the string to get the correct hexadecimal representation
+        std::reverse(ans.begin(), ans.end());
+        return ans;
+    }    
     /**
      * @brief Get the last write time of a file in epoch time format (seconds since January 1, 1970, 00:00:00 UTC)
      * 
@@ -86,9 +110,8 @@ namespace UPDATE_INFO {
      * calculated by XORing the encoded values together. The resulting string is concatenation of the encoded values and the
      * redundancy.
      */
-
     std::string create_unique_id(const std::filesystem::path& path, const int& epoch_time, const int& chunk_count, const int& starting_id) {
-        // Calculate encoded file name
+        // Encode the file name to create a base value
         uint64_t encoded_file_name = 0;
         for (char c : path.generic_string()) {
             encoded_file_name += static_cast<uint8_t>(c);
@@ -97,22 +120,21 @@ namespace UPDATE_INFO {
         encoded_file_name *= epoch_time;
         encoded_file_name &= 0xFFFFFFFFFFFFFFFF;  // Limit to 64 bits
 
-        // Calculate encoded starting ID
+        // Encode the starting ID
         int mod_starting_id = (starting_id == 0) ? (epoch_time % 3600) : starting_id;
-        uint32_t encoded_starting_id = static_cast<uint32_t>(mod_starting_id * ((chunk_count + 1) << 1));
+        uint32_t encoded_starting_id = mod_starting_id * ((chunk_count + 1) << 1);
         encoded_starting_id &= 0xFFFFFFFF;  // Limit to 32 bits
 
-        // Use stringstream to generate hexadecimal representation
-        std::stringstream ss;
-        ss << std::hex << encoded_file_name << std::setw(8) << std::setfill('0') << encoded_starting_id;
+        // Use the provided decToHexa() function to generate the compact representation
+        std::string file_name_hex = decToHexa(static_cast<int>(encoded_file_name));
+        std::string starting_id_hex = decToHexa(static_cast<int>(encoded_starting_id));
 
-        // Calculate redundancy value
+        // Calculate a redundancy value
         uint32_t redundancy = static_cast<uint32_t>(encoded_file_name ^ encoded_starting_id);
+        std::string redundancy_hex = decToHexa(redundancy);
 
-        // Append redundancy value in hexadecimal format
-        ss << std::setw(8) << std::setfill('0') << redundancy;
-
-        return ss.str();
+        // Combine everything into a single unique ID
+        return file_name_hex + starting_id_hex + redundancy_hex;
     }
 
     /**
