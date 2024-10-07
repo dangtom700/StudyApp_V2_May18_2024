@@ -4,12 +4,11 @@ import re
 import nltk
 from collections import defaultdict
 from shutil import rmtree
-from modules.path import chunk_database_path, token_json_path
+from modules.path import chunk_database_path, token_json_path, buffer_json_path
 from nltk.stem import PorterStemmer
 from nltk.corpus import stopwords
 from concurrent.futures import ThreadPoolExecutor
 from json import dump
-from math import sqrt
 
 # One-time compiled regex pattern
 REPEATED_CHAR_PATTERN = re.compile(r"([a-zA-Z])\1{2,}")
@@ -210,7 +209,7 @@ def getWordFrequencyAnalysis(BATCH_SIZE=1000, threshold=0.96) -> int:
 
     return rows_inserted
 
-def promptFindingReference(numberReferences: int, chunk_database_path: str) -> None:
+def promptFindingReference() -> None:
     # Enter the prompt
     prompt = input("Enter prompt: ")
 
@@ -220,48 +219,7 @@ def promptFindingReference(numberReferences: int, chunk_database_path: str) -> N
     # Check if cleaned prompt is empty
     if not cleaned_prompt:
         print("No valid words found in the prompt.")
-        return
 
-    # Calculate Pythagorean sum for normalization
-    pythagorean_sum = sqrt(sum(freq ** 2 for freq in cleaned_prompt.values()))
-
-    # Normalize frequencies
-    prompt_dict = {word: freq / pythagorean_sum for word, freq in cleaned_prompt.items()}
-
-    print("Finished processing prompt. Finding references...")
-
-    try:
-        # Connect to the database
-        conn = sqlite3.connect(chunk_database_path)
-        cursor = conn.cursor()
-
-        # Find references
-        placeholders = ','.join('?' for _ in prompt_dict.keys())
-        clean_up_references = cursor.execute(
-            f"SELECT file_name, Token, Relational_distance FROM relation_distance WHERE Token IN ({placeholders})",
-            list(prompt_dict.keys())
-        ).fetchall()
-
-        # Aggregate similarity scores
-        reference_dict = defaultdict(float)
-        for reference in clean_up_references:
-            reference_dict[reference[0]] += reference[2] * prompt_dict.get(reference[1], 0)
-
-        # Sort references by similarity score
-        sorted_references = sorted(reference_dict.items(), key=lambda x: x[1], reverse=True)
-        print("Finished sorting references.")
-
-        # Print top references
-        for index, reference in enumerate(sorted_references[:numberReferences], 1):
-            # Look up the encoded id for the actual file name
-            ## Remove the "title_" prefix
-            file_name = cursor.execute("SELECT file_name FROM file_info WHERE id = ?", (reference[0].removeprefix("title_"),)).fetchone()[0]
-            print(f"{index}. Code: {reference[0]}\tSimilarity: {reference[1]}\tFile: {file_name}")
-
-    except sqlite3.Error as e:
-        print(f"Database error: {e}")
-    except Exception as e:
-        print(f"An error occurred: {e}")
-    finally:
-        if 'conn' in locals():
-            conn.close()
+    # Dump the cleaned prompt to the buffer.json file
+    with open(buffer_json_path, "w") as f:
+        dump(cleaned_prompt, f, ensure_ascii=False, indent=4)

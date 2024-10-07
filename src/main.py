@@ -15,7 +15,7 @@ def app():
     parser.add_argument("--displayHelp", action= 'store_true', help= 'Display help message')
     parser.add_argument("--extractText", action= 'store_true', help= 'Extract text from PDF files and store in database')
     parser.add_argument("--processWordFreq", action= 'store_true', help="Create index tables and analyze word frequencies all in one")
-    parser.add_argument("--promptFindingReference", type=int, help="Prompt to find references in full database based on context of search")
+    parser.add_argument("--promptFindingReference", action= 'store_true', help="Prompt to find references in full database based on context of search")
 
     args = parser.parse_args()
 
@@ -78,12 +78,12 @@ def app():
     if args.promptFindingReference: # function is functioning properly
         start_time = datetime.now()
         
-        print("Finding references...")
-        word_freq.promptFindingReference(args.promptFindingReference, path.chunk_database_path)
-        print("Finished finding references.")
+        print("Tokenizing prompt...")
+        word_freq.promptFindingReference()
+        print("Finished tokenizing prompt.")
 
         # announce finish
-        updateLog.get_time_performance(start_time, "Finding references")
+        updateLog.get_time_performance(start_time, "Tokenizing prompt time")
 
 if __name__ == "__main__":
     app()
