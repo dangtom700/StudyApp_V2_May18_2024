@@ -36,11 +36,18 @@ void updateDatabaseInformation() {
     std::cout << "Finished: Database information updated" << std::endl;
 }
 
+void processPrompt() {
+    std::cout << "Processing prompt..." << std::endl;
+    FEATURE::processPrompt();
+    std::cout << "Finished: Prompt processed" << std::endl;
+}
+
 void showOptions() {
     std::cout << "0. Display help" << std::endl;
     std::cout << "1. Exit program" << std::endl;
     std::cout << "2. Compute relational distance" << std::endl;
     std::cout << "3. Update database information" << std::endl;
+    std::cout << "4. Process prompt" << std::endl;
 }
 
 int main() {
@@ -48,7 +55,8 @@ int main() {
         {0, displayHelp},
         {1, exitProgram},
         {2, computeRelationalDistance},
-        {3, updateDatabaseInformation}
+        {3, updateDatabaseInformation},
+        {4, processPrompt}
     };
 
     std::cout << "Starting program..." << std::endl;
