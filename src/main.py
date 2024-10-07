@@ -79,8 +79,8 @@ def app():
         start_time = datetime.now()
         
         print("Finding references...")
-        # Some logic goes right here
-        
+        word_freq.promptFindingReference(10, path.chunk_database_path)
+        print("Finished finding references.")
 
         # announce finish
         updateLog.get_time_performance(start_time, "Finding references")
