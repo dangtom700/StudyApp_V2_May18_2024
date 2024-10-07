@@ -37,7 +37,7 @@ void updateDatabaseInformation() {
 }
 
 void showOptions() {
-    std::cout << "0. Help" << std::endl;
+    std::cout << "0. Display help" << std::endl;
     std::cout << "1. Exit program" << std::endl;
     std::cout << "2. Compute relational distance" << std::endl;
     std::cout << "3. Update database information" << std::endl;
@@ -55,28 +55,23 @@ int main() {
 
     int option = -1;
 
-    while (true) {
-        showOptions();
-        std::cout << "Please select an option: ";
+    showOptions();
+    std::cout << "Please select an option: ";
 
-        if (!(std::cin >> option)) {
-            std::cin.clear();
-            std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
-            std::cout << "Invalid input. Please enter a number." << std::endl;
-            continue;
-        }
+    if (!(std::cin >> option)) {
+        std::cin.clear();
+        std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+        std::cout << "Invalid input. Please enter a number." << std::endl;
+    }
 
-        if (actions.find(option) != actions.end()) {
-            if (option == 1) {
-                actions[option]();
-                break;
-            } else {
-                actions[option]();
-                std::cout << "\nAction complete. Returning to main menu...\n" << std::endl;
-            }
+    if (actions.find(option) != actions.end()) {
+        if (option == 1) {
+            actions[option]();
         } else {
-            std::cout << "Invalid option. Please try again." << std::endl;
+            actions[option]();
         }
+    } else {
+        std::cout << "Invalid option. Please try again." << std::endl;
     }
 
     std::cout << "Finished program" << std::endl;

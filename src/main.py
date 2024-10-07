@@ -11,12 +11,25 @@ def app():
                                      description="This project is to meant to store record of learning activities. The files and record of activities are then transfer into database that show user the timeline and activities done in that day.",
                                      add_help=True,
                                      allow_abbrev=True)
-
+    
+    parser.add_argument("--displayHelp", action= 'store_true', help= 'Display help message')
     parser.add_argument("--extractText", action= 'store_true', help= 'Extract text from PDF files and store in database')
     parser.add_argument("--processWordFreq", action= 'store_true', help="Create index tables and analyze word frequencies all in one")
     parser.add_argument("--promptFindingReference", type=str, help="Prompt to find references in full database based on context of search")
 
     args = parser.parse_args()
+
+    if args.displayHelp:
+        print("""
+              This project is to meant to store record of learning activities. 
+              The files and record of activities are then transfer into database 
+              that show user the timeline and activities done in that day.
+
+              Python is used to extract text from PDF files and store in database.
+              Python also offers a few useful modules to process Natural Language Processing
+              and word processing modules to conviniently analyze word frequencies and 
+              word stems to clean up textual data for processing cosine similarity search.
+              """)
 
     if args.extractText: # function is functioning properly
         start_time = datetime.now()
