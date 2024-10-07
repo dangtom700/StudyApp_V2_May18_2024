@@ -18,7 +18,7 @@ namespace ENV_HPP {
     std::filesystem::path data_dumper_path = processed_data_path / ("data_dumper.csv");
     std::filesystem::path filtered_data_path = processed_data_path / ("token_filter.csv");
     std::filesystem::path data_info_path = processed_data_path / ("data_info.csv");
-    std::filesystem::path buffer_json_path = processed_data_path / ("buffer_json");
+    std::filesystem::path buffer_json_path = data_root / ("buffer.json");
 
     const int max_length = 14;
     const int min_value = 3;

@@ -283,6 +283,92 @@ namespace FEATURE {
         }
     }
 
+    void processPrompt() {
+        try{
+            // Transform the JSON file into a map of processed tokens
+            std::map<std::string, int> tokens = TRANSFORMER::json_to_map(ENV_HPP::buffer_json_path);
+            int distance = TRANSFORMER::Pythagoras(tokens);
+            std::vector<std::tuple<std::string,int, double>> filtered_tokens = TRANSFORMER::token_filter(tokens, ENV_HPP::max_length, ENV_HPP::min_value, distance);
+
+            // Open database connection
+            sqlite3* db;
+            int exit = sqlite3_open(ENV_HPP::database_path.string().c_str(), &db);
+            if (exit) {
+                std::cerr << "Error opening database: " << sqlite3_errmsg(db) << std::endl;
+                sqlite3_close(db);
+                return;
+            }
+
+            std::string sql = "SELECT id, file_name FROM file_info;";
+            // Create a variable RESULT to hold the title id, file name and relative distance
+            std::vector<std::tuple<std::string, std::string, double>> RESULT;
+
+            sqlite3_stmt* stmt;
+            exit = sqlite3_prepare_v2(db, sql.c_str(), -1, &stmt, nullptr);
+            if (exit != SQLITE_OK) {
+                std::cerr << "Error preparing statement (file_info): " << sqlite3_errmsg(db) << std::endl;
+                sqlite3_close(db);
+                return;
+            }
+
+            while (sqlite3_step(stmt) == SQLITE_ROW) {
+                // Retrieve id, file_name in the file_info table and set the distance to 0
+                std::string id = std::string(reinterpret_cast<const char*>(sqlite3_column_text(stmt, 0)));
+                std::string file_name = std::string(reinterpret_cast<const char*>(sqlite3_column_text(stmt, 1)));
+                double distance = 0;
+
+                // Update the distance by look up relation_distance with constraint of file_name (title_{title_id}) and Token (filtered_tokens.keys())
+                for (const std::tuple<std::string, int, double>& entry : filtered_tokens){
+                    // Check if the file_name (title_{title_id}) and Token (filtered_tokens.keys()) are in the relation_distance table
+                    const std::string token = std::get<0>(entry);
+                    const double relational_distance = std::get<2>(entry);
+
+                    std::string Relational_distance_sql = "SELECT Relational_distance FROM relation_distance WHERE file_name = 'title_" + id + "' AND Token = '" + token + "';";
+
+                    sqlite3_stmt* second_stmt;
+                    exit = sqlite3_prepare_v2(db, Relational_distance_sql.c_str(), -1, &second_stmt, nullptr);
+                    if (exit != SQLITE_OK) {
+                        std::cerr << "Error preparing statement (relation_distance): " << sqlite3_errmsg(db) << std::endl;
+                        sqlite3_close(db);
+                        return;
+                    }
+                    while (sqlite3_step(second_stmt) == SQLITE_ROW) {
+                        distance += relational_distance * sqlite3_column_double(second_stmt, 0);
+                        // std::cout << relational_distance << " * " << sqlite3_column_double(second_stmt, 0) << " = " << distance << "   ";`
+                        sqlite3_reset(second_stmt); // Reset the statement to use it again
+                    }
+
+                    // Finalize the prepared statement
+                    sqlite3_finalize(second_stmt);
+                }
+                // Add the result to the RESULT vector
+                RESULT.push_back({id, file_name, distance});
+
+                // Reset the statement to use it again
+                sqlite3_reset(stmt);
+            }
+
+            // Finalize the prepared statement
+            sqlite3_finalize(stmt);
+            sqlite3_close(db);
+
+            // Sort the results by the largest relative distance
+            std::sort(RESULT.begin(), RESULT.end(), [](const std::tuple<std::string, std::string, double>& a, const std::tuple<std::string, std::string, double>& b) {
+                return std::get<2>(a) > std::get<2>(b);
+            });
+
+            // Print the first 25 results
+            for (int i = 0; i < 25 && i < RESULT.size(); i++) {
+                std::cout << "Title ID: " <<std::get<0>(RESULT[i]) << std::endl
+                          << "Relative Distance: " <<std::get<2>(RESULT[i])  << std::endl
+                          << "File Name: " <<std::get<1>(RESULT[i]) << std::endl
+                          << std::endl;
+            }
+
+        } catch (const std::exception& e) {
+            std::cerr << "Error: " << e.what() << std::endl;
+        }
+    }
 }
 
 #endif // FEATURE_HPP
