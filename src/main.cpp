@@ -49,10 +49,10 @@ int main(int argc, char* argv[]) {
 
     // Map to store command-line options
     std::map<std::string, std::function<void()>> actions {
-        {"--displayHelp", displayHelp},
-        {"--computeRelationalDistance", computeRelationalDistance},
-        {"--updateDatabaseInformation", updateDatabaseInformation},
-        {"--processPrompt", processPrompt}
+        {"--displayhelp", displayHelp},
+        {"--computerelationaldistance", computeRelationalDistance},
+        {"--updatedatabaseinformation", updateDatabaseInformation},
+        {"--processprompt", processPrompt}
     };
 
     // Iterate through the provided command-line arguments and execute corresponding actions

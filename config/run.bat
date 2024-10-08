@@ -2,7 +2,7 @@
 rem Setting the start time for overall program execution
 set start_time=%time%
 
-rem Step 1: Compile the C++ code
+rem Booting up the program
 echo Compiling C++ code...
 g++ src/main.cpp src/lib/*.hpp -o word_tokenizer -I./src -lm -l sqlite3
 if %errorlevel% neq 0 (
@@ -21,108 +21,108 @@ rem Function for showing the program description
     echo.
     echo C++ Features:
     echo     1. Compute Relational Distance: Computes the Euclidean distance between tokens in a JSON file.
+    echo     (Command: --computeRelationalDistance)
     echo     2. Update Database Information: Updates the database with resources such as PDFs.
+    echo     (Command: --updateDatabaseInformation)
     echo.
     echo Python Features:
     echo     3. Extract Text from PDF files: Extracts and stores text from PDFs in the database.
+    echo     (Command: --extractText)
     echo     4. Process Word Frequencies: Analyzes word frequencies and creates index tables.
-    echo     5. Find References in Database: Searches the database for references based on input prompts.
+    echo     (Command: --processWordFreq)
+    echo.
+    echo Merged Features:
+    echo     5. Enter a paragraph styled prompt to search for references in the database.
+    echo     (Command: --promptReference) Note: --tokenizePrompt (Python) --processPrompt (C++)
     echo.
     echo The program allows users to select and execute one or multiple features.
     echo ===============================
     echo.
     pause
-    goto menu
 
-rem Step 2: Display the options for the user
-:menu
-echo.
-echo ==== Study Logging and Database Program ====
-echo Choose an option to execute:
-echo 1. Compute Relational Distance (C++)
-echo 2. Update Database Information (C++)
-echo 3. Extract Text from PDF files (Python)
-echo 4. Process Word Frequencies (Python)
-echo 5. Find References in Database (Python)
-echo 6. Execute All Features
-echo 7. Show Program Description
-echo 0. Exit
-echo ============================================
-set /p choice=Enter your choice: 
+rem Function to execute tasks based on input flags
+:execute_tasks
+echo Starting task execution...
 
-rem Step 3: Execute the chosen option
-if "%choice%" == "1" (
-    echo Starting "Compute Relational Distance" using C++...
-    word_tokenizer 2
-    if %errorlevel% neq 0 (
-        echo Error executing "Compute Relational Distance".
-    ) else (
-        echo "Compute Relational Distance" completed successfully.
-    )
-    goto menu
+set "extractText=0"
+set "updateDatabaseInformation=0"
+set "processWordFreq=0"
+set "computeRelationalDistance=0"
+set "promptReference=1"
+
+rem Process flags
+:process_flags
+for %%A in (%*) do (
+    if "%%A"=="--extractText" set extractText=1
+    if "%%A"=="--updateDatabaseInformation" set updateDatabaseInformation=1
+    if "%%A"=="--processWordFreq" set processWordFreq=1
+    if "%%A"=="--computeRelationalDistance" set computeRelationalDistance=1
+    if "%%A"=="--promptReference" set promptReference=1
+    if "%%A"=="--showDescription" call :show_description
 )
-if "%choice%" == "2" (
-    echo Starting "Update Database Information" using C++...
-    word_tokenizer 3
-    if %errorlevel% neq 0 (
-        echo Error executing "Update Database Information".
-    ) else (
-        echo "Update Database Information" completed successfully.
-    )
-    goto menu
-)
-if "%choice%" == "3" (
+
+rem 1. Extract Text
+if %extractText%==1 (
     echo Starting "Extract Text from PDF files" using Python...
-    python main.py --extractText
+    python src/main.py --extractText
     if %errorlevel% neq 0 (
         echo Error executing "Extract Text from PDF files".
+        goto end
     ) else (
         echo "Extract Text from PDF files" completed successfully.
     )
-    goto menu
 )
-if "%choice%" == "4" (
+
+rem 2. Update Database Information
+if %updateDatabaseInformation%==1 (
+    echo Starting "Update Database Information" using C++...
+    word_tokenizer --updateDatabaseInformation
+    if %errorlevel% neq 0 (
+        echo Error executing "Update Database Information".
+        goto end
+    ) else (
+        echo "Update Database Information" completed successfully.
+    )
+)
+
+rem 3. Process Word Frequencies
+if %processWordFreq%==1 (
     echo Starting "Process Word Frequencies" using Python...
-    python main.py --processWordFreq
+    python src/main.py --processWordFreq
     if %errorlevel% neq 0 (
         echo Error executing "Process Word Frequencies".
+        goto end
     ) else (
         echo "Process Word Frequencies" completed successfully.
     )
-    goto menu
 )
-if "%choice%" == "5" (
-    set /p prompt=Enter prompt for finding references: 
-    echo Finding references using Python with prompt "%prompt%"...
-    python main.py --promptFindingReference "%prompt%"
+
+rem 4. Compute Relational Distance
+if %computeRelationalDistance%==1 (
+    echo Starting "Compute Relational Distance" using C++...
+    word_tokenizer --computeRelationalDistance
+    if %errorlevel% neq 0 (
+        echo Error executing "Compute Relational Distance".
+        goto end
+    ) else (
+        echo "Compute Relational Distance" completed successfully.
+    )
+)
+
+rem 5. Prompting for references
+if %promptReference%==1 (
+    echo Please Prompt Appropriately for Finding References
+    python src/main.py --tokenizePrompt
+    word_tokenizer --processPrompt
     if %errorlevel% neq 0 (
         echo Error executing "Find References in Database".
     ) else (
         echo "Find References in Database" completed successfully.
     )
-    goto menu
 )
-if "%choice%" == "6" (
-    echo Executing all features...
-    word_tokenizer 2
-    word_tokenizer 3
-    python main.py --extractText
-    python main.py --processWordFreq
-    echo All features executed.
-    goto menu
-)
-if "%choice%" == "7" (
-    call :show_description
-    goto menu
-)
-if "%choice%" == "0" (
-    goto end
-)
-
-echo Invalid option. Please try again.
-goto menu
 
 :end
+
 rem Calculate total execution time
 call :print_time "Total execution time: " %start_time%
 echo Program finished.
