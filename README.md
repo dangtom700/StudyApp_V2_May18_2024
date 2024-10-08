@@ -76,7 +76,8 @@ After installtion, type into the terminal to start the program.
 config/run
 ```
 
-There are options to config in this program. Please change the number to 1 to enable the option.
+There are options to config in this program.
+Navigate to config/run.bat and please change the number to 1 to enable the option.
 
 ```bash
 set "extractText=0"
