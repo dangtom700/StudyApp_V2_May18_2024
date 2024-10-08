@@ -283,26 +283,40 @@ namespace FEATURE {
         }
     }
 
+
+    /**
+     * @brief Process the prompt and compute the relational distance of the tokens in the JSON file to the titles in the database
+     * 
+     * This function will process the prompt and compute the relational distance of the tokens in the JSON file to the titles in the database.
+     * The relational distance is computed using the Euclidean distance between each token in the JSON file and the tokens in the title.
+     * The function will also print the first 25 results in descending order of relational distance.
+     * If an error occurs, an error message will be printed to the console.
+     */
     void processPrompt() {
-        try{
+        try {
             // Transform the JSON file into a map of processed tokens
             std::map<std::string, int> tokens = TRANSFORMER::json_to_map(ENV_HPP::buffer_json_path);
             int distance = TRANSFORMER::Pythagoras(tokens);
-            std::vector<std::tuple<std::string,int, double>> filtered_tokens = TRANSFORMER::token_filter(tokens, ENV_HPP::max_length, ENV_HPP::min_value, distance);
+            std::vector<std::tuple<std::string, int, double>> filtered_tokens = TRANSFORMER::token_filter(tokens, ENV_HPP::max_length, ENV_HPP::min_value, distance);
 
             // Open database connection
             sqlite3* db;
             int exit = sqlite3_open(ENV_HPP::database_path.string().c_str(), &db);
-            if (exit) {
+            if (exit != SQLITE_OK) {
                 std::cerr << "Error opening database: " << sqlite3_errmsg(db) << std::endl;
-                sqlite3_close(db);
                 return;
             }
 
-            std::string sql = "SELECT id, file_name FROM file_info;";
-            // Create a variable RESULT to hold the title id, file name and relative distance
+            // Enable PRAGMAs for performance
+            sqlite3_exec(db, "PRAGMA journal_mode=WAL;", nullptr, nullptr, nullptr);
+            sqlite3_exec(db, "PRAGMA synchronous=OFF;", nullptr, nullptr, nullptr);
+            sqlite3_exec(db, "PRAGMA temp_store=MEMORY;", nullptr, nullptr, nullptr);
+
+            // Prepare the result vector
             std::vector<std::tuple<std::string, std::string, double>> RESULT;
 
+            // Step 1: Load all the file_info data into memory
+            std::string sql = "SELECT id, file_name FROM file_info;";
             sqlite3_stmt* stmt;
             exit = sqlite3_prepare_v2(db, sql.c_str(), -1, &stmt, nullptr);
             if (exit != SQLITE_OK) {
@@ -311,44 +325,64 @@ namespace FEATURE {
                 return;
             }
 
-            while (sqlite3_step(stmt) == SQLITE_ROW) {
-                // Retrieve id, file_name in the file_info table and set the distance to 0
-                std::string id = std::string(reinterpret_cast<const char*>(sqlite3_column_text(stmt, 0)));
-                std::string file_name = std::string(reinterpret_cast<const char*>(sqlite3_column_text(stmt, 1)));
-                double distance = 0;
+            // Step 2: Load the relation_distance data for all filtered tokens in one go
+            // Create a map to store relational distances by file_name and token
+            std::map<std::string, std::map<std::string, double>> relation_distance_map;
+            std::string token_in_clause;
+            for (const auto& entry : filtered_tokens) {
+                token_in_clause += "'" + std::get<0>(entry) + "',";
+            }
+            // Remove trailing comma
+            if (!token_in_clause.empty()) token_in_clause.pop_back();
 
-                // Update the distance by look up relation_distance with constraint of file_name (title_{title_id}) and Token (filtered_tokens.keys())
-                for (const std::tuple<std::string, int, double>& entry : filtered_tokens){
-                    // Check if the file_name (title_{title_id}) and Token (filtered_tokens.keys()) are in the relation_distance table
-                    const std::string token = std::get<0>(entry);
-                    const double relational_distance = std::get<2>(entry);
-
-                    std::string Relational_distance_sql = "SELECT Relational_distance FROM relation_distance WHERE file_name = 'title_" + id + "' AND Token = '" + token + "';";
-
-                    sqlite3_stmt* second_stmt;
-                    exit = sqlite3_prepare_v2(db, Relational_distance_sql.c_str(), -1, &second_stmt, nullptr);
-                    if (exit != SQLITE_OK) {
-                        std::cerr << "Error preparing statement (relation_distance): " << sqlite3_errmsg(db) << std::endl;
-                        sqlite3_close(db);
-                        return;
-                    }
-                    while (sqlite3_step(second_stmt) == SQLITE_ROW) {
-                        distance += relational_distance * sqlite3_column_double(second_stmt, 0);
-                        // std::cout << relational_distance << " * " << sqlite3_column_double(second_stmt, 0) << " = " << distance << "   ";`
-                        sqlite3_reset(second_stmt); // Reset the statement to use it again
-                    }
-
-                    // Finalize the prepared statement
-                    sqlite3_finalize(second_stmt);
-                }
-                // Add the result to the RESULT vector
-                RESULT.push_back({id, file_name, distance});
-
-                // Reset the statement to use it again
-                sqlite3_reset(stmt);
+            std::string relation_distance_sql = "SELECT file_name, Token, Relational_distance FROM relation_distance WHERE Token IN (" + token_in_clause + ");";
+            sqlite3_stmt* relation_stmt;
+            exit = sqlite3_prepare_v2(db, relation_distance_sql.c_str(), -1, &relation_stmt, nullptr);
+            if (exit != SQLITE_OK) {
+                std::cerr << "Error preparing statement (relation_distance): " << sqlite3_errmsg(db) << std::endl;
+                sqlite3_finalize(stmt);
+                sqlite3_close(db);
+                return;
             }
 
-            // Finalize the prepared statement
+            // Populate the relation_distance_map
+            while (sqlite3_step(relation_stmt) == SQLITE_ROW) {
+                std::string file_name = reinterpret_cast<const char*>(sqlite3_column_text(relation_stmt, 0));
+                std::string token = reinterpret_cast<const char*>(sqlite3_column_text(relation_stmt, 1));
+                double relational_distance = sqlite3_column_double(relation_stmt, 2);
+                relation_distance_map[file_name][token] = relational_distance;
+            }
+            sqlite3_finalize(relation_stmt); // Finalize statement after processing
+
+            // Step 3: Process the file_info data and calculate distances using the map
+            while (sqlite3_step(stmt) == SQLITE_ROW) {
+                const unsigned char* id_text = sqlite3_column_text(stmt, 0);
+                const unsigned char* file_name_text = sqlite3_column_text(stmt, 1);
+
+                if (!id_text || !file_name_text) {
+                    continue; // Skip the row if either value is null
+                }
+
+                std::string id = std::string(reinterpret_cast<const char*>(id_text));
+                std::string file_name = std::string(reinterpret_cast<const char*>(file_name_text));
+                double total_distance = 0;
+
+                // Calculate total distance using the pre-fetched relation distances
+                for (const auto& entry : filtered_tokens) {
+                    const std::string& token = std::get<0>(entry);
+                    const double relational_distance_weight = std::get<2>(entry);
+
+                    // Lookup the relation distance in the map
+                    if (relation_distance_map.count("title_" + id) && relation_distance_map["title_" + id].count(token)) {
+                        total_distance += relational_distance_weight * relation_distance_map["title_" + id][token];
+                    }
+                }
+
+                // Add the result to the RESULT vector
+                RESULT.push_back({id, file_name, total_distance});
+            }
+
+            // Finalize statement and close the database
             sqlite3_finalize(stmt);
             sqlite3_close(db);
 
@@ -358,10 +392,11 @@ namespace FEATURE {
             });
 
             // Print the first 25 results
+            std::cout << "Top 25 Results:" << std::endl;
             for (int i = 0; i < 25 && i < RESULT.size(); i++) {
-                std::cout << "Title ID: " <<std::get<0>(RESULT[i]) << std::endl
-                          << "Relative Distance: " <<std::get<2>(RESULT[i])  << std::endl
-                          << "File Name: " <<std::get<1>(RESULT[i]) << std::endl
+                std::cout << std::left << "ID: " << std::setw(35) << std::get<0>(RESULT[i])
+                          <<"Distance: " <<std::setw(15) << std::setprecision(7) << std::get<2>(RESULT[i])
+                          << "Name: " << std::get<1>(RESULT[i])
                           << std::endl;
             }
 
@@ -369,6 +404,7 @@ namespace FEATURE {
             std::cerr << "Error: " << e.what() << std::endl;
         }
     }
+
 }
 
 #endif // FEATURE_HPP
