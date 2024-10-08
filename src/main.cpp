@@ -4,6 +4,8 @@
 #include <functional>
 #include <map>
 #include <limits>
+#include <string>
+#include <algorithm>
 
 #include "lib/feature.hpp"
 #include "lib/env.hpp"
@@ -14,74 +16,57 @@ void displayHelp() {
                  "to compute the relational distance of each token in a given JSON file.\n"
                  "The relational distance is the Euclidean norm of the vector of token frequencies.\n"
                  "While Python provides a wide range of Natural Language Processing libraries,\n"
-                 "Python is not so fast at number crunching and heavy data processing.\n"
-                 "The C++ program is written to resolve this issue without using external libraries." << std::endl;
-}
-
-void exitProgram() {
-    std::cout << "Exiting program..." << std::endl;
+                 "C++ offers performance benefits for number crunching and heavy data processing.\n"
+                 "This program resolves these issues without using external libraries." << std::endl;
 }
 
 void computeRelationalDistance() {
     std::vector<std::filesystem::path> filtered_files = UTILITIES_HPP::Basic::extract_data_files(ENV_HPP::json_path, false, ".json");
     std::cout << "Computing relational distance data..." << std::endl;
     FEATURE::computeRelationalDistance(filtered_files, false, true, true);
-    std::cout << "Finished: Relational distance data computed" << std::endl;
+    std::cout << "Finished: Relational distance data computed." << std::endl;
 }
 
 void updateDatabaseInformation() {
     std::vector<std::filesystem::path> filtered_files = UTILITIES_HPP::Basic::extract_data_files(ENV_HPP::resource_path, false, ".pdf");
     std::cout << "Updating database information..." << std::endl;
     FEATURE::computeResourceData(filtered_files, false, true, true);
-    std::cout << "Finished: Database information updated" << std::endl;
+    std::cout << "Finished: Database information updated." << std::endl;
 }
 
 void processPrompt() {
     std::cout << "Processing prompt..." << std::endl;
     FEATURE::processPrompt();
-    std::cout << "Finished: Prompt processed" << std::endl;
+    std::cout << "Finished: Prompt processed." << std::endl;
 }
 
-void showOptions() {
-    std::cout << "0. Display help" << std::endl;
-    std::cout << "1. Exit program" << std::endl;
-    std::cout << "2. Compute relational distance" << std::endl;
-    std::cout << "3. Update database information" << std::endl;
-    std::cout << "4. Process prompt" << std::endl;
-}
+int main(int argc, char* argv[]) {
+    // Check if any command-line arguments were provided
+    if (argc < 2) {
+        std::cout << "No command provided. Use --displayHelp for available options." << std::endl;
+        return 1;
+    }
 
-int main() {
-    std::map<int, std::function<void()>> actions {
-        {0, displayHelp},
-        {1, exitProgram},
-        {2, computeRelationalDistance},
-        {3, updateDatabaseInformation},
-        {4, processPrompt}
+    // Map to store command-line options
+    std::map<std::string, std::function<void()>> actions {
+        {"--displayHelp", displayHelp},
+        {"--computeRelationalDistance", computeRelationalDistance},
+        {"--updateDatabaseInformation", updateDatabaseInformation},
+        {"--processPrompt", processPrompt}
     };
 
-    std::cout << "Starting program..." << std::endl;
+    // Iterate through the provided command-line arguments and execute corresponding actions
+    for (int i = 1; i < argc; ++i) {
+        std::string arg(argv[i]);
+        std::transform(arg.begin(), arg.end(), arg.begin(), ::tolower);  // Normalize to lowercase
 
-    int option = -1;
-
-    showOptions();
-    std::cout << "Please select an option: ";
-
-    if (!(std::cin >> option)) {
-        std::cin.clear();
-        std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
-        std::cout << "Invalid input. Please enter a number." << std::endl;
-    }
-
-    if (actions.find(option) != actions.end()) {
-        if (option == 1) {
-            actions[option]();
+        if (actions.find(arg) != actions.end()) {
+            actions[arg]();  // Execute the corresponding function
         } else {
-            actions[option]();
+            std::cout << "Invalid option: " << arg << ". Please try again." << std::endl;
         }
-    } else {
-        std::cout << "Invalid option. Please try again." << std::endl;
     }
 
-    std::cout << "Finished program" << std::endl;
+    std::cout << "Finished program." << std::endl;
     return 0;
 }
