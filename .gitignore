@@ -1,9 +1,4 @@
 data/
 src/modules/__pycache__
-src/modules/path.py
 .vscode/
 archived
-token/
-src/main.exe
-src/lib/json_fwd.hpp
-src/lib/json.hpp
