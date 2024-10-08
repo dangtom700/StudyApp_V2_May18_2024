@@ -106,7 +106,7 @@ namespace FEATURE {
                     .relational_distance = TRANSFORMER::Pythagoras(json_map),
                 };
 
-                row.filtered_tokens = TRANSFORMER::token_filter(json_map, ENV_HPP::max_length, ENV_HPP::min_value, row.relational_distance);
+                row.filtered_tokens = TRANSFORMER::token_filter(json_map, ENV_HPP::max_length, 1, row.relational_distance);
 
                 // Dump the contents of a DataEntry to a file
                 if (is_dumped) UTILITIES_HPP::Basic::data_entry_dump(row);
@@ -297,7 +297,7 @@ namespace FEATURE {
             // Transform the JSON file into a map of processed tokens
             std::map<std::string, int> tokens = TRANSFORMER::json_to_map(ENV_HPP::buffer_json_path);
             int distance = TRANSFORMER::Pythagoras(tokens);
-            std::vector<std::tuple<std::string, int, double>> filtered_tokens = TRANSFORMER::token_filter(tokens, ENV_HPP::max_length, ENV_HPP::min_value, distance);
+            std::vector<std::tuple<std::string, int, double>> filtered_tokens = TRANSFORMER::token_filter(tokens, 99, 1, distance);
 
             // Open database connection
             sqlite3* db;
