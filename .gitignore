@@ -2,3 +2,5 @@ data/
 src/modules/__pycache__
 .vscode/
 archived
+src/modules/path.py
+src/lib/env.hpp
