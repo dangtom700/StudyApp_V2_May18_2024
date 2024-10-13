@@ -68,9 +68,6 @@ def app():
         print("Processing word frequencies...")
         word_freq.process_word_frequencies_in_batches()
         print("Finished processing word frequencies.")
-
-        print("Exporting word frequency analysis...")
-        word_freq.getWordFrequencyAnalysis(threshold= 0.96)
         
         # announce finish
         updateLog.get_time_performance(start_time, "Word frequency processing time")

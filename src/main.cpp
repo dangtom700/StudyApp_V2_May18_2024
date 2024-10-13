@@ -6,6 +6,7 @@
 #include <limits>
 #include <string>
 #include <algorithm>
+#include <chrono>
 
 #include "lib/feature.hpp"
 #include "lib/env.hpp"
@@ -41,6 +42,9 @@ void processPrompt() {
 }
 
 int main(int argc, char* argv[]) {
+    // Get the current time for later time delta
+    std::chrono::time_point<std::chrono::system_clock> start = std::chrono::system_clock::now();
+    std::cout << "Starting program..." << std::endl;
     // Check if any command-line arguments were provided
     if (argc < 2) {
         std::cout << "No command provided. Use --displayHelp for available options." << std::endl;
@@ -67,6 +71,9 @@ int main(int argc, char* argv[]) {
         }
     }
 
+    std::chrono::time_point<std::chrono::system_clock> end = std::chrono::system_clock::now();
+    std::chrono::duration<double> elapsed_seconds = end - start;
+    std::cout << "Elapsed time: " << elapsed_seconds.count() << " seconds" << std::endl;
     std::cout << "Finished program." << std::endl;
     return 0;
 }

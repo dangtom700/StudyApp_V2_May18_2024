@@ -89,7 +89,6 @@ def process_chunks_in_batches(database):
 
     # Ensure the directory exists
     os.makedirs(token_json_path, exist_ok=True)
-    cwd = os.path.join(os.getcwd(), token_json_path)  # Get the path of the 'token' directory
 
     # Process title IDs in parallel (each thread gets its own connection)
     with ThreadPoolExecutor(max_workers=4) as executor:
@@ -100,24 +99,18 @@ def process_chunks_in_batches(database):
                 global_word_freq[word] += freq
 
             # Dump word frequencies for each title into a separate JSON file immediately
-            json_file_path = os.path.join(cwd, f'title_{fetched_result[title_id]}.json')
+            json_file_path = os.path.join(token_json_path, f'title_{fetched_result[title_id]}.json')
             with open(json_file_path, 'w', encoding='utf-8') as f:
                 dump(word_freq, f, ensure_ascii=False, indent=4)
 
     print("All titles processed and word frequencies stored in individual JSON files.")
 
-    # Insert global word frequencies into the database in small batches
-    batch_size = 1000
-    items = list(global_word_freq.items())
-    for i in range(0, len(items), batch_size):
-        cursor.executemany('''
-            INSERT INTO word_frequencies (word, frequency)
-            VALUES (?, ?)
-            ON CONFLICT(word) DO UPDATE SET frequency = frequency + excluded.frequency
-        ''', items[i:i + batch_size])
-
     conn.commit()
     conn.close()
+
+    json_global_path = os.path.join(os.getcwd(), 'data', 'global_word_freq.json')
+    with open(json_global_path, 'w', encoding='utf-8') as f:
+        dump(global_word_freq, f, ensure_ascii=False, indent=4)
     print("Global word frequencies inserted into the database.")
 
 # Main function to process word frequencies in batches
@@ -146,68 +139,6 @@ def process_word_frequencies_in_batches():
     print("Processing word frequencies complete.")
     conn.commit()
     conn.close()
-
-def getWordFrequencyAnalysis(BATCH_SIZE=1000, threshold=0.96) -> int:
-    # Connect to the database
-    conn = sqlite3.connect(chunk_database_path)
-    cursor = conn.cursor()
-
-    # Get the total sum of frequencies
-    total_frequency = cursor.execute("SELECT SUM(frequency) FROM word_frequencies").fetchone()[0]
-    print(f"Total frequency: {total_frequency}")
-
-    # Initialize batch processing variables
-    inserted_sum = 0
-    offset = 0
-
-    # Threshold limit based on the total frequency
-    threshold_value = total_frequency * threshold
-
-    # Create the coverage_analysis table
-    cursor.execute("DROP TABLE IF EXISTS coverage_analysis")
-    cursor.execute("""
-        CREATE TABLE coverage_analysis (
-            word TEXT PRIMARY KEY, 
-            frequency INTEGER,
-            FOREIGN KEY (word, frequency) REFERENCES word_frequencies(word, frequency)
-        )
-    """)
-
-    # Loop to insert rows in batches of 1000 and check the cumulative frequency
-    while inserted_sum < threshold_value:
-        # Select the next batch of 1000 rows
-        rows = cursor.execute("""
-            SELECT word, frequency FROM word_frequencies 
-            ORDER BY frequency DESC 
-            LIMIT ? OFFSET ?
-        """, (BATCH_SIZE, offset)).fetchall()
-
-        if not rows:
-            # If no more rows are available, break the loop
-            break
-
-        # Insert the current batch into the coverage_analysis table
-        cursor.executemany("""
-            INSERT INTO coverage_analysis (word, frequency) 
-            VALUES (?, ?)
-        """, rows)
-
-        # Update the sum of the inserted frequencies
-        batch_sum = sum(row[1] for row in rows)
-        inserted_sum += batch_sum
-        print(f"Inserted batch sum: {batch_sum}, Total inserted sum: {inserted_sum}")
-
-        # Move the offset for the next batch
-        offset += BATCH_SIZE
-
-    # Get the number of rows inserted into the coverage_analysis table
-    rows_inserted = cursor.execute("SELECT COUNT(*) FROM coverage_analysis").fetchone()[0]
-
-    # Complete transaction and close the connection
-    conn.commit()
-    conn.close()
-
-    return rows_inserted
 
 def promptFindingReference() -> None:
     # Enter the prompt
