@@ -123,15 +123,6 @@ def process_word_frequencies_in_batches():
             rmtree(folder_path)
         os.makedirs(folder_path)
 
-    def create_table():
-        cursor.execute("DROP TABLE IF EXISTS word_frequencies")
-        cursor.execute("""CREATE TABLE word_frequencies (
-            word TEXT PRIMARY KEY,
-            frequency INTEGER DEFAULT 0)
-        """)
-
-    create_table()
-
     empty_folder(folder_path=token_json_path)
 
     print("Starting batch processing of chunks...")
