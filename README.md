@@ -1,4 +1,4 @@
-# Study Tracker
+# Study Tracker (achieved version)
 
 ## CLI Application for Study Assistant
 
