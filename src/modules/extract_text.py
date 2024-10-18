@@ -137,7 +137,6 @@ def process_files_in_parallel(pdf_files, chunk_size, db_name):
                 future.result()
                 completed_files += 1
                 logging.info(f"Completed {completed_files}/{total_files} files: {pdf_file}")
-                print(pdf_file)
             except Exception as e:
                 logging.error(f"Error processing {pdf_file}: {e}")
 
@@ -164,7 +163,7 @@ def batch_collect_files(folder_path: str, extension='.pdf', batch_size=100) -> G
         yield current_batch
 
 # Extract text from PDF files in batches and store in DB
-def extract_text(FOLDER_PATH, CHUNK_SIZE, chunk_database_path):
+def extract_text(FOLDER_PATH, CHUNK_SIZE, chunk_database_path, reset_db):
     conn = sqlite3.connect(chunk_database_path)
 
     def create_table():
@@ -177,10 +176,22 @@ def extract_text(FOLDER_PATH, CHUNK_SIZE, chunk_database_path):
         """)
 
     logging.info(f"Starting processing of PDF files in batches...")
-    create_table()
 
-    for pdf_batch in batch_collect_files(FOLDER_PATH, batch_size=100):
-        process_files_in_parallel(pdf_batch, chunk_size=CHUNK_SIZE, db_name=chunk_database_path)
+    if reset_db:
+        create_table()
+        for pdf_batch in batch_collect_files(FOLDER_PATH, batch_size=100):
+            process_files_in_parallel(pdf_batch, chunk_size=CHUNK_SIZE, db_name=chunk_database_path)
+    else:
+        # Fetch existing file names from the database as a set for quick lookup
+        pdf_in_db = set(row[0] for row in conn.execute("SELECT DISTINCT file_name FROM pdf_chunks"))
 
+        # Process files in the folder incrementally
+        for pdf_batch in batch_collect_files(FOLDER_PATH, batch_size=100):
+            pdf_to_process = [pdf for pdf in pdf_batch if basename(pdf) not in pdf_in_db]
+            print(f"PDF files to process in this batch: {len(pdf_to_process)}")
+            process_files_in_parallel(pdf_to_process, chunk_size=CHUNK_SIZE, db_name=chunk_database_path)
+
+    conn.commit()
     logging.info("Processing complete: Extracting text from PDF files.")
     conn.close()
+

@@ -53,7 +53,7 @@ def app():
         chunk_size = 2000
         # extract_text
         print("Extracting text from PDF files...")
-        extract_text.extract_text(CHUNK_SIZE=chunk_size, FOLDER_PATH=path.pdf_path, chunk_database_path=path.chunk_database_path)
+        extract_text.extract_text(CHUNK_SIZE=chunk_size, FOLDER_PATH=path.pdf_path, chunk_database_path=path.chunk_database_path, reset_db=True)
         print("Finished extracting text from PDF files.")
         # update_database
         print("Updating database from log file...")
