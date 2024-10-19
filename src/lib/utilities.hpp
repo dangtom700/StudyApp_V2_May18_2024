@@ -176,44 +176,6 @@ namespace UTILITIES_HPP {
             std::vector<std::filesystem::path> collected_files = UTILITIES_HPP::Basic::list_directory(target_folder, show_index);
             return UTILITIES_HPP::Basic::filter_by_extension(collected_files, extension);
         }
-
-        std::vector<std::filesystem::path> find_non_existing_pdf_files() {
-            // Open database connection
-            sqlite3* db;
-            int rc = sqlite3_open(ENV_HPP::database_path.string().c_str(), &db);
-            if (rc != SQLITE_OK) {
-                std::cout << "Could not open database: " << sqlite3_errmsg(db) << std::endl;
-                return {};
-            }
-
-            // Compare two entries file_name in pdf_chunks and file_path in file_info and take the difference
-            std::string statement = R"(
-                SELECT DISTINCT file_path
-                FROM file_info
-                WHERE file_path NOT IN (SELECT DISTINCT file_name FROM pdf_chunks);
-            )";
-            sqlite3_stmt* stmt;
-            rc = sqlite3_prepare_v2(db, statement.c_str(), -1, &stmt, NULL);
-            if (rc != SQLITE_OK) {
-                std::cout << "Could not prepare statement: " << sqlite3_errmsg(db) << std::endl;
-                sqlite3_close(db);
-                return {};
-            }
-
-            std::vector<std::filesystem::path> non_existing_files;
-            while (sqlite3_step(stmt) == SQLITE_ROW) {
-                const char* filePath = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 0));
-                if (filePath) {
-                    non_existing_files.push_back(std::filesystem::path(filePath));
-                }
-            }
-
-            // Finalize the statement and close the database connection
-            sqlite3_finalize(stmt);
-            sqlite3_close(db);
-
-            return non_existing_files;
-        }
     } // namespace Basic
 } // namespace UTILITIES_HPP
 
