@@ -137,6 +137,7 @@ def process_files_in_parallel(pdf_files, chunk_size, db_name):
                 future.result()
                 completed_files += 1
                 logging.info(f"Completed {completed_files}/{total_files} files: {pdf_file}")
+                print(f"{pdf_file}")
             except Exception as e:
                 logging.error(f"Error processing {pdf_file}: {e}")
 

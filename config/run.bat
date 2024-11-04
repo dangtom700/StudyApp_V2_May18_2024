@@ -38,7 +38,6 @@ rem Function for showing the program description
     echo The program allows users to select and execute one or multiple features.
     echo ===============================
     echo.
-    pause
 
 rem Function to execute tasks based on input flags
 :execute_tasks
@@ -126,7 +125,7 @@ if %promptReference%==1 (
 rem Calculate total execution time
 call :print_time "Total execution time: " %start_time%
 echo Program finished.
-pause
+
 goto :eof
 
 rem Function to calculate and print elapsed time
