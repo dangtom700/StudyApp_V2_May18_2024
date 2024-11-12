@@ -4,10 +4,9 @@ set start_time=%time%
 
 rem Booting up the program
 echo Compiling C++ code...
-g++ src/main.cpp src/lib/*.hpp -o word_tokenizer -I./src -lm -l sqlite3
+g++ src/main.cpp -o word_tokenizer -I./src -lm -l sqlite3
 if %errorlevel% neq 0 (
     echo C++ compilation failed.
-    pause
     goto :eof
 )
 echo Compilation successful.
@@ -43,11 +42,11 @@ rem Function to execute tasks based on input flags
 :execute_tasks
 echo Starting task execution...
 
-set "extractText=0"
-set "updateDatabaseInformation=0"
-set "processWordFreq=0"
-set "computeRelationalDistance=0"
-set "promptReference=1"
+set "extractText=1"
+set "updateDatabaseInformation=1"
+set "processWordFreq=1"
+set "computeRelationalDistance=1"
+set "promptReference=0"
 
 rem Process flags
 :process_flags

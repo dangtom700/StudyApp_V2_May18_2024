@@ -391,9 +391,9 @@ namespace FEATURE {
                 return std::get<2>(a) > std::get<2>(b);
             });
 
-            // Print the first 25 results
-            std::cout << "Top 25 Results:" << std::endl;
-            for (int i = 0; i < 25 && i < RESULT.size(); i++) {
+            // Print the first 100 results
+            std::cout << "Top 100 Results:" << std::endl;
+            for (int i = 0; i < 100 && i < RESULT.size(); i++) {
                 std::cout << std::left << "ID: " << std::setw(35) << std::get<0>(RESULT[i])
                           <<"Distance: " <<std::setw(15) << std::setprecision(7) << std::get<2>(RESULT[i])
                           << "Name: " << std::get<1>(RESULT[i])

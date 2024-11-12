@@ -2,7 +2,7 @@ from os import getcwd
 
 StudyApp_root_path = getcwd() + "\\"
 
-pdf_path = ""
+pdf_path = "D:\\READING LIST"
 chunk_database_path = StudyApp_root_path + "data\\pdf_text.db"
 token_json_path = StudyApp_root_path + "data\\token_json"
 

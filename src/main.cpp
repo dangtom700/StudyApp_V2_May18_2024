@@ -13,6 +13,7 @@
 #include "lib/utilities.hpp"
 
 const bool reset_table = true;
+const bool show_progress = true;
 
 void displayHelp() {
     std::cout << "This program is created as an integrated part of the word tokenizer project\n"
@@ -26,14 +27,14 @@ void displayHelp() {
 void computeRelationalDistance() {
     std::vector<std::filesystem::path> filtered_files = UTILITIES_HPP::Basic::extract_data_files(ENV_HPP::json_path, false, ".json");
     std::cout << "Computing relational distance data..." << std::endl;
-    FEATURE::computeRelationalDistance(filtered_files, false, reset_table, true);
+    FEATURE::computeRelationalDistance(filtered_files, show_progress, reset_table, true);
     std::cout << "Finished: Relational distance data computed." << std::endl;
 }
 
 void updateDatabaseInformation() {
     std::vector<std::filesystem::path> filtered_files = UTILITIES_HPP::Basic::extract_data_files(ENV_HPP::resource_path, false, ".pdf");
     std::cout << "Updating database information..." << std::endl;
-    FEATURE::computeResourceData(filtered_files, false, reset_table, true);
+    FEATURE::computeResourceData(filtered_files, show_progress, reset_table, true);
     std::cout << "Finished: Database information updated." << std::endl;
 }
 
