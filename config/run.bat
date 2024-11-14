@@ -42,11 +42,11 @@ rem Function to execute tasks based on input flags
 :execute_tasks
 echo Starting task execution...
 
-set "extractText=1"
-set "updateDatabaseInformation=1"
-set "processWordFreq=1"
-set "computeRelationalDistance=1"
-set "promptReference=0"
+set "extractText=0"
+set "updateDatabaseInformation=0"
+set "processWordFreq=0"
+set "computeRelationalDistance=0"
+set "promptReference=1"
 
 rem Process flags
 :process_flags
