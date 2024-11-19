@@ -136,7 +136,7 @@ def process_files_in_parallel(pdf_files, chunk_size, db_name):
             try:
                 future.result()
                 completed_files += 1
-                logging.info(f"Completed {completed_files}/{total_files} files: {pdf_file}")
+                # logging.info(f"Completed {completed_files}/{total_files} files: {pdf_file}")
                 print(f"{pdf_file}")
             except Exception as e:
                 logging.error(f"Error processing {pdf_file}: {e}")
@@ -189,7 +189,7 @@ def extract_text(FOLDER_PATH, CHUNK_SIZE, chunk_database_path, reset_db):
         # Process files in the folder incrementally
         for pdf_batch in batch_collect_files(FOLDER_PATH, batch_size=100):
             pdf_to_process = [pdf for pdf in pdf_batch if basename(pdf) not in pdf_in_db]
-            print(f"PDF files to process in this batch: {len(pdf_to_process)}")
+            # print(f"PDF files to process in this batch: {len(pdf_to_process)}")
             process_files_in_parallel(pdf_to_process, chunk_size=CHUNK_SIZE, db_name=chunk_database_path)
 
     conn.commit()
