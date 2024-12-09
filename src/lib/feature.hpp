@@ -297,7 +297,7 @@ namespace FEATURE {
             // Transform the JSON file into a map of processed tokens
             std::map<std::string, int> tokens = TRANSFORMER::json_to_map(ENV_HPP::buffer_json_path);
             int distance = TRANSFORMER::Pythagoras(tokens);
-            std::vector<std::tuple<std::string, int, double>> filtered_tokens = TRANSFORMER::token_filter(tokens, 99, 1, distance);
+            std::vector<std::tuple<std::string, int, double>> filtered_tokens = TRANSFORMER::token_filter(tokens, 16, 1, distance);
 
             // Open database connection
             sqlite3* db;

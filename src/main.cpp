@@ -13,7 +13,7 @@
 #include "lib/utilities.hpp"
 
 const bool reset_table = true;
-const bool show_progress = false;
+const bool show_progress = true;
 const bool is_dumped = false;
 
 void displayHelp() {

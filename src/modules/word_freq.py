@@ -14,7 +14,25 @@ from json import dump
 REPEATED_CHAR_PATTERN = re.compile(r"([a-zA-Z])\1{2,}")
 stemmer = PorterStemmer()
 stop_words = set(stopwords.words('english'))
-
+banned_word = {'near', 'do', 'who', 'yourself', 'four', 'then', 'doing', 'himself',
+            'two', 'and', 'during', '3.0', 'of', 'were', 'or', 'did', 'gone',
+            'said', 'before', 'you', 'when', 'its', 'myself', 'us', 'Zeno', 
+            'zero', 'Vernon', 'should', 'far', 'making', 'gets', 'getting', 
+            'be', 'how', 'without', 'knowing', 'make', 'seven', 'ours', 'next',
+            'very', 'your', 'this', 'eight', 'ought', 'must', 'goes', 'can',
+            'them', 'why', 'under', 'ourselves', 'was', 'know', 'nine', 'need',
+            '4.0', 'is', 'made', 'one', 'three', 'above', 'herself', 'have',
+            'we', 'my', 'over', 'does', 'on', 'yours', 'that', 'would',
+            '5.0', 'no', 'may', 'might', 'go', 'are', 'makes', 'for', 'say', 'she', 
+            'it', 'becoming', 'a', 'tor', 'could', 'not', 'will', 'into', 'the', 
+            'I', 'below', 'yourselves', 'had', 'her', 'his', 'as', 'date', 'by', 
+            'hers', 'more', 'even', 'which', '500+', 'got', 'our', 'down', 'him', 
+            'lines', 'up', 'an', 'five', 'been', 'being', 'too', 'ten', 'where', 
+            'using', 'itself', 'through', 'what', 'so', 'after', 'shall', 'stuff', 
+            'they', 'he', 'Americas', 'appsabout', 'to', 'in', 'at', 'due', 'six', 
+            'Richard', 'from', 'use', 'me', 'other', 'with', 'get', 'going', 'has', 
+            'hello'}
+stop_words.update(banned_word)
 def has_repeats_regex(word):
     return bool(REPEATED_CHAR_PATTERN.search(word))
 
