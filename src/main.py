@@ -1,9 +1,13 @@
 import argparse
 from datetime import datetime
-import modules.updateLog as updateLog
 import modules.path as path
 import modules.extract_text as extract_text
 import modules.word_freq as word_freq
+
+def get_time_performance(start_time: datetime.datetime, message: str) -> None:
+    end_time = datetime.datetime.now()
+    time_diff = end_time - start_time
+    print(f"{message} took {time_diff} seconds")
 
 def app():
 
@@ -50,17 +54,13 @@ def app():
         descriptions. They are more challenging to search but provide deeper 
         understanding.
         """
-        chunk_size = 2000
+        chunk_size = 5000
         # extract_text
         print("Extracting text from PDF files...")
         extract_text.extract_text(CHUNK_SIZE=chunk_size, FOLDER_PATH=path.pdf_path, chunk_database_path=path.chunk_database_path, reset_db=True)
         print("Finished extracting text from PDF files.")
-        # update_database
-        print("Updating database from log file...")
-        updateLog.store_log_file_to_database(path.log_file_path)
-        print("Finished updating database from log file.")
         # announce finish
-        updateLog.get_time_performance(start_time, "Text extracting time")
+        get_time_performance(start_time, "Text extracting time")
     
     if args.processWordFreq:
         start_time = datetime.now()
@@ -70,7 +70,7 @@ def app():
         print("Finished processing word frequencies.")
         
         # announce finish
-        updateLog.get_time_performance(start_time, "Word frequency processing time")
+        get_time_performance(start_time, "Word frequency processing time")
 
     if args.tokenizePrompt: # function is functioning properly
         start_time = datetime.now()
@@ -80,7 +80,7 @@ def app():
         print("Finished tokenizing prompt.")
 
         # announce finish
-        updateLog.get_time_performance(start_time, "Tokenizing prompt time")
+        get_time_performance(start_time, "Tokenizing prompt time")
 
 if __name__ == "__main__":
     app()

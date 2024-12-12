@@ -106,7 +106,7 @@ namespace FEATURE {
                     .relational_distance = TRANSFORMER::Pythagoras(json_map),
                 };
 
-                row.filtered_tokens = TRANSFORMER::token_filter(json_map, ENV_HPP::max_length, 1, row.relational_distance);
+                row.filtered_tokens = TRANSFORMER::token_filter(json_map, ENV_HPP::max_length, ENV_HPP::min_value, row.relational_distance);
 
                 // Dump the contents of a DataEntry to a file
                 if (is_dumped) UTILITIES_HPP::Basic::data_entry_dump(row);
@@ -404,7 +404,6 @@ namespace FEATURE {
             std::cerr << "Error: " << e.what() << std::endl;
         }
     }
-
 }
 
 #endif // FEATURE_HPP

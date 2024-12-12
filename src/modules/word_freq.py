@@ -9,30 +9,33 @@ from nltk.stem import PorterStemmer
 from nltk.corpus import stopwords
 from concurrent.futures import ThreadPoolExecutor
 from json import dump
+import string
 
 # One-time compiled regex pattern
 REPEATED_CHAR_PATTERN = re.compile(r"([a-zA-Z])\1{2,}")
 stemmer = PorterStemmer()
 stop_words = set(stopwords.words('english'))
-banned_word = {'near', 'do', 'who', 'yourself', 'four', 'then', 'doing', 'himself',
-            'two', 'and', 'during', '3.0', 'of', 'were', 'or', 'did', 'gone',
-            'said', 'before', 'you', 'when', 'its', 'myself', 'us', 'Zeno', 
-            'zero', 'Vernon', 'should', 'far', 'making', 'gets', 'getting', 
-            'be', 'how', 'without', 'knowing', 'make', 'seven', 'ours', 'next',
-            'very', 'your', 'this', 'eight', 'ought', 'must', 'goes', 'can',
-            'them', 'why', 'under', 'ourselves', 'was', 'know', 'nine', 'need',
-            '4.0', 'is', 'made', 'one', 'three', 'above', 'herself', 'have',
-            'we', 'my', 'over', 'does', 'on', 'yours', 'that', 'would',
-            '5.0', 'no', 'may', 'might', 'go', 'are', 'makes', 'for', 'say', 'she', 
-            'it', 'becoming', 'a', 'tor', 'could', 'not', 'will', 'into', 'the', 
-            'I', 'below', 'yourselves', 'had', 'her', 'his', 'as', 'date', 'by', 
-            'hers', 'more', 'even', 'which', '500+', 'got', 'our', 'down', 'him', 
-            'lines', 'up', 'an', 'five', 'been', 'being', 'too', 'ten', 'where', 
-            'using', 'itself', 'through', 'what', 'so', 'after', 'shall', 'stuff', 
-            'they', 'he', 'Americas', 'appsabout', 'to', 'in', 'at', 'due', 'six', 
-            'Richard', 'from', 'use', 'me', 'other', 'with', 'get', 'going', 'has', 
-            'hello'}
+# Add your custom banned words to the stopword list
+banned_word = {'what', 'a', 'when', 'with', 'being', 'at', 'was', 'all', 'is', 
+               'where', 'not', 'off', 'have', 'you', 'she', 'such', 'me', 
+               'enough', 'out', 'get', 'how', 'them', 'before', 'yours','after',
+               'above', 'about', 'some', 'up', 'between', 'as', 'got', 'why', 
+               'are', 'far', 'will', 'down', 'own', 'yourselves', 'his','their',
+               'in', 'might', 'ought', 'i', 'were', 'he', 'must', 'below', 'to',
+               'should', 'shall', 'did', 'nor', 'doing', 'since', 'for', 'my', 
+               'any', 'same', 't', 'does', 'more', 'also', 'theirselves', 'who',
+               'herself', 'and', 'your', 'each', 'ours', 'its', 'few', 'don', 
+               'itself', 'could', 'over', 'too', 'no', 'most', 'an', 'until', 
+               'they', 'be', 'only', 'do', 'of', 'it', 'very', 'need', 'done', 
+               'would', 'may', 'from', 'her', 'near', 'theirs', 'themselves', 
+               'we', 'through', 'gotten', 's', 'himself', 'ourselves', 'just', 
+               'us', 'had', 'on', 'been', 'myself', 'yourself', 'him', 'has', 
+               'hers', 'both', 'can', 'into', 'by', 'the', 'now', 'having', 'other'}
 stop_words.update(banned_word)
+
+# Add punctuation to the stopwords
+stop_words.update(string.punctuation)
+
 def has_repeats_regex(word):
     return bool(REPEATED_CHAR_PATTERN.search(word))
 
@@ -51,10 +54,10 @@ def clean_text(text: str):
 
     # Filter tokens based on conditions and apply stemming
     filtered_tokens = defaultdict(int)
-    for token in tokens:
+    for token in tokens[1: -2]: # Exclude the first and last token
         root_word = stemmer.stem(token)
         if pass_conditions(root_word):
-            filtered_tokens[root_word] += 1
+            filtered_tokens[root_word.lower()] += 1
 
     return filtered_tokens
 
@@ -163,3 +166,7 @@ def promptFindingReference() -> None:
     # Dump the cleaned prompt to the buffer.json file
     with open(buffer_json_path, "w") as f:
         dump(cleaned_prompt, f, ensure_ascii=False, indent=4)
+
+
+if __name__ == '__main__':
+    print(banned_word)

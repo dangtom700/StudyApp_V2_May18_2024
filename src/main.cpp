@@ -13,7 +13,7 @@
 #include "lib/utilities.hpp"
 
 const bool reset_table = true;
-const bool show_progress = true;
+const bool show_progress = false;
 const bool is_dumped = false;
 
 void displayHelp() {
@@ -77,7 +77,10 @@ int main(int argc, char* argv[]) {
 
     std::chrono::time_point<std::chrono::system_clock> end = std::chrono::system_clock::now();
     std::chrono::duration<double> elapsed_seconds = end - start;
-    std::cout << "Elapsed time: " << elapsed_seconds.count() << " seconds" << std::endl;
+    // show in the time format HH:MM:SS
+    std::cout << "Elapsed time: " << std::chrono::duration_cast<std::chrono::hours>(elapsed_seconds).count() << ":"
+              << std::chrono::duration_cast<std::chrono::minutes>(elapsed_seconds).count() % 60 << ":"
+              << std::chrono::duration_cast<std::chrono::seconds>(elapsed_seconds).count() % 60 << std::endl;
     std::cout << "Finished program." << std::endl;
     return 0;
 }
