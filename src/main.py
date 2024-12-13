@@ -4,8 +4,8 @@ import modules.path as path
 import modules.extract_text as extract_text
 import modules.word_freq as word_freq
 
-def get_time_performance(start_time: datetime.datetime, message: str) -> None:
-    end_time = datetime.datetime.now()
+def get_time_performance(start_time: datetime, message: str) -> None:
+    end_time = datetime.now()
     time_diff = end_time - start_time
     print(f"{message} took {time_diff} seconds")
 

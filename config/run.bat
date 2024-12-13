@@ -98,7 +98,7 @@ if %processWordFreq%==1 (
 rem 4. Compute Relational Distance
 if %computeRelationalDistance%==1 (
     echo Starting "Compute Relational Distance" using C++...
-    word_tokenizer --computeRelationalDistance
+    word_tokenizer --computeRelationalDistance --createGlobalTerm
     if %errorlevel% neq 0 (
         echo Error executing "Compute Relational Distance".
         goto end

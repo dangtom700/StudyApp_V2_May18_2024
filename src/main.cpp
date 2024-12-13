@@ -39,9 +39,15 @@ void updateDatabaseInformation() {
     std::cout << "Finished: Database information updated." << std::endl;
 }
 
+void createGlobalTermIndex() {
+    std::cout << "Creating global term index..." << std::endl;
+    FEATURE::createGlobalTermsTable(show_progress, reset_table);
+    std::cout << "Finished: Global term index created." << std::endl;
+}
+
 void processPrompt() {
     std::cout << "Processing prompt..." << std::endl;
-    FEATURE::processPrompt();
+    FEATURE::processPrompt(20);
     std::cout << "Finished: Prompt processed." << std::endl;
 }
 
@@ -60,6 +66,7 @@ int main(int argc, char* argv[]) {
         {"--displayhelp", displayHelp},
         {"--computerelationaldistance", computeRelationalDistance},
         {"--updatedatabaseinformation", updateDatabaseInformation},
+        {"--createglobalterm", createGlobalTermIndex},
         {"--processprompt", processPrompt}
     };
 
@@ -77,10 +84,7 @@ int main(int argc, char* argv[]) {
 
     std::chrono::time_point<std::chrono::system_clock> end = std::chrono::system_clock::now();
     std::chrono::duration<double> elapsed_seconds = end - start;
-    // show in the time format HH:MM:SS
-    std::cout << "Elapsed time: " << std::chrono::duration_cast<std::chrono::hours>(elapsed_seconds).count() << ":"
-              << std::chrono::duration_cast<std::chrono::minutes>(elapsed_seconds).count() % 60 << ":"
-              << std::chrono::duration_cast<std::chrono::seconds>(elapsed_seconds).count() % 60 << std::endl;
+    std::cout << "Time elapsed: " << elapsed_seconds.count() << " seconds" << std::endl;
     std::cout << "Finished program." << std::endl;
     return 0;
 }
