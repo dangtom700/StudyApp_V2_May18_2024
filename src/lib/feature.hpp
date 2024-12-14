@@ -405,126 +405,86 @@ namespace FEATURE {
     }
 
 
-    void createGlobalTermsTable(const bool& show_progress = true,
-                         const bool& reset_table = true) {
+    void createGlobalTermsTable(const std::map<std::string, int>& global_terms,
+                                const bool& show_progress = true, 
+                                const bool& reset_table = true) {
         try {
+            // Connect to the database
             sqlite3* db;
             int exit = sqlite3_open(ENV_HPP::database_path.string().c_str(), &db);
             if (exit != SQLITE_OK) {
-                throw std::runtime_error("Failed to open database");
+                std::cerr << "Error opening database: " << sqlite3_errmsg(db) << std::endl;
+                sqlite3_close(db);
+                return;
             }
-
-            // Step 1: Disable synchronous mode for faster inserts
-            char* errMsg = nullptr;
-            if (sqlite3_exec(db, "PRAGMA synchronous = OFF;", nullptr, nullptr, &errMsg) != SQLITE_OK) {
-                std::string err = errMsg ? errMsg : "Unknown error";
-                sqlite3_free(errMsg);
-                throw std::runtime_error("Failed to set PRAGMA synchronous: " + err);
-            }
-
-            // Step 2: Aggregate necessary data in a single query
-            std::string aggregate_query = R"(
-                SELECT 
-                    Token, 
-                    SUM(frequency) AS total_frequency, 
-                    COUNT(DISTINCT file_name) AS doc_count
-                FROM 
-                    relation_distance
-                GROUP BY 
-                    Token;
-            )";
-
-            sqlite3_stmt* aggregate_stmt;
-            if (sqlite3_prepare_v2(db, aggregate_query.c_str(), -1, &aggregate_stmt, nullptr) != SQLITE_OK) {
-                throw std::runtime_error("Failed to prepare aggregate query");
-            }
-
-            std::map<std::string, std::pair<int, int>> unique_tokens;
-
-            while (sqlite3_step(aggregate_stmt) == SQLITE_ROW) {
-                const unsigned char* token_text = sqlite3_column_text(aggregate_stmt, 0);
-                if (!token_text) continue;
-
-                std::string token = reinterpret_cast<const char*>(token_text);
-                int total_frequency = sqlite3_column_int(aggregate_stmt, 1);
-                int doc_count = sqlite3_column_int(aggregate_stmt, 2);
-
-                unique_tokens[token] = {total_frequency, doc_count};
-            }
-
-            sqlite3_finalize(aggregate_stmt);
-
+            // If reset_table is true, reset the global_terms table
             if (reset_table) {
-                std::string delete_table_sql = R"(
-                    DROP TABLE IF EXISTS global_terms;
-                )";
-
-                if (sqlite3_exec(db, delete_table_sql.c_str(), nullptr, nullptr, &errMsg) != SQLITE_OK) {
-                    std::string err = errMsg ? errMsg : "Unknown error";
-                    sqlite3_free(errMsg);
-                    throw std::runtime_error("Failed to delete table: " + err);
-                }
+                std::string drop_table_sql = "DROP TABLE IF EXISTS global_terms;";
+                execute_sql(db, drop_table_sql);
             }
 
-            // Step 3: Create the global_terms table
+            // Prepare the SQL statement to create the global_terms table
             std::string create_table_sql = R"(
                 CREATE TABLE IF NOT EXISTS global_terms (
-                    token TEXT PRIMARY KEY,
-                    frequency INTEGER DEFAULT 0,
-                    doc_count INTEGER DEFAULT 0
+                    term TEXT PRIMARY KEY,
+                    count INTEGER,
+                    frequency REAL
                 );
             )";
+            execute_sql(db, create_table_sql);
 
-            if (sqlite3_exec(db, create_table_sql.c_str(), nullptr, nullptr, &errMsg) != SQLITE_OK) {
-                std::string err = errMsg ? errMsg : "Unknown error";
-                sqlite3_free(errMsg);
-                throw std::runtime_error("Failed to create table: " + err);
-            }
-
-            // Step 4: Batch insert unique tokens into global_terms
+            // Prepare the SQL statement to insert data into the global_terms table
             std::string insert_sql = R"(
-                INSERT INTO global_terms (token, frequency, doc_count) 
-                VALUES (?, ?, ?);
+                INSERT INTO global_terms (term, count, frequency) VALUES (?, ?, ?);
             )";
-
             sqlite3_stmt* insert_stmt;
-            if (sqlite3_prepare_v2(db, insert_sql.c_str(), -1, &insert_stmt, nullptr) != SQLITE_OK) {
-                throw std::runtime_error("Failed to prepare insert statement");
+            exit = sqlite3_prepare_v2(db, insert_sql.c_str(), -1, &insert_stmt, nullptr);
+            if (exit != SQLITE_OK) {
+                std::cerr << "Error preparing statement: " << sqlite3_errmsg(db) << std::endl;
+                sqlite3_finalize(insert_stmt);
+                sqlite3_close(db);
+                return;
             }
 
-            for (const auto& entry : unique_tokens) {
-                const std::string& token = entry.first;
-                int frequency = entry.second.first;
-                int doc_count = entry.second.second;
+            // Filter the tokens by maximum length and minimum frequency
+            int total_frequency = 0;
+            for (const auto& entry : global_terms) {
+                total_frequency += entry.second;
+            }
+            std::vector<std::tuple<std::string, int, double>> filtered_tokens = token_filter(global_terms, ENV_HPP::max_length, ENV_HPP::min_value, static_cast<double>(total_frequency));
 
-                sqlite3_bind_text(insert_stmt, 1, token.c_str(), -1, SQLITE_STATIC);
-                sqlite3_bind_int(insert_stmt, 2, frequency);
-                sqlite3_bind_int(insert_stmt, 3, doc_count);
+            // Insert data into the global_terms table
+            for (const auto& entry : filtered_tokens) {
+                std::string term = std::get<0>(entry);
+                int count = std::get<1>(entry);
+                double frequency = std::get<2>(entry);
 
-                if (sqlite3_step(insert_stmt) != SQLITE_DONE) {
-                    throw std::runtime_error("Failed to insert token: " + token);
+                sqlite3_bind_text(insert_stmt, 1, term.c_str(), -1, SQLITE_STATIC);
+                sqlite3_bind_int(insert_stmt, 2, count);
+                sqlite3_bind_double(insert_stmt, 3, frequency);
+
+                exit = sqlite3_step(insert_stmt);
+                if (exit != SQLITE_DONE) {
+                    std::cerr << "Error inserting data: " << sqlite3_errmsg(db) << std::endl;
+                    sqlite3_finalize(insert_stmt);
+                    sqlite3_close(db);
+                    return;
                 }
 
-                sqlite3_reset(insert_stmt); // Reset statement for next use
-                if(show_progress) std::cout << "Inserted token: " << token << std::endl;
+                sqlite3_reset(insert_stmt);
+
+                if (show_progress) {
+                    std::cout << "Inserted " << term << " into global_terms table" << std::endl;
+                }
             }
 
+            // Finalize the statement and close the database
             sqlite3_finalize(insert_stmt);
-
-            // Step 5: Re-enable synchronous mode (optional, for durability after inserts)
-            if (sqlite3_exec(db, "PRAGMA synchronous = FULL;", nullptr, nullptr, &errMsg) != SQLITE_OK) {
-                std::string err = errMsg ? errMsg : "Unknown error";
-                sqlite3_free(errMsg);
-                throw std::runtime_error("Failed to reset PRAGMA synchronous: " + err);
-            }
-
             sqlite3_close(db);
-
         } catch (const std::exception& e) {
             std::cerr << "Error: " << e.what() << std::endl;
         }
     }
-
 }
 
 #endif // FEATURE_HPP

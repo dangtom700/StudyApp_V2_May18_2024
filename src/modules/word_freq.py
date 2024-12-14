@@ -13,28 +13,30 @@ import string
 
 # One-time compiled regex pattern
 REPEATED_CHAR_PATTERN = re.compile(r"([a-zA-Z])\1{2,}")
+
+# Initialize stemmer and stopwords
 stemmer = PorterStemmer()
 stop_words = set(stopwords.words('english'))
-# Add your custom banned words to the stopword list
-banned_word = {'what', 'a', 'when', 'with', 'being', 'at', 'was', 'all', 'is', 
-               'where', 'not', 'off', 'have', 'you', 'she', 'such', 'me', 
-               'enough', 'out', 'get', 'how', 'them', 'before', 'yours','after',
-               'above', 'about', 'some', 'up', 'between', 'as', 'got', 'why', 
-               'are', 'far', 'will', 'down', 'own', 'yourselves', 'his','their',
-               'in', 'might', 'ought', 'i', 'were', 'he', 'must', 'below', 'to',
-               'should', 'shall', 'did', 'nor', 'doing', 'since', 'for', 'my', 
-               'any', 'same', 't', 'does', 'more', 'also', 'theirselves', 'who',
-               'herself', 'and', 'your', 'each', 'ours', 'its', 'few', 'don', 
-               'itself', 'could', 'over', 'too', 'no', 'most', 'an', 'until', 
-               'they', 'be', 'only', 'do', 'of', 'it', 'very', 'need', 'done', 
-               'would', 'may', 'from', 'her', 'near', 'theirs', 'themselves', 
-               'we', 'through', 'gotten', 's', 'himself', 'ourselves', 'just', 
-               'us', 'had', 'on', 'been', 'myself', 'yourself', 'him', 'has', 
-               'hers', 'both', 'can', 'into', 'by', 'the', 'now', 'having', 'other'}
+banned_word = {
+    'what', 'a', 'when', 'with', 'being', 'at', 'was', 'all', 'is',
+    'where', 'not', 'off', 'have', 'you', 'she', 'such', 'me',
+    'enough', 'out', 'get', 'how', 'them', 'before', 'yours', 'after',
+    'above', 'about', 'some', 'up', 'between', 'as', 'got', 'why',
+    'are', 'far', 'will', 'down', 'own', 'yourselves', 'his', 'their',
+    'in', 'might', 'ought', 'i', 'were', 'he', 'must', 'below', 'to',
+    'should', 'shall', 'did', 'nor', 'doing', 'since', 'for', 'my',
+    'any', 'same', 't', 'does', 'more', 'also', 'theirselves', 'who',
+    'herself', 'and', 'your', 'each', 'ours', 'its', 'few', 'don',
+    'itself', 'could', 'over', 'too', 'no', 'most', 'an', 'until',
+    'they', 'be', 'only', 'do', 'of', 'it', 'very', 'need', 'done',
+    'would', 'may', 'from', 'her', 'near', 'theirs', 'themselves',
+    'we', 'through', 'gotten', 's', 'himself', 'ourselves', 'just',
+    'us', 'had', 'on', 'been', 'myself', 'yourself', 'him', 'has',
+    'hers', 'both', 'can', 'into', 'by', 'the', 'now', 'having', 'other'
+}
 stop_words.update(banned_word)
-
-# Add punctuation to the stopwords
 stop_words.update(string.punctuation)
+stop_words = frozenset(stop_words)  # Optimize stopwords lookup
 
 def has_repeats_regex(word):
     return bool(REPEATED_CHAR_PATTERN.search(word))
@@ -43,21 +45,17 @@ def clean_text(text: str):
     # Remove punctuation and convert to lowercase
     text = re.sub(r'[^\w\s]', '', text).lower()
 
-    # Split text into tokens
+    # Tokenize text
     tokens = nltk.word_tokenize(text)
 
-    # Define a function to filter tokens
-    def pass_conditions(word):
-        return (word.isalpha() and 
-                not has_repeats_regex(word) and 
-                word not in stop_words)
-
-    # Filter tokens based on conditions and apply stemming
+    # Initialize filtered tokens
     filtered_tokens = defaultdict(int)
-    for token in tokens[1: -2]: # Exclude the first and last token
-        root_word = stemmer.stem(token)
-        if pass_conditions(root_word):
-            filtered_tokens[root_word.lower()] += 1
+
+    # Process tokens
+    for token in tokens[1:-2]:  # Exclude the first and last token
+        if token.isalpha() and token not in stop_words and not has_repeats_regex(token):
+            root_word = stemmer.stem(token)
+            filtered_tokens[root_word] += 1
 
     return filtered_tokens
 
