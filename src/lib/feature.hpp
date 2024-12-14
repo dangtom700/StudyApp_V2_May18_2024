@@ -98,6 +98,18 @@ namespace FEATURE {
                 }
 
                 std::map<std::string, int> json_map = TRANSFORMER::json_to_map(file);
+                
+                for (auto it = json_map.begin(); it != json_map.end();) {
+                    const std::string& key = it->first;
+                    const int value = it->second;
+
+                    if (value < ENV_HPP::min_value || key.length() > ENV_HPP::max_length || 
+                        !std::all_of(key.begin(), key.end(), [](char c) { return c >= 'a' && c <= 'z'; })) {
+                        it = json_map.erase(it); // Safely erase invalid entries
+                    } else {
+                        ++it; // Move to the next element
+                    }
+                }
 
                 DataEntry row = {
                     .path = file.stem().generic_string(),
@@ -106,6 +118,8 @@ namespace FEATURE {
                     .relational_distance = TRANSFORMER::Pythagoras(json_map),
                 };
 
+                // Compute the relational distance of each token
+                // Double gated to filter tokens
                 row.filtered_tokens = TRANSFORMER::token_filter(json_map, ENV_HPP::max_length, ENV_HPP::min_value, row.relational_distance);
 
                 // Dump the contents of a DataEntry to a file
@@ -392,7 +406,7 @@ namespace FEATURE {
             });
 
             // Print the first top results
-            std::cout << "Top << top_n << Results:" << std::endl;
+            std::cout << "Top "<< top_n <<" Results:" << std::endl;
             for (int i = 0; i < top_n && i < RESULT.size(); i++) {
                 std::cout << std::left << "ID: " << std::setw(35) << std::get<0>(RESULT[i])
                           <<"Distance: " <<std::setw(15) << std::setprecision(7) << std::get<2>(RESULT[i])

@@ -27,6 +27,14 @@ namespace TRANSFORMER {
     std::vector<std::tuple<std::string, int, double>> token_filter(const std::map<std::string, int>& tokens, const int& max_length, const int& min_value, const double& relational_distance) {
         std::vector<std::tuple<std::string, int, double>> result;
         for (const std::pair<std::string, int>& token : tokens) {
+            // Check if every character of token is in alphabt abcdefghijklmnopqrstuvwxyz
+            bool contains_only_letters = std::all_of(token.first.begin(), token.first.end(), [](char c) { return (c >= 'a' && c <= 'z'); });
+
+            if (!contains_only_letters) {
+                continue;
+            }
+
+            // Check if token is less than or equal to max_length and contains at least min_value letters
             if(token.first.length() <= max_length && token.second >= min_value) {
                 result.push_back({token.first, token.second, static_cast<double>(token.second) / relational_distance});
             }
