@@ -62,7 +62,7 @@ for %%A in (%*) do (
 rem 1. Extract Text
 if %extractText%==1 (
     echo Starting "Extract Text from PDF files" using Python...
-    python src/main.py --extractText
+    python src/interface1.py --extractText
     if %errorlevel% neq 0 (
         echo Error executing "Extract Text from PDF files".
         goto end
@@ -86,7 +86,7 @@ if %updateDatabaseInformation%==1 (
 rem 3. Process Word Frequencies
 if %processWordFreq%==1 (
     echo Starting "Process Word Frequencies" using Python...
-    python src/main.py --processWordFreq
+    python src/interface1.py --processWordFreq
     if %errorlevel% neq 0 (
         echo Error executing "Process Word Frequencies".
         goto end
@@ -110,7 +110,7 @@ if %computeRelationalDistance%==1 (
 rem 5. Prompting for references
 if %promptReference%==1 (
     echo Please Prompt Appropriately for Finding References
-    python src/main.py --tokenizePrompt
+    python src/interface1.py --tokenizePrompt
     word_tokenizer --processPrompt
     if %errorlevel% neq 0 (
         echo Error executing "Find References in Database".
