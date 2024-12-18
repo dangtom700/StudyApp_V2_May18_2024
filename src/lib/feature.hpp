@@ -406,7 +406,8 @@ namespace FEATURE {
             });
 
             // Print the first top results
-            std::cout << "Top "<< top_n <<" Results:" << std::endl;
+            std::cout << "Top "<< top_n <<" Results:" << std::endl
+                << "-----------------------------------------------------------------" << std::endl;
             for (int i = 0; i < top_n && i < RESULT.size(); i++) {
                 std::cout << "ID: " << std::get<0>(RESULT[i]) << std::endl
                 << "Distance: " << std::get<2>(RESULT[i]) << std::endl
