@@ -4,3 +4,5 @@ src/modules/__pycache__
 archived
 src/modules/path.py
 src/lib/env.hpp
+word_tokenizer.exe
+tokenizer.dll

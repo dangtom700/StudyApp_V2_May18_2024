@@ -4,7 +4,7 @@ set start_time=%time%
 
 rem Booting up the program
 echo Compiling C++ code...
-g++ src/main.cpp -o word_tokenizer -I./src -lm -l sqlite3
+g++ src/interface1.cpp -o word_tokenizer -I./src -lm -l sqlite3
 if %errorlevel% neq 0 (
     echo C++ compilation failed.
     goto :eof
@@ -46,7 +46,7 @@ set "extractText=0"
 set "updateDatabaseInformation=0"
 set "processWordFreq=0"
 set "computeRelationalDistance=0"
-set "promptReference=1"
+set "promptReference=0"
 
 rem Process flags
 :process_flags

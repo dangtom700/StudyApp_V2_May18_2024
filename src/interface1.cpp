@@ -39,13 +39,6 @@ void updateDatabaseInformation() {
     std::cout << "Finished: Database information updated." << std::endl;
 }
 
-// void createGlobalTermIndex() {
-//     std::map<std::string, int> global_terms = TRANSFORMER::json_to_map(ENV_HPP::global_terms_path);
-//     std::cout << "Creating global term index..." << std::endl;
-//     FEATURE::createGlobalTermsTable(global_terms, show_progress, reset_table);
-//     std::cout << "Finished: Global term index created." << std::endl;
-// }
-
 void processPrompt() {
     std::cout << "Processing prompt..." << std::endl;
     FEATURE::processPrompt(100);
