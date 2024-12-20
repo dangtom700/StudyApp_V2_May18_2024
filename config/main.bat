@@ -4,7 +4,7 @@ set start_time=%time%
 
 rem Booting up the program
 echo Compiling C++ code...
-g++ src/interface1.cpp -o word_tokenizer -I./src -lm -l sqlite3
+g++ src/main.cpp -o word_tokenizer -I./src -lm -l sqlite3
 if %errorlevel% neq 0 (
     echo C++ compilation failed.
     goto :eof
@@ -42,10 +42,10 @@ rem Function to execute tasks based on input flags
 :execute_tasks
 echo Starting task execution...
 
-set "extractText=0"
-set "updateDatabaseInformation=0"
-set "processWordFreq=0"
-set "computeRelationalDistance=0"
+set "extractText=1"
+set "updateDatabaseInformation=1"
+set "processWordFreq=1"
+set "computeRelationalDistance=1"
 set "promptReference=0"
 
 rem Process flags
@@ -62,7 +62,7 @@ for %%A in (%*) do (
 rem 1. Extract Text
 if %extractText%==1 (
     echo Starting "Extract Text from PDF files" using Python...
-    python src/interface1.py --extractText
+    python src/main.py --extractText
     if %errorlevel% neq 0 (
         echo Error executing "Extract Text from PDF files".
         goto end
@@ -86,7 +86,7 @@ if %updateDatabaseInformation%==1 (
 rem 3. Process Word Frequencies
 if %processWordFreq%==1 (
     echo Starting "Process Word Frequencies" using Python...
-    python src/interface1.py --processWordFreq
+    python src/main.py --processWordFreq
     if %errorlevel% neq 0 (
         echo Error executing "Process Word Frequencies".
         goto end
@@ -110,7 +110,7 @@ if %computeRelationalDistance%==1 (
 rem 5. Prompting for references
 if %promptReference%==1 (
     echo Please Prompt Appropriately for Finding References
-    python src/interface1.py --tokenizePrompt
+    python src/main.py --tokenizePrompt
     word_tokenizer --processPrompt
     if %errorlevel% neq 0 (
         echo Error executing "Find References in Database".

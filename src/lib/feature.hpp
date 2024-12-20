@@ -411,11 +411,9 @@ namespace FEATURE {
             for (int i = 0; i < top_n && i < RESULT.size(); i++) {
                 std::cout << "ID: " << std::get<0>(RESULT[i]) << std::endl
                 << "Distance: " << std::get<2>(RESULT[i]) << std::endl
-                << "Name: " << std::get<1>(RESULT[i]) << std::endl
+                << "Name: [[" << std::get<1>(RESULT[i]) << ".pdf]]" << std::endl
                 << "-----------------------------------------------------------------" << std::endl;
             }
-
-            std::cout << "Results written to results.csv" << std::endl;
         } catch (const std::exception& e) {
             std::cerr << "Error: " << e.what() << std::endl;
         }
