@@ -124,9 +124,8 @@ def store_chunks_in_db(file_name, chunks, db_name):
     logging.info(f"Stored {len(chunks)} chunks for {file_name} in the database.")
 
 # Process multiple PDF files concurrently
-def process_files_in_parallel(pdf_files, chunk_size, db_name):
+def process_files_in_parallel(pdf_files: str, chunk_size: int, db_name: str) -> None:
     total_files = len(pdf_files)
-    completed_files = 0
 
     with ThreadPoolExecutor() as executor:
         future_to_file = {executor.submit(extract_split_and_store_pdf, pdf_file, chunk_size, db_name): pdf_file for pdf_file in pdf_files}
@@ -135,9 +134,8 @@ def process_files_in_parallel(pdf_files, chunk_size, db_name):
             pdf_file = future_to_file[future]
             try:
                 future.result()
-                completed_files += 1
-                # logging.debug(f"Completed {completed_files}/{total_files} files: {pdf_file}")
-                # print(f"{pdf_file}")
+                logging.info(f"Processed {pdf_file}")
+                print(pdf_file)
             except Exception as e:
                 logging.error(f"Error processing {pdf_file}: {e}")
 

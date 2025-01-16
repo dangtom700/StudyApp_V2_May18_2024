@@ -13,8 +13,8 @@
 #include "lib/utilities.hpp"
 
 const bool reset_table = true;
-const bool show_progress = false;
-const bool is_dumped = false;
+const bool show_progress = true;
+const bool is_dumped = true;
 
 void displayHelp() {
     std::cout << "This program is created as an integrated part of the word tokenizer project\n"

@@ -2,6 +2,15 @@
 rem Setting the start time for overall program execution
 set start_time=%time%
 
+rem Activate the conda environment
+echo Activating conda environment...
+call conda activate StudyAssistant
+if %errorlevel% neq 0 (
+    echo Error activating conda environment.
+    goto :eof
+)
+echo Conda environment activated.
+
 rem Booting up the program
 echo Compiling C++ code...
 g++ src/main.cpp -o word_tokenizer -I./src -lm -l sqlite3
@@ -42,11 +51,11 @@ rem Function to execute tasks based on input flags
 :execute_tasks
 echo Starting task execution...
 
-set "extractText=0"
+set "extractText=1"
 set "updateDatabaseInformation=0"
 set "processWordFreq=0"
 set "computeRelationalDistance=0"
-set "promptReference=1"
+set "promptReference=0"
 
 rem Process flags
 :process_flags
