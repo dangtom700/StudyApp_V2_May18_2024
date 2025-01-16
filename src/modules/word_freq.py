@@ -151,8 +151,11 @@ def process_word_frequencies_in_batches():
     conn.close()
 
 def promptFindingReference() -> None:
-    # Enter the prompt
-    prompt = input("Enter prompt: ")
+    # Read in from prompt.txt
+    with open("prompt.txt", "r", encoding="utf-8") as f:
+        prompt = f.readlines()
+
+    prompt = " ".join(prompt)
 
     # Clean the prompt text
     cleaned_prompt = clean_text(prompt)
