@@ -303,7 +303,7 @@ namespace FEATURE {
      * 
      * This function will process the prompt and compute the relational distance of the tokens in the JSON file to the titles in the database.
      * The relational distance is computed using the Euclidean distance between each token in the JSON file and the tokens in the title.
-     * The function will also print the first 25 results in descending order of relational distance.
+     * The function will also print the first n results in descending order of relational distance.
      * If an error occurs, an error message will be printed to the console.
      */
     void processPrompt(const int& top_n = 100) {

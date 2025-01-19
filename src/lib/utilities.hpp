@@ -30,6 +30,11 @@ struct DataInfo {
 
 namespace UTILITIES_HPP {
     namespace Basic {
+        // Seeding for randomization using nullptr
+        void seedRandom() {
+            srand(time(nullptr));
+        }
+        
         std::string convertToBackslash(const std::string& path) {
             std::string modified_path = path;
             std::replace(modified_path.begin(), modified_path.end(), '/', '\\');
