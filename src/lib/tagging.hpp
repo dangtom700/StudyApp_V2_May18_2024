@@ -14,25 +14,6 @@
 
 #include "utilities.hpp"
 
-const std::string topics[] = {
-  "arts", "culture", "politics", "education", "ethics", "government",
-  "health", "history", "religion", "science", "environment", "technology",
-  "economics", "law", "media", "philosophy", "psychology", "sociology",
-  "business", "management", "marketing", "finance", "accounting", "entrepreneurship",
-  "journalism", "communication", "HR", "corporate", "social", "responsibility",
-  "leadership", "others", "literature",
-  "sports", "literature", "food", "travel", "fashion", "architecture",
-  "music", "film", "theater", "linguistics", "anthropology", "geography", 
-  "astronomy", "biology", "chemistry", "physics", "engineering", "mathematics",
-  "medicine", "ecology", "genetics", "archaeology", "meteorology", "oceanography",
-  "botany", "zoology", "robotics", "nanotechnology", "cybersecurity", "AI",
-  "guide","introductory","research","computer","programming","software","hardware",
-  "IoT","networking","web","mobile","game","development","database","management",
-  "security","cloud","computing","big","data","analytics","mechanics", "statistics",
-  "electrics", "electronics","modeling","simulation","textbook", "architecture", "design",
-  "urban","planning","interior","landscape","graphic","industrial","fashion","product"
-};
-
 /* The purposes of this header are to:
     1. Randomly assigned tags to a list of files
     2. User can correctly fix tags to the files
@@ -42,6 +23,25 @@ const std::string topics[] = {
 
 */
 namespace Tagging{
+    const std::string topics[] = {
+    "arts", "culture", "politics", "education", "ethics", "government",
+    "health", "history", "religion", "science", "environment", "technology",
+    "economics", "law", "media", "philosophy", "psychology", "sociology",
+    "business", "management", "marketing", "finance", "accounting", "entrepreneurship",
+    "journalism", "communication", "HR", "corporate", "social", "responsibility",
+    "leadership", "others", "literature",
+    "sports", "literature", "food", "travel", "fashion", "architecture",
+    "music", "film", "theater", "linguistics", "anthropology", "geography", 
+    "astronomy", "biology", "chemistry", "physics", "engineering", "mathematics",
+    "medicine", "ecology", "genetics", "archaeology", "meteorology", "oceanography",
+    "botany", "zoology", "robotics", "nanotechnology", "cybersecurity", "AI",
+    "guide","introductory","research","computer","programming","software","hardware",
+    "IoT","networking","web","mobile","game","development","database","management",
+    "security","cloud","computing","big","data","analytics","mechanics", "statistics",
+    "electrics", "electronics","modeling","simulation","textbook", "architecture", "design",
+    "urban","planning","interior","landscape","graphic","industrial","fashion","product"
+    };
+
     const int topicsSize = sizeof(topics)/sizeof(topics[0]);
 
     std::string assignTags(const int limit = 10 ){
@@ -195,4 +195,87 @@ namespace Tagging{
         csv_file.close();
         std::cout << "CSV file written to: " << output_filename << std::endl;
     }
+
+    void insert_item_matrix(const std::vector<std::vector<double>>& item_matrix, const std::vector<std::string>& unique_titles) {
+        // Record the data into data as "from, to, distance"
+        std::vector<std::tuple<std::string, std::string, double>> data;
+        for (uint16_t i = 0; i < item_matrix.size(); i++) {
+            for (uint16_t j = 0; j < item_matrix[i].size(); j++) {
+                data.push_back({unique_titles[i], unique_titles[j], item_matrix[i][j]});
+            }
+        }
+
+        // Open the database connection
+        sqlite3* db;
+        if (sqlite3_open(ENV_HPP::database_path.string().c_str(), &db) != SQLITE_OK) {
+            std::cerr << "Error opening database: " << sqlite3_errmsg(db) << std::endl;
+            return;
+        }
+
+        // Create the table if it does not exist
+        std::string create_table_sql = R"(
+            DROP TABLE IF EXISTS item_matrix;
+            CREATE TABLE IF NOT EXISTS item_matrix (
+                source TEXT,
+                target TEXT,
+                distance REAL,
+                PRIMARY KEY (source, target)
+            );
+        )";
+
+        char* error_msg = nullptr;
+        if (sqlite3_exec(db, create_table_sql.c_str(), nullptr, nullptr, &error_msg) != SQLITE_OK) {
+            std::cerr << "Error creating table: " << error_msg << std::endl;
+            sqlite3_free(error_msg);
+            sqlite3_close(db);
+            return;
+        }
+
+        // Begin a transaction to optimize insertion speed
+        if (sqlite3_exec(db, "BEGIN TRANSACTION;", nullptr, nullptr, &error_msg) != SQLITE_OK) {
+            std::cerr << "Error starting transaction: " << error_msg << std::endl;
+            sqlite3_free(error_msg);
+            sqlite3_close(db);
+            return;
+        }
+
+        // Prepare the SQL statement for insertion
+        std::string insert_sql = "INSERT INTO item_matrix (source, target, distance) VALUES (?, ?, ?);";
+        sqlite3_stmt* stmt;
+        if (sqlite3_prepare_v2(db, insert_sql.c_str(), -1, &stmt, nullptr) != SQLITE_OK) {
+            std::cerr << "Error preparing insert statement: " << sqlite3_errmsg(db) << std::endl;
+            sqlite3_close(db);
+            return;
+        }
+
+        // Bind and execute the insert statement for each record
+        for (const auto& [source, target, distance] : data) {
+            sqlite3_bind_text(stmt, 1, source.c_str(), -1, SQLITE_TRANSIENT);
+            sqlite3_bind_text(stmt, 2, target.c_str(), -1, SQLITE_TRANSIENT);
+            sqlite3_bind_double(stmt, 3, distance);
+
+            if (sqlite3_step(stmt) != SQLITE_DONE) {
+                std::cerr << "Error inserting record: " << sqlite3_errmsg(db) << std::endl;
+                sqlite3_finalize(stmt);
+                sqlite3_close(db);
+                return;
+            }
+
+            // Reset the statement for the next record
+            sqlite3_reset(stmt);
+        }
+
+        // Finalize the statement and commit the transaction
+        sqlite3_finalize(stmt);
+        if (sqlite3_exec(db, "COMMIT;", nullptr, nullptr, &error_msg) != SQLITE_OK) {
+            std::cerr << "Error committing transaction: " << error_msg << std::endl;
+            sqlite3_free(error_msg);
+            sqlite3_close(db);
+            return;
+        }
+
+        // Close the database connection
+        sqlite3_close(db);
+    }
+
 }
