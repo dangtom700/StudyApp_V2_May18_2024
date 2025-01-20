@@ -21,7 +21,7 @@ namespace ENV_HPP {
     std::filesystem::path buffer_json_path = data_root / ("buffer.json");
     std::filesystem::path global_terms_path = data_root / ("global_word_freq.json");
     std::filesystem::path outputPrompt = std::filesystem::current_path() / ("outputPrompt.txt");
-    std::filesystem::path item_matrix = processed_data_path / ("item_matrix.csv");
+    std::filesystem::path item_matrix = data_root / ("item_matrix.csv");
 
     const int max_length = 14;
     const int min_value = 3;
