@@ -46,22 +46,37 @@ rem Function to execute tasks based on input flags
 :execute_tasks
 echo Starting task execution...
 
+set "showComponents=1"
 set "extractText=0"
 set "updateDatabaseInformation=0"
 set "processWordFreq=0"
 set "computeRelationalDistance=0"
 set "mappingItemMatrix=0"
-set "promptReference=1"
+set "promptReference=0"
 
 rem Process flags
 :process_flags
 for %%A in (%*) do (
+    if "%%A"=="--showComponents" set showComponents=1
     if "%%A"=="--extractText" set extractText=1
     if "%%A"=="--updateDatabaseInformation" set updateDatabaseInformation=1
     if "%%A"=="--processWordFreq" set processWordFreq=1
     if "%%A"=="--computeRelationalDistance" set computeRelationalDistance=1
     if "%%A"=="--mappingItemMatrix" set mappingItemMatrix=1
     if "%%A"=="--promptReference" set promptReference=1
+)
+
+rem Show Components
+if %showComponents%==1 (
+    echo Showing Components...
+    python src/main.py --displayHelp
+    word_tokenizer --displayHelp
+    if %errorlevel% neq 0 (
+        echo Error executing "Show Components".
+        goto end
+    ) else (
+        echo "Show Components" completed successfully.
+    )
 )
 
 rem Extract Text
