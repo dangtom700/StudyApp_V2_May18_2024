@@ -1,0 +1,402 @@
+Top 100 Results:
+-----------------------------------------------------------------
+ID: 3b46ac628a7f403828c52c5aa2ba6
+Distance: 0.601685
+Name:power system operation and control
+-----------------------------------------------------------------
+ID: 97759b3f58900067ea9dab58b20da
+Distance: 0.582458
+Name:power electronic converters and systems Applications
+-----------------------------------------------------------------
+ID: 61de511f16c9105adca18145ca689
+Distance: 0.574605
+Name:resiliency of power distribution systems
+-----------------------------------------------------------------
+ID: 11a0618837626409346b788103091c
+Distance: 0.542198
+Name:transportation electrification breakthroughs in electrified vehicles aircraft rolling stock and watercraft
+-----------------------------------------------------------------
+ID: 5d1ffe836b4aa03f4ee4cebc25ae6
+Distance: 0.48367
+Name:wind power electric systems modeling simulation control and power management control
+-----------------------------------------------------------------
+ID: 8bb13e438e80001ef3532e5d7dd32
+Distance: 0.471464
+Name:distributed energy systems design modelling and control
+-----------------------------------------------------------------
+ID: 988abfb4e830405dd8984fe930a80
+Distance: 0.467706
+Name:power generation technologies foundations design and advices
+-----------------------------------------------------------------
+ID: d105824687c7e003cd0d22454acac
+Distance: 0.463934
+Name:advanced non thermal power generation systems
+-----------------------------------------------------------------
+ID: 2cbca0aa5cdbc01f887c60b5d4a7a
+Distance: 0.462828
+Name:industrial control systems
+-----------------------------------------------------------------
+ID: 8c3e5e64b8f8c02782b8ce433a400
+Distance: 0.459804
+Name:energy efficient electrical systems for buildings
+-----------------------------------------------------------------
+ID: 5bbd82dd77f5402fdd34a2f2aac1e
+Distance: 0.455266
+Name:mechanical engineering practices in industry a beginner guide
+-----------------------------------------------------------------
+ID: 494188348fe080236065a817ef852
+Distance: 0.445919
+Name:energy storage systems
+-----------------------------------------------------------------
+ID: 89bb49a057e8c076142a09d643c2c
+Distance: 0.442866
+Name:reliability analysis of modern power systems
+-----------------------------------------------------------------
+ID: cb02c0d1b3adb07184d780a0377a3
+Distance: 0.439387
+Name:power electronic converters and systems Converters and machine drives
+-----------------------------------------------------------------
+ID: 9fbf300a4f6980780aba007245d38
+Distance: 0.432547
+Name:source grid interaction of wind power integration systems
+-----------------------------------------------------------------
+ID: 54d41ab42456c018710a8aac555c4
+Distance: 0.424129
+Name:electric vehicle design simulation and applications
+-----------------------------------------------------------------
+ID: 8effa734a8fbf00178180735d0e3f
+Distance: 0.422126
+Name:adaptive power quality for power management units using smart technologies
+-----------------------------------------------------------------
+ID: cf43ad36a88d00a270758d94d8f88
+Distance: 0.421725
+Name:wind and solar energy applications technological challenges and advances
+-----------------------------------------------------------------
+ID: 251b4b7725740033c321ab44e655a
+Distance: 0.417165
+Name:written communication for engineers
+-----------------------------------------------------------------
+ID: 4fd80fca680a0000c9d38fcaa1d98
+Distance: 0.409001
+Name:advanced control and optimization paradigms for energy system operation and management
+-----------------------------------------------------------------
+ID: 761388de0470404c2e3108922a414
+Distance: 0.396513
+Name:smart cities power electronics renewable energy and internet of things
+-----------------------------------------------------------------
+ID: 7a955a5eb457e09c82b74ac236e0a
+Distance: 0.392249
+Name:wind power technology an introduction
+-----------------------------------------------------------------
+ID: 2da3190a3c9c0040ea2c494ad6b04
+Distance: 0.388491
+Name:the economics of micro grids
+-----------------------------------------------------------------
+ID: 2d035938986100415ff92979c7982
+Distance: 0.387572
+Name:the economics of microgrids
+-----------------------------------------------------------------
+ID: d00bd56ccf9720c3035f05afccc82
+Distance: 0.374686
+Name:transmission and distribution electrical engineering
+-----------------------------------------------------------------
+ID: 8f4ac348360380f4598583bc6f860
+Distance: 0.372228
+Name:the truth about energy
+-----------------------------------------------------------------
+ID: 7218682f2aa1f05bb91d087493bcf
+Distance: 0.365763
+Name:requirements engineering laying a firm foundation
+-----------------------------------------------------------------
+ID: 12ec3d5b07be200d75ce0d5672702
+Distance: 0.360176
+Name:mastering desktop application with C and C++
+-----------------------------------------------------------------
+ID: 132802d5fc560012946a42c7683c4
+Distance: 0.358432
+Name:safety in industry learn from experience
+-----------------------------------------------------------------
+ID: a5b8f19e168c80012eb3819f383f0
+Distance: 0.345355
+Name:advanced manufacturing operators technologies principles applications and design correlations in chemical engineering fields of practice
+-----------------------------------------------------------------
+ID: 670468abad98e033315308989ccbe
+Distance: 0.342037
+Name:power system protection and relaying computer aided design using SCADA technology
+-----------------------------------------------------------------
+ID: 1860b6c47d4da00cdbef64c8a6a2c4
+Distance: 0.337576
+Name:operating systems evolutionary concepts and modern design principles
+-----------------------------------------------------------------
+ID: 847371e9c08a4044f47861ad34f22
+Distance: 0.335895
+Name:onshore and offshore wind energy evolution grid integration and impact
+-----------------------------------------------------------------
+ID: 65f7975520900005c30dc750e39dc
+Distance: 0.326374
+Name:autonomous agricultural vehicles concept principles components and development guidelines
+-----------------------------------------------------------------
+ID: 3e33c0c8808ae02f50b0e0e7d03a0
+Distance: 0.32551
+Name:systems engineering analysis modeling and simulation of systems
+-----------------------------------------------------------------
+ID: 248715263f59e617ff1a9831c0437e
+Distance: 0.323917
+Name:the mechatronics handbook the instrumentations systems and automation society
+-----------------------------------------------------------------
+ID: f3d5015642394024e6c94172a4f00
+Distance: 0.323788
+Name:design and analysis of control systems driving the fourth industrial revolution
+-----------------------------------------------------------------
+ID: b1fd2d894d448059f3096dd0be4de
+Distance: 0.323577
+Name:mechatronic systems devices design control operation and monitoring
+-----------------------------------------------------------------
+ID: 837580ba9e3f001ea08c80a43eb38
+Distance: 0.32147
+Name:industrial automation and information technology IT architectures communication and software for system design
+-----------------------------------------------------------------
+ID: 13be53024b3d140d3305600f783874
+Distance: 0.320162
+Name:mechanical engineer handbook energy and power
+-----------------------------------------------------------------
+ID: 16fd8225384ad00baa547e2e921eae
+Distance: 0.31988
+Name:mechanical engineer handbook design instrumentation and control
+-----------------------------------------------------------------
+ID: 7ba694a5c440801a649de4bfa0dd6
+Distance: 0.319251
+Name:economics and engineering institutions practices and cultures
+-----------------------------------------------------------------
+ID: 5807bf84adf00035d6f3afb17b03a
+Distance: 0.316537
+Name:systems engineering complex systems design analysis programming and maintenance
+-----------------------------------------------------------------
+ID: 7e03c22e9505804e5c2c0260c9298
+Distance: 0.315183
+Name:practical control engineering for mechatronics and automation
+-----------------------------------------------------------------
+ID: 2b72d15a2dbac012713401485c8ec
+Distance: 0.314854
+Name:handbook on renewable energy and green technology
+-----------------------------------------------------------------
+ID: 6a5b8c8a5102e03fb12f4cb5e02da
+Distance: 0.314592
+Name:industrial automation and robotics
+-----------------------------------------------------------------
+ID: 268460a4de8600250784c081d902c
+Distance: 0.313625
+Name:systems 4.0 systems foundations for industry 4.0
+-----------------------------------------------------------------
+ID: 4b0b3bd086080030974c2be011442
+Distance: 0.31318
+Name:unlocking energy efficiency maximizing utility savings with zero equipment investment
+-----------------------------------------------------------------
+ID: 12dd130791e38005797ac002e89940
+Distance: 0.312346
+Name:energy economics markets history and policy
+-----------------------------------------------------------------
+ID: 59e1137c3db40017d7d2236bea662
+Distance: 0.312254
+Name:design principles for embedded systems
+-----------------------------------------------------------------
+ID: a75db6635749c094a64ea6f7f1076
+Distance: 0.310022
+Name:mechatronics with experiments
+-----------------------------------------------------------------
+ID: 930b5cfff2102008b482ccf74692e
+Distance: 0.308588
+Name:applied embedded electronics design essentials for robust systems
+-----------------------------------------------------------------
+ID: 8f88e9b9e418800855f989b1b1e10
+Distance: 0.308154
+Name:applied embedded electronics design essential for robust systems
+-----------------------------------------------------------------
+ID: 10938dda9e1d800ea8d332d436ceb2
+Distance: 0.308082
+Name:solar energy engineering processes and systems
+-----------------------------------------------------------------
+ID: 200db0a582f0003e6a9d809be86d8
+Distance: 0.306427
+Name:PV and the NEC
+-----------------------------------------------------------------
+ID: 6096c3a43ba4004f3790a3eb0c34a
+Distance: 0.300122
+Name:what every engineer should know about risk engineering and management
+-----------------------------------------------------------------
+ID: 1ea9fb503b4cb90f7ab7d05f41fb69
+Distance: 0.298798
+Name:handbook of integrated circuit industry
+-----------------------------------------------------------------
+ID: 131d2ca5451d980a68b766af2daafe
+Distance: 0.297746
+Name:mechanical engineer handbook manufacturing and management
+-----------------------------------------------------------------
+ID: 47057c16cea0200c65d00c1aab702
+Distance: 0.296186
+Name:basic engineering science
+-----------------------------------------------------------------
+ID: 7c87944e1163200e39d1044028b22
+Distance: 0.295482
+Name:computer engineering applications in electronic biomedical and automotive systems
+-----------------------------------------------------------------
+ID: 56548d660f52003bbb600d5db4320
+Distance: 0.29468
+Name:real time simulation technology for modern power electronics
+-----------------------------------------------------------------
+ID: 1513a0fa5178600bb24728f1e33f48
+Distance: 0.293523
+Name:handbook of pipeline engineering
+-----------------------------------------------------------------
+ID: dc7207bebecb60abb4c4c7150a0fa
+Distance: 0.292891
+Name:wind turbine system design volume 1 nacelles drivetrains and verification
+-----------------------------------------------------------------
+ID: 73b796c2f514303d98b186ff6da5b
+Distance: 0.292132
+Name:smart electric and hybrid vehicles design modeling and assessment by industry 4.0 approaches
+-----------------------------------------------------------------
+ID: 2d311231ed1d801e9ab8422f77a5c
+Distance: 0.292048
+Name:the 5S innovation model a tech innovation strategy for the mine of the future
+-----------------------------------------------------------------
+ID: 4fd209501ebcd071bace0921a472d
+Distance: 0.291264
+Name:spacecraft system design
+-----------------------------------------------------------------
+ID: be207edb6c2720a3dbdfce78b7f8e
+Distance: 0.290038
+Name:mechatronics a foundation course
+-----------------------------------------------------------------
+ID: 7568a759c37d204a22516713e12c4
+Distance: 0.289937
+Name:mechanical engineering and mechatronics handbook
+-----------------------------------------------------------------
+ID: ce8ceeaf9fb7002732fd8e88ad4a8
+Distance: 0.288689
+Name:control handbook control systems fundamentals
+-----------------------------------------------------------------
+ID: 1ffe28dedb01801a550ec8c48e0f4
+Distance: 0.287559
+Name:systems design building systems that drive ideal behavior
+-----------------------------------------------------------------
+ID: 9a700f8f5adb20213cc78fae661ca
+Distance: 0.287053
+Name:energy smart farming efficiency renewable energy and sustainability
+-----------------------------------------------------------------
+ID: 499e6f4dbfa2e00540b46f48ff168
+Distance: 0.283851
+Name:attack and defense games for control systems analysis and synthesis
+-----------------------------------------------------------------
+ID: 6867a6e2c7340022706886c0b75c8
+Distance: 0.281622
+Name:the systems thinker effective mental models and essential thinking skills for solving complex problems managing chaos and creating lasting solutions notice the details others miss
+-----------------------------------------------------------------
+ID: d62ef9ce2422a094198fa95a3dad0
+Distance: 0.281589
+Name:power electronics converters applications and design
+-----------------------------------------------------------------
+ID: 27f042315f9d800ab7dd023be8408
+Distance: 0.279537
+Name:control engineering in mechatronics
+-----------------------------------------------------------------
+ID: 5790f251dc0d804e3734021feb398
+Distance: 0.279244
+Name:model based system architecture
+-----------------------------------------------------------------
+ID: 45fc68de67dc00175a8a48c93d564
+Distance: 0.277598
+Name:managing engineering procurement construction and commissioning projects a chemist engineer guide
+-----------------------------------------------------------------
+ID: 602e2e92882260049bf54e9613d72
+Distance: 0.277068
+Name:aircraft communications and navigation systems
+-----------------------------------------------------------------
+ID: 86c5e2c2f44f008dc5f8824f31b78
+Distance: 0.276257
+Name:telecommunication transmission systems
+-----------------------------------------------------------------
+ID: 6484b729d08a805317cd677ac747e
+Distance: 0.273643
+Name:recent development in automatic control systems
+-----------------------------------------------------------------
+ID: 595410ac04802050069640fc02166
+Distance: 0.272849
+Name:wind energy storage and conservation from basics to utilities
+-----------------------------------------------------------------
+ID: ae6533433e8f202ee187436ddf086
+Distance: 0.27128
+Name:highly efficient thermal renewable energy systems design optimization and applications
+-----------------------------------------------------------------
+ID: ca0bdcd9b7bd800f9e58ccd629e54
+Distance: 0.270458
+Name:basic engineering science a systems accounting and modelling approach
+-----------------------------------------------------------------
+ID: 6224dbc057e1a020bd5a0be0eabba
+Distance: 0.269356
+Name:intelligent sensor node based systems applications in engineering and science
+-----------------------------------------------------------------
+ID: f10aa0d1e5d000fa0cc8002be9180
+Distance: 0.268811
+Name:modern operating systems
+-----------------------------------------------------------------
+ID: 4bafbdce0162800cd72f8dc2d64d0
+Distance: 0.268617
+Name:control of nonlinear systems stability and performance
+-----------------------------------------------------------------
+ID: 6aff709da22d803a0b5880a7a9750
+Distance: 0.268049
+Name:sustainable environmental engineering water security energy conservation and green process
+-----------------------------------------------------------------
+ID: 123e71385f1b100e208d04367f9614
+Distance: 0.267444
+Name:wind energy engineering a handbook for onshore and offshore wind turbines
+-----------------------------------------------------------------
+ID: 2079afe9751ec00bec950ce2998bcc
+Distance: 0.267438
+Name:grounds for grounding a handbook from circuits to systems
+-----------------------------------------------------------------
+ID: 2bc9ef4e19ad002700f30f69195e0
+Distance: 0.264435
+Name:performance of DFIG and PMSG wind turbine
+-----------------------------------------------------------------
+ID: 3a7f45e089b40015a3e0c5f52a54c
+Distance: 0.264249
+Name:human in the loop learning and control for robot teleoperation
+-----------------------------------------------------------------
+ID: bcc6a31fc76be00d98e803125f83e
+Distance: 0.264174
+Name:asset management excellence optimizing equipment life cycle decisions
+-----------------------------------------------------------------
+ID: 5a2acb43763f806554920b2622ad8
+Distance: 0.264154
+Name:wicked problems how to engineer a better world
+-----------------------------------------------------------------
+ID: fd132d14b82c806b6d728d7fd55e0
+Distance: 0.262761
+Name:mechatronics electronic control systems in mechanical and electrical engineering
+-----------------------------------------------------------------
+ID: 548a328dbb25804e237662c39853e
+Distance: 0.262402
+Name:what every engineer should know about the internet of things
+-----------------------------------------------------------------
+ID: 8ff37e1685f800a093fb8eb616038
+Distance: 0.260464
+Name:modern control systems
+-----------------------------------------------------------------
+ID: 278916c641b08006e83d66c0a98de
+Distance: 0.257272
+Name:aviation mechanic handbook
+-----------------------------------------------------------------
+ID: 8c2f0d45d909c01e1f84cd5bc68d0
+Distance: 0.25624
+Name:computing essentials 2023 making IT work for you
+-----------------------------------------------------------------
+ID: 4afd46623e0a300b5c9e066962943
+Distance: 0.255253
+Name:C++ high performance for financial systems
+-----------------------------------------------------------------
+ID: 43f83e3b8cb58019ea68ce2266dd4
+Distance: 0.254527
+Name:market operation for reactive power ancillary service design and analysis with GAMS code
+-----------------------------------------------------------------

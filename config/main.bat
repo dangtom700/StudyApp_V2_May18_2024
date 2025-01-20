@@ -1,5 +1,32 @@
 @echo off
 
+REM.
+REM ==== Program Description ====
+REM This program is part of the study logging and database project.
+REM It has features implemented in both C++ and Python.
+REM.
+REM C++ Features:
+REM     1. Compute Relational Distance: Computes the Euclidean distance between tokens in a JSON file.
+REM     (Command: --computeRelationalDistance)
+REM     2. Update Database Information: Updates the database with resources such as PDFs.
+REM     (Command: --updateDatabaseInformation)
+REM     3. Mapping item matrix of all items' relational distance
+REM     (Command: --mappingItemMatrix)
+REM.
+REM Python Features:
+REM     1. Extract Text from PDF files: Extracts and stores text from PDFs in the database.
+REM     (Command: --extractText)
+REM     2. Process Word Frequencies: Analyzes word frequencies and creates index tables.
+REM     (Command: --processWordFreq)
+REM.
+REM Merged Features:
+REM     1. Enter a paragraph styled prompt to search for references in the database.
+REM     (Command: --promptReference) Note: --tokenizePrompt (Python) --processPrompt (C++)
+REM.
+REM The program allows users to select and execute one or multiple features.
+REM ===============================
+REM.
+
 rem Clear terminal
 cls
 
@@ -15,35 +42,6 @@ if %errorlevel% neq 0 (
 )
 echo Compilation successful.
 
-rem Function for showing the program description
-:show_description
-    echo.
-    echo ==== Program Description ====
-    echo This program is part of the study logging and database project.
-    echo It has features implemented in both C++ and Python.
-    echo.
-    echo C++ Features:
-    echo     1. Compute Relational Distance: Computes the Euclidean distance between tokens in a JSON file.
-    echo     (Command: --computeRelationalDistance)
-    echo     2. Update Database Information: Updates the database with resources such as PDFs.
-    echo     (Command: --updateDatabaseInformation)
-    echo     3. Mapping item matrix of all items' relational distance
-    echo     (Command: --mappingItemMatrix)
-    echo.
-    echo Python Features:
-    echo     1. Extract Text from PDF files: Extracts and stores text from PDFs in the database.
-    echo     (Command: --extractText)
-    echo     2. Process Word Frequencies: Analyzes word frequencies and creates index tables.
-    echo     (Command: --processWordFreq)
-    echo.
-    echo Merged Features:
-    echo     1. Enter a paragraph styled prompt to search for references in the database.
-    echo     (Command: --promptReference) Note: --tokenizePrompt (Python) --processPrompt (C++)
-    echo.
-    echo The program allows users to select and execute one or multiple features.
-    echo ===============================
-    echo.
-
 rem Function to execute tasks based on input flags
 :execute_tasks
 echo Starting task execution...
@@ -53,7 +51,7 @@ set "updateDatabaseInformation=0"
 set "processWordFreq=0"
 set "computeRelationalDistance=0"
 set "mappingItemMatrix=0"
-set "promptReference=0"
+set "promptReference=1"
 
 rem Process flags
 :process_flags
@@ -64,7 +62,6 @@ for %%A in (%*) do (
     if "%%A"=="--computeRelationalDistance" set computeRelationalDistance=1
     if "%%A"=="--mappingItemMatrix" set mappingItemMatrix=1
     if "%%A"=="--promptReference" set promptReference=1
-    if "%%A"=="--showDescription" call :show_description
 )
 
 rem Extract Text
