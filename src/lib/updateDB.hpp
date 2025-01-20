@@ -41,37 +41,37 @@ namespace UPDATE_INFO {
         }
     }
 
-    /**
-     * @brief Get the last write time of a file in a human-readable string format
-     * 
-     * @param path The path to the file
-     * @return The last write time of the file as a string in the format "YYYY-MM-DD HH:MM:SS"
-     * 
-     * If an error occurs while retrieving the last write time (e.g., the file does not exist),
-     * an error message is returned instead.
-     */
-    std::string get_last_write_time(const std::filesystem::path& path) {
-        try {
-            // Get the last write time of the file
-            auto ftime = std::filesystem::last_write_time(path).time_since_epoch().count();
+    // /**
+    //  * @brief Get the last write time of a file in a human-readable string format
+    //  * 
+    //  * @param path The path to the file
+    //  * @return The last write time of the file as a string in the format "YYYY-MM-DD HH:MM:SS"
+    //  * 
+    //  * If an error occurs while retrieving the last write time (e.g., the file does not exist),
+    //  * an error message is returned instead.
+    //  */
+    // std::string get_last_write_time(const std::filesystem::path& path) {
+    //     try {
+    //         // Get the last write time of the file
+    //         auto ftime = std::filesystem::last_write_time(path).time_since_epoch().count();
 
-            // Convert to a system clock time point
-            auto sctp = std::chrono::system_clock::from_time_t(ftime);
-            std::time_t time = std::chrono::system_clock::to_time_t(sctp);
+    //         // Convert to a system clock time point
+    //         auto sctp = std::chrono::system_clock::from_time_t(ftime);
+    //         std::time_t time = std::chrono::system_clock::to_time_t(sctp);
 
-            // Convert to local time
-            std::tm* localTime = std::localtime(&time);
+    //         // Convert to local time
+    //         std::tm* localTime = std::localtime(&time);
 
-            // Format the time into a string
-            std::ostringstream oss;
-            oss << std::put_time(localTime, "%Y-%m-%d %H:%M:%S");
+    //         // Format the time into a string
+    //         std::ostringstream oss;
+    //         oss << std::put_time(localTime, "%Y-%m-%d %H:%M:%S");
 
-            return oss.str();
-        } catch (const std::filesystem::filesystem_error& e) {
-            // Handle any errors that may occur, e.g., file does not exist
-            return "Error: " + std::string(e.what());
-        }
-    }
+    //         return oss.str();
+    //     } catch (const std::filesystem::filesystem_error& e) {
+    //         // Handle any errors that may occur, e.g., file does not exist
+    //         return "Error: " + std::string(e.what());
+    //     }
+    // }
 
     /**
      * @brief Create a unique identifier for a given file name and epoch time

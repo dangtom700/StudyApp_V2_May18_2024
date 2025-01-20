@@ -45,6 +45,12 @@ void processPrompt() {
     std::cout << "Finished: Prompt processed." << std::endl;
 }
 
+void mappingItemMatrix() {
+    std::cout << "Mapping item matrix..." << std::endl;
+    FEATURE::mappingItemMatrix();
+    std::cout << "Finished: Item matrix mapped." << std::endl;
+}
+
 int main(int argc, char* argv[]) {
     // Get the current time for later time delta
     std::chrono::time_point<std::chrono::system_clock> start = std::chrono::system_clock::now();
@@ -60,7 +66,8 @@ int main(int argc, char* argv[]) {
         {"--displayhelp", displayHelp},
         {"--computerelationaldistance", computeRelationalDistance},
         {"--updatedatabaseinformation", updateDatabaseInformation},
-        {"--processprompt", processPrompt}
+        {"--processprompt", processPrompt},
+        {"--mappingitemmatrix", mappingItemMatrix}
     };
 
     // Iterate through the provided command-line arguments and execute corresponding actions

@@ -24,9 +24,9 @@ namespace TRANSFORMER {
     }
 
     // Filter a set of tokens by maximum length and minimum frequency
-    std::vector<std::tuple<std::string, int, double>> token_filter(const std::map<std::string, int>& tokens, const int& max_length, const int& min_value, const double& relational_distance) {
+    std::vector<std::tuple<std::string, int, double>> token_filter(const std::map<std::string, int>& tokens, const uint16_t& max_length, const uint16_t& min_value, const double& relational_distance) {
         std::vector<std::tuple<std::string, int, double>> result;
-        for (const std::pair<std::string, int>& token : tokens) {
+        for (const auto& token : tokens) {
             // Check if every character of token is in alphabt abcdefghijklmnopqrstuvwxyz
             bool contains_only_letters = std::all_of(token.first.begin(), token.first.end(), [](char c) { return (c >= 'a' && c <= 'z'); });
 
@@ -74,14 +74,14 @@ namespace TRANSFORMER {
         return std::sqrt(static_cast<double>(result));
     }
 
-    // Compute the relational distance of each token in the given map
-    std::vector<double> compute_relational_distance(const std::map<std::string, int>& tokens, const double& relational_distance) {
-        std::vector<double> result;
-        for (const auto& [key, value] : tokens) {
-            result.push_back(static_cast<double>(value) / relational_distance);
-        }
-        return result;
-    }
+    // // Compute the relational distance of each token in the given map
+    // std::vector<double> compute_relational_distance(const std::map<std::string, int>& tokens, const double& relational_distance) {
+    //     std::vector<double> result;
+    //     for (const auto& [key, value] : tokens) {
+    //         result.push_back(static_cast<double>(value) / relational_distance);
+    //     }
+    //     return result;
+    // }
 
 } // namespace TRANSFORMER
 

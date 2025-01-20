@@ -41,38 +41,38 @@ namespace UTILITIES_HPP {
             return modified_path;
         }
 
-        std::string decToHexa(int n) {
-            if (n == 0) return "0";  // Handle the case when the number is 0
+        // std::string decToHexa(int n) {
+        //     if (n == 0) return "0";  // Handle the case when the number is 0
 
-            std::string ans = "";
-            const std::string hexChars = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";  // Characters used in hexadecimal representation
-            const int base = hexChars.length();
+        //     std::string ans = "";
+        //     const std::string hexChars = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";  // Characters used in hexadecimal representation
+        //     const int base = hexChars.length();
 
-            // Convert the decimal number to hexadecimal
-            while (n != 0) {
-                int rem = n % base;
-                ans += hexChars[rem];  // Append the corresponding character to the result string
-                n = n / base;
-            }
+        //     // Convert the decimal number to hexadecimal
+        //     while (n != 0) {
+        //         int rem = n % base;
+        //         ans += hexChars[rem];  // Append the corresponding character to the result string
+        //         n = n / base;
+        //     }
 
-            // Reverse the string to get the correct hexadecimal representation
-            std::reverse(ans.begin(), ans.end());
-            return ans;
-        }
+        //     // Reverse the string to get the correct hexadecimal representation
+        //     std::reverse(ans.begin(), ans.end());
+        //     return ans;
+        // }
 
-        /**
-         * @brief Compute the maximum of two integers using bitwise operations
-         * @details This function takes two integers as input and returns the maximum of the two using bitwise operations.
-         *          This is a more efficient way than using the ternary operator or an if-else statement.
-         * @param a an integer
-         * @param b an integer
-         * @return the maximum of a and b
-         */
-        int max(int a, int b){
-                int c = a - b;
-                int flag = (c >> 31) & 1;
-                return (a * !flag) + (b * flag);
-        }
+        // /**
+        //  * @brief Compute the maximum of two integers using bitwise operations
+        //  * @details This function takes two integers as input and returns the maximum of the two using bitwise operations.
+        //  *          This is a more efficient way than using the ternary operator or an if-else statement.
+        //  * @param a an integer
+        //  * @param b an integer
+        //  * @return the maximum of a and b
+        //  */
+        // int max(int a, int b){
+        //         int c = a - b;
+        //         int flag = (c >> 31) & 1;
+        //         return (a * !flag) + (b * flag);
+        // }
 
         // List the files in the given directory and return them in a vector
         std::vector<std::filesystem::path> list_directory(const std::filesystem::path& path, bool show_index = false) {

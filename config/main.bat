@@ -1,10 +1,14 @@
 @echo off
+
+rem Clear terminal
+cls
+
 rem Setting the start time for overall program execution
 set start_time=%time%
 
 rem Booting up the program
 echo Compiling C++ code...
-g++ src/main.cpp -o word_tokenizer -I./src -lm -l sqlite3
+g++ src/main.cpp -o word_tokenizer -I./src -lm -l sqlite3 -Wall -Werror
 if %errorlevel% neq 0 (
     echo C++ compilation failed.
     goto :eof
@@ -23,15 +27,17 @@ rem Function for showing the program description
     echo     (Command: --computeRelationalDistance)
     echo     2. Update Database Information: Updates the database with resources such as PDFs.
     echo     (Command: --updateDatabaseInformation)
+    echo     3. Mapping item matrix of all items' relational distance
+    echo     (Command: --mappingItemMatrix)
     echo.
     echo Python Features:
-    echo     3. Extract Text from PDF files: Extracts and stores text from PDFs in the database.
+    echo     1. Extract Text from PDF files: Extracts and stores text from PDFs in the database.
     echo     (Command: --extractText)
-    echo     4. Process Word Frequencies: Analyzes word frequencies and creates index tables.
+    echo     2. Process Word Frequencies: Analyzes word frequencies and creates index tables.
     echo     (Command: --processWordFreq)
     echo.
     echo Merged Features:
-    echo     5. Enter a paragraph styled prompt to search for references in the database.
+    echo     1. Enter a paragraph styled prompt to search for references in the database.
     echo     (Command: --promptReference) Note: --tokenizePrompt (Python) --processPrompt (C++)
     echo.
     echo The program allows users to select and execute one or multiple features.
@@ -46,7 +52,8 @@ set "extractText=0"
 set "updateDatabaseInformation=0"
 set "processWordFreq=0"
 set "computeRelationalDistance=0"
-set "promptReference=1"
+set "mappingItemMatrix=0"
+set "promptReference=0"
 
 rem Process flags
 :process_flags
@@ -55,11 +62,12 @@ for %%A in (%*) do (
     if "%%A"=="--updateDatabaseInformation" set updateDatabaseInformation=1
     if "%%A"=="--processWordFreq" set processWordFreq=1
     if "%%A"=="--computeRelationalDistance" set computeRelationalDistance=1
+    if "%%A"=="--mappingItemMatrix" set mappingItemMatrix=1
     if "%%A"=="--promptReference" set promptReference=1
     if "%%A"=="--showDescription" call :show_description
 )
 
-rem 1. Extract Text
+rem Extract Text
 if %extractText%==1 (
     echo Starting "Extract Text from PDF files" using Python...
     python src/main.py --extractText
@@ -71,7 +79,7 @@ if %extractText%==1 (
     )
 )
 
-rem 2. Update Database Information
+rem Update Database Information
 if %updateDatabaseInformation%==1 (
     echo Starting "Update Database Information" using C++...
     word_tokenizer --updateDatabaseInformation
@@ -83,7 +91,7 @@ if %updateDatabaseInformation%==1 (
     )
 )
 
-rem 3. Process Word Frequencies
+rem Process Word Frequencies
 if %processWordFreq%==1 (
     echo Starting "Process Word Frequencies" using Python...
     python src/main.py --processWordFreq
@@ -95,7 +103,7 @@ if %processWordFreq%==1 (
     )
 )
 
-rem 4. Compute Relational Distance
+rem Compute Relational Distance
 if %computeRelationalDistance%==1 (
     echo Starting "Compute Relational Distance" using C++...
     word_tokenizer --computeRelationalDistance
@@ -107,7 +115,19 @@ if %computeRelationalDistance%==1 (
     )
 )
 
-rem 5. Prompting for references
+rem Mapping Item Matrix of Relational Distance
+if %mappingItemMatrix%==1 (
+    echo Starting "Mapping Item Matrix" using C++...
+    word_tokenizer --mappingItemMatrix
+    if %errorlevel% neq 0 (
+        echo Error executing "Mapping Item Matrix".
+        goto end
+    ) else (
+        echo "Mapping Item Matrix" completed successfully.
+    )
+)
+
+rem Prompting for references
 if %promptReference%==1 (
     echo Please Prompt Appropriately for Finding References
     python src/main.py --tokenizePrompt
