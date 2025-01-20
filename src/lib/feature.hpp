@@ -46,9 +46,9 @@ namespace FEATURE {
      * @throws std::runtime_error if the database connection or query fails.
      */
     void computeRelationalDistance(const std::vector<std::filesystem::path>& filtered_files,
-                                const bool show_progress = true,
-                                const bool reset_table = true,
-                                const bool is_dumped = true) {
+                                const bool& show_progress = true,
+                                const bool& reset_table = true,
+                                const bool& is_dumped = true) {
         try {
             // Set up SQLite database connection
             sqlite3* db;
@@ -441,7 +441,7 @@ namespace FEATURE {
      * 
      * @note The function uses std::thread for parallel computation and std::mutex for synchronized access to shared resources.
      */
-    void mappingItemMatrix(){
+    void mappingItemMatrix(const std::filesystem::path& output_filename = ENV_HPP::item_matrix) {
         sqlite3* db;
         if (sqlite3_open(ENV_HPP::database_path.string().c_str(), &db) != SQLITE_OK) {
             std::cerr << "Error opening database: " << sqlite3_errmsg(db) << std::endl;
@@ -480,7 +480,10 @@ namespace FEATURE {
         sqlite3_close(db);
 
         // Step 5: Export results to CSV
-        Tagging::export_to_csv(unique_titles, item_matrix, ENV_HPP::item_matrix.string().c_str());
+        Tagging::export_to_csv(unique_titles, item_matrix, output_filename.string().c_str());
+
+        // Step 6: Insert into database
+        Tagging::insert_item_matrix(item_matrix, unique_titles);
     }
 }
 

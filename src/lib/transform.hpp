@@ -74,15 +74,6 @@ namespace TRANSFORMER {
         return std::sqrt(static_cast<double>(result));
     }
 
-    // // Compute the relational distance of each token in the given map
-    // std::vector<double> compute_relational_distance(const std::map<std::string, int>& tokens, const double& relational_distance) {
-    //     std::vector<double> result;
-    //     for (const auto& [key, value] : tokens) {
-    //         result.push_back(static_cast<double>(value) / relational_distance);
-    //     }
-    //     return result;
-    // }
-
 } // namespace TRANSFORMER
 
 #endif // TRANSFORMER
