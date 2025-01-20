@@ -6,7 +6,6 @@
 #include <limits>
 #include <string>
 #include <algorithm>
-#include <chrono>
 
 #include "lib/feature.hpp"
 #include "lib/env.hpp"
@@ -17,11 +16,11 @@ const bool show_progress = false;
 const bool is_dumped = false;
 
 void displayHelp() {
-    std::cout << "This program is created as an integrated part of the word tokenizer project\n"
-                 "to compute the relational distance of each token in a given JSON file.\n"
-                 "The relational distance is the Euclidean norm of the vector of token frequencies.\n"
-                 "While Python provides a wide range of Natural Language Processing libraries,\n"
-                 "C++ offers performance benefits for number crunching and heavy data processing.\n"
+    std::cout << "This program is created as an integrated part of the word tokenizer project "
+                 "to compute the relational distance of each token in a given JSON file. "
+                 "The relational distance is the Euclidean norm of the vector of token frequencies. "
+                 "While Python provides a wide range of Natural Language Processing libraries, "
+                 "C++ offers performance benefits for number crunching and heavy data processing. "
                  "This program resolves these issues without using external libraries." << std::endl;
 }
 
@@ -52,9 +51,6 @@ void mappingItemMatrix() {
 }
 
 int main(int argc, char* argv[]) {
-    // Get the current time for later time delta
-    std::chrono::time_point<std::chrono::system_clock> start = std::chrono::system_clock::now();
-    std::cout << "Starting program..." << std::endl;
     // Check if any command-line arguments were provided
     if (argc < 2) {
         std::cout << "No command provided. Use --displayHelp for available options." << std::endl;
@@ -82,9 +78,5 @@ int main(int argc, char* argv[]) {
         }
     }
 
-    std::chrono::time_point<std::chrono::system_clock> end = std::chrono::system_clock::now();
-    std::chrono::duration<double> elapsed_seconds = end - start;
-    std::cout << "Time elapsed: " << elapsed_seconds.count() << " seconds" << std::endl;
-    std::cout << "Finished program." << std::endl;
     return 0;
 }
