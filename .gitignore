@@ -10,3 +10,5 @@ config/test.bat
 src/test.py
 src/test_file.cpp
 test_file.exe
+outputPrompt.txt
+PROMPT.txt

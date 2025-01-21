@@ -46,13 +46,13 @@ rem Function to execute tasks based on input flags
 :execute_tasks
 echo Starting task execution...
 
-set "showComponents=1"
+set "showComponents=0"
 set "extractText=0"
 set "updateDatabaseInformation=0"
 set "processWordFreq=0"
 set "computeRelationalDistance=0"
 set "mappingItemMatrix=0"
-set "promptReference=0"
+set "promptReference=1"
 
 rem Process flags
 :process_flags
@@ -141,7 +141,7 @@ if %mappingItemMatrix%==1 (
 
 rem Prompting for references
 if %promptReference%==1 (
-    echo Please Prompt Appropriately for Finding References
+    echo Finding references in database...
     python src/main.py --tokenizePrompt
     word_tokenizer --processPrompt
     if %errorlevel% neq 0 (
