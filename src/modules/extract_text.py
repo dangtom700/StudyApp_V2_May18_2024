@@ -134,7 +134,6 @@ def process_files_in_parallel(pdf_files: list[str], chunk_size: int, db_name: st
             try:
                 future.result()
                 logging.info(f"Processed {pdf_file}")
-                print(pdf_file)
             except Exception as e:
                 logging.error(f"Error processing {pdf_file}: {e}")
 
@@ -204,14 +203,14 @@ def extract_text(FOLDER_PATH, CHUNK_SIZE, chunk_database_path, reset_db):
             # Proceed with the rest of the logic
             logging.info(f"Fetched {len(pdf_in_db)} entries from the database.")
 
+        
+        # List all PDF files in the folder
+        pdf_in_folder = [join(root, file) for root, _, files in walk(FOLDER_PATH) for file in files if file.endswith('.pdf')]
+        # Identify files in the folder that are not in the database
+        pdf_not_in_db = list(set(pdf_in_folder) - set(pdf_in_db))
+        logging.info(f"Found {len(pdf_not_in_db)} new PDF files in the folder.")
         # Iterate over files in the folder batch by batch
-        for pdf_batch in batch_collect_files(FOLDER_PATH, batch_size=100):
-            # List all PDF files in the folder
-            pdf_in_folder = [join(root, file) for root, _, files in walk(FOLDER_PATH) for file in files if file.endswith('.pdf')]
-
-            # Identify files in the folder that are not in the database
-            pdf_to_process = list(set(pdf_in_folder) - set(pdf_in_db))
-
+        for pdf_to_process in pdf_not_in_db:
             # Process the filtered list of files
             if pdf_to_process:
                 process_files_in_parallel(pdf_to_process, chunk_size=CHUNK_SIZE, db_name=chunk_database_path)
