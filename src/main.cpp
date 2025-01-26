@@ -11,7 +11,7 @@
 #include "lib/env.hpp"
 #include "lib/utilities.hpp"
 
-const bool reset_table = true;
+const bool reset_table = false;
 const bool show_progress = false;
 const bool is_dumped = false;
 
@@ -26,6 +26,13 @@ void displayHelp() {
 
 void computeRelationalDistance() {
     std::vector<std::filesystem::path> filtered_files = UTILITIES_HPP::Basic::extract_data_files(ENV_HPP::json_path, false, ".json");
+
+    if (filtered_files.empty()) {
+        std::cout << "No JSON files found in the specified directory." << std::endl;
+        return;
+    }
+    if (!reset_table) filtered_files = FEATURE::skim_files(filtered_files, ".json");
+
     std::cout << "Computing relational distance data..." << std::endl;
     FEATURE::computeRelationalDistance(filtered_files, show_progress, reset_table, is_dumped);
     std::cout << "Finished: Relational distance data computed." << std::endl;
@@ -33,6 +40,13 @@ void computeRelationalDistance() {
 
 void updateDatabaseInformation() {
     std::vector<std::filesystem::path> filtered_files = UTILITIES_HPP::Basic::extract_data_files(ENV_HPP::resource_path, false, ".pdf");
+
+    if (filtered_files.empty()) {
+        std::cout << "No PDF files found in the specified directory." << std::endl;
+        return;
+    }
+    if (!reset_table) filtered_files = FEATURE::skim_files(filtered_files, ".pdf");
+
     std::cout << "Updating database information..." << std::endl;
     FEATURE::computeResourceData(filtered_files, show_progress, reset_table, is_dumped);
     std::cout << "Finished: Database information updated." << std::endl;

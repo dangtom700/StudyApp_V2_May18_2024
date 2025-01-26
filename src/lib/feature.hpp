@@ -485,6 +485,68 @@ namespace FEATURE {
         // Step 6: Insert into database
         Tagging::insert_item_matrix(item_matrix, unique_titles);
     }
+
+    std::vector<std::filesystem::path> skim_files(std::vector<std::filesystem::path>& files, const std::string& extension) {
+        // Step 1: Open the database connection
+        sqlite3* db;
+        if (sqlite3_open(ENV_HPP::database_path.string().c_str(), &db) != SQLITE_OK) {
+            std::cerr << "Error opening database: " << sqlite3_errmsg(db) << std::endl;
+            return files; // Return the original list if the database cannot be opened
+        }
+
+        // Step 2: Prepare the SQL query to fetch all file names in the database
+        std::string fetch_sql;
+        if (extension == ".pdf") {
+            fetch_sql = R"(
+                SELECT DISTINCT file_name 
+                FROM file_info
+            )";
+        } else if (extension == ".json") {
+            fetch_sql = R"(
+                SELECT DISTINCT file_name 
+                FROM relation_distance
+            )";
+        } else {
+            std::cerr << "Unsupported extension: " << extension << std::endl;
+            sqlite3_close(db);
+            return files; // Return the original list if the extension is unsupported
+        }
+
+        // Prepare the SQL statement
+        sqlite3_stmt* stmt;
+        if (sqlite3_prepare_v2(db, fetch_sql.c_str(), -1, &stmt, nullptr) != SQLITE_OK) {
+            std::cerr << "Error preparing SQL statement: " << sqlite3_errmsg(db) << std::endl;
+            sqlite3_close(db);
+            return files; // Return the original list if the statement cannot be prepared
+        }
+
+        // Step 3: Retrieve all entries from the database
+        std::unordered_set<std::string> db_files;
+        while (sqlite3_step(stmt) == SQLITE_ROW) {
+            const unsigned char* db_file = sqlite3_column_text(stmt, 0);
+            if (db_file) {
+                db_files.insert(reinterpret_cast<const char*>(db_file));
+            }
+        }
+
+        // Finalize the statement and close the database connection
+        sqlite3_finalize(stmt);
+        sqlite3_close(db);
+
+        // Step 4: Filter the files based on the database entries
+        auto filter_condition = [&db_files, &extension](const std::filesystem::path& file) {
+            if (file.extension() == extension) {
+                // Remove the extension and compare with database values
+                std::string file_name_no_ext = file.filename().stem().string(); // Strips the extension
+                return !(db_files.find(file_name_no_ext) == db_files.end()); // Return true if not in database
+            }
+            return true; // If unsupported extension, mark for removal
+        };
+
+        files.erase(std::remove_if(files.begin(), files.end(), filter_condition), files.end());
+        return files; // Return the filtered list
+    }
+
 }
 
 #endif // FEATURE_HPP

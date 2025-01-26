@@ -24,67 +24,22 @@
 */
 namespace Tagging{
     const std::string topics[] = {
-    "arts", "culture", "politics", "education", "ethics", "government",
-    "health", "history", "religion", "science", "environment", "technology",
-    "economics", "law", "media", "philosophy", "psychology", "sociology",
-    "business", "management", "marketing", "finance", "accounting", "entrepreneurship",
-    "journalism", "communication", "HR", "corporate", "social", "responsibility",
-    "leadership", "others", "literature",
-    "sports", "literature", "food", "travel", "fashion", "architecture",
-    "music", "film", "theater", "linguistics", "anthropology", "geography", 
-    "astronomy", "biology", "chemistry", "physics", "engineering", "mathematics",
-    "medicine", "ecology", "genetics", "archaeology", "meteorology", "oceanography",
-    "botany", "zoology", "robotics", "nanotechnology", "cybersecurity", "AI",
-    "guide","introductory","research","computer","programming","software","hardware",
-    "IoT","networking","web","mobile","game","development","database","management",
-    "security","cloud","computing","big","data","analytics","mechanics", "statistics",
-    "electrics", "electronics","modeling","simulation","textbook", "architecture", "design",
-    "urban","planning","interior","landscape","graphic","industrial","fashion","product"
+    "environment", "journalism", "health", "psychology", "data", "meteorology", "literature", 
+    "ethics", "computing", "architecture", "game", "mathematics", "mechanics", "HR", "zoology", 
+    "textbook", "research", "religion", "networking", "sociology", "development", "interior", 
+    "accounting", "sports", "responsibility", "business", "programming", "robotics", "graphic", 
+    "modeling", "philosophy", "technology", "film", "software", "law", "industrial", "electronics", 
+    "IoT", "social", "guide", "cybersecurity", "physics", "history", "botany", "entrepreneurship", 
+    "medicine", "engineering", "science", "security", "statistics", "economics", "database", 
+    "education", "simulation", "archaeology", "culture", "corporate", "electrics", "media", 
+    "astronomy", "AI", "oceanography", "computer", "geography", "analytics", "others", "introductory", 
+    "chemistry", "arts", "biology", "communication", "urban", "nanotechnology", "finance", "fashion", 
+    "anthropology", "big", "mobile", "leadership", "linguistics", "music", "planning", "design", "food", 
+    "politics", "landscape", "marketing", "web", "travel", "government", "genetics", "theater", 
+    "management", "ecology", "hardware", "product", "cloud"
     };
 
     const int topicsSize = sizeof(topics)/sizeof(topics[0]);
-
-    std::string assignTags(const int limit = 10 ){
-        std::string tag;
-        for(int i = 0; i < limit; i++){
-            tag += topics[rand() % topicsSize] + ", ";
-        }
-        return tag;
-    }
-
-    void createTags(std::string sourceDir, bool exportCSV = true, std::string exportPath = "tags.csv"){
-        UTILITIES_HPP::Basic::seedRandom();
-        int limit = 10;
-        std::vector<std::filesystem::path> pdfFiles = UTILITIES_HPP::Basic::filter_by_extension(UTILITIES_HPP::Basic::list_directory(sourceDir), ".pdf");
-        std::map<std::string, std::string> File_tags;
-        
-        for (std::filesystem::path pdfFile : pdfFiles){
-            // Remove commas from the filename
-            while (pdfFile.filename().string().find(",") != std::string::npos){
-                pdfFile.replace_filename(pdfFile.filename().string().replace(pdfFile.filename().string().find(","), 1, ""));
-            }
-            File_tags[pdfFile.filename().stem().generic_string()] = assignTags(limit);
-        }
-
-        if (exportCSV){
-            if (!std::filesystem::exists(exportPath)){
-                std::filesystem::create_directory(exportPath);
-            }
-            std::ofstream tagsFile(exportPath);
-                std::string headers = "Filename, ";
-            for (int i = 0; i < limit; i++){
-                headers += "Tag " + std::to_string(i+1) + ", ";
-            }
-            tagsFile << headers << std::endl;
-
-            for (auto const& [key, val] : File_tags){
-                tagsFile << key << ", " << val << std::endl;
-            }
-
-            // Close the file
-            tagsFile.close();
-        }
-    }
 
     //--------------------The functions below are implemented in the main code base. Not the above ones----------------------
 

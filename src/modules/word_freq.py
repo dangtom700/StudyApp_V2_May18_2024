@@ -10,6 +10,7 @@ from nltk.corpus import stopwords
 from concurrent.futures import ThreadPoolExecutor
 from json import dump
 import string
+from functools import partial
 
 # One-time compiled regex pattern
 REPEATED_CHAR_PATTERN = re.compile(r"([a-zA-Z])\1{2,}")
@@ -69,20 +70,23 @@ def retrieve_token_list(title_id, database):
     conn = sqlite3.connect(database)
     cursor = conn.cursor()
 
+    clean_text_dict = defaultdict(int)
     try:
         cursor.execute("SELECT chunk_count, starting_id FROM file_info WHERE file_name = ?", (title_id,))
         result = cursor.fetchone()
 
-        if result is None:
-            raise ValueError(f"No data found for title ID: {title_id}")
+        if not result:
+            print(f"Warning: No data found for title ID: {title_id}")
+            return clean_text_dict
 
         chunk_count, start_id = result
+        if chunk_count is None or start_id is None:
+            print(f"Invalid data for title ID: {title_id} (chunk_count={chunk_count}, starting_id={start_id})")
+            return clean_text_dict
 
         cursor.execute("""
             SELECT chunk_text FROM pdf_chunks
             LIMIT ? OFFSET ?""", (chunk_count, start_id))
-
-        clean_text_dict = defaultdict(int)
 
         # Process each chunk one at a time to minimize memory usage
         for chunk in cursor:
@@ -90,29 +94,28 @@ def retrieve_token_list(title_id, database):
             for word, freq in chunk_result.items():
                 clean_text_dict[word] += freq
 
-    except Exception as e:
-        print(f"Error retrieving token list for title ID {title_id}: {e}")
+    except sqlite3.Error as e:
+        print(f"SQLite error while retrieving token list for title ID {title_id}: {e}")
     finally:
-        conn.close()  # Close the connection to avoid memory leaks
+        conn.close()  # Ensure the connection is closed
 
     return clean_text_dict
 
 # Process chunks in batches and store word frequencies in individual JSON files
-def process_chunks_in_batches(database):
+def process_chunks_in_batches(database, pdf_titles, fetched_result):
     conn = sqlite3.connect(database)
     cursor = conn.cursor()
-
-    fetched_result = get_title_ids(cursor)
-    pdf_titles = list(fetched_result.keys())
     global_word_freq = defaultdict(int)
 
     # Ensure the directory exists
     os.makedirs(token_json_path, exist_ok=True)
 
+    # Partial function to bind database parameter for parallel processing
+    retrieve_func = partial(retrieve_token_list, database=database)
+
     # Process title IDs in parallel (each thread gets its own connection)
     with ThreadPoolExecutor(max_workers=4) as executor:
-        for title_id, word_freq in zip(pdf_titles, executor.map(retrieve_token_list, pdf_titles, [database] * len(pdf_titles))):
-
+        for title_id, word_freq in zip(pdf_titles, executor.map(retrieve_func, pdf_titles)):
             # Update global word frequencies
             for word, freq in word_freq.items():
                 global_word_freq[word] += freq
@@ -132,20 +135,44 @@ def process_chunks_in_batches(database):
         dump(global_word_freq, f, ensure_ascii=False, indent=4)
     print("Global word frequencies inserted into the database.")
 
+# Retrieve title IDs from JSON files with pattern title_*.json -> *
+def get_title_ids_from_json(folder_path):
+    title_ids = set()
+    for file in os.listdir(folder_path):
+        if file.startswith('title_') and file.endswith('.json'):
+            title_ids.add(file[6:-5])  # Extract title ID from file name
+    return title_ids
+
 # Main function to process word frequencies in batches
-def process_word_frequencies_in_batches():
+def process_word_frequencies_in_batches(reset_state=False, folder_path=token_json_path):
     conn = sqlite3.connect(chunk_database_path, check_same_thread=False)
     cursor = conn.cursor()
 
-    def empty_folder(folder_path):
+    print("Starting batch processing of chunks...")
+    if reset_state:
         if os.path.exists(folder_path):
             rmtree(folder_path)
         os.makedirs(folder_path)
+        fetched_result = get_title_ids(cursor)
+        pdf_titles = list(fetched_result.keys())
+        process_chunks_in_batches(database=chunk_database_path, pdf_titles=pdf_titles, fetched_result=fetched_result)
+    else:
+        # Retrieve title IDs from the database
+        titleID_db = cursor.execute("SELECT id FROM file_info").fetchall()
+        titleID_db = set([title[0] for title in titleID_db])
+        # Retrieve title IDs from JSON files
+        titleID_json = set(get_title_ids_from_json(folder_path))
+        # Find the difference between the two sets
+        titleID_diff = titleID_db.difference(titleID_json)
+        # If there are any missing title IDs, process them
+        if titleID_diff:
+            titleID_diff = list(titleID_diff)
+            pdf_titles = [cursor.execute("SELECT file_name FROM file_info WHERE id = ?", (titleID,)).fetchone()[0] for titleID in titleID_diff]
+            fetched_result = {title: titleID for title, titleID in zip(pdf_titles, titleID_diff)}
+            process_chunks_in_batches(database=chunk_database_path, pdf_titles=pdf_titles, fetched_result=fetched_result)
+        else:
+            print("All titles have been processed. No new titles to process.")
 
-    empty_folder(folder_path=token_json_path)
-
-    print("Starting batch processing of chunks...")
-    process_chunks_in_batches(database=chunk_database_path)
     print("Processing word frequencies complete.")
     conn.commit()
     conn.close()
