@@ -63,7 +63,7 @@ namespace Tagging{
     }
 
     // Fetch all data in chunks for memory efficiency
-    void fetch_all_data(sqlite3* db, std::unordered_map<std::string, std::unordered_map<std::string, double>>& data) {
+    void fetch_all_data(sqlite3* db, std::unordered_map<std::string, std::unordered_map<std::string, float>>& data) {
         sqlite3_stmt* stmt;
         const char* query = "SELECT file_name, token, relational_distance FROM relation_distance";
 
@@ -71,7 +71,7 @@ namespace Tagging{
             while (sqlite3_step(stmt) == SQLITE_ROW) {
                 const unsigned char* file_name = sqlite3_column_text(stmt, 0);
                 const unsigned char* token = sqlite3_column_text(stmt, 1);
-                double distance = static_cast<double>(sqlite3_column_double(stmt, 2)); // Correctly fetch as double
+                float distance = static_cast<float>(sqlite3_column_double(stmt, 2)); // Correctly fetch as float
 
                 std::string file_name_str(reinterpret_cast<const char*>(file_name));
                 std::string token_str(reinterpret_cast<const char*>(token));
@@ -87,8 +87,8 @@ namespace Tagging{
 
     // Compute distances in parallel
     void compute_distances(const std::vector<std::string>& unique_titles,
-                        const std::unordered_map<std::string, std::unordered_map<std::string, double>>& data,
-                        std::vector<std::vector<double>>& item_matrix, int start, int end,
+                        const std::unordered_map<std::string, std::unordered_map<std::string, float>>& data,
+                        std::vector<std::vector<float>>& item_matrix, int start, int end,
                         std::mutex& matrix_mutex, std::mutex& log_mutex) {
         for (int i = start; i < end; ++i) {
             const auto& title = unique_titles[i];
@@ -100,12 +100,12 @@ namespace Tagging{
                 const auto& target_title = unique_titles[j];
                 const auto& target_token_distance_pairs = data.at(target_title);
 
-                double total_distance = 0.0;
+                float total_distance = 0.0;
 
                 // Compute total distance
                 for (const auto& [token, distance] : token_distance_pairs) {
                     auto it = target_token_distance_pairs.find(token);
-                    double target_distance = (it != target_token_distance_pairs.end()) ? it->second : 0.0;
+                    float target_distance = (it != target_token_distance_pairs.end()) ? it->second : 0.0;
 
                     total_distance += distance + target_distance; // Accumulate distance
                 }
@@ -120,7 +120,7 @@ namespace Tagging{
     }
 
     void export_to_csv(const std::vector<std::string>& unique_titles,
-                    const std::vector<std::vector<double>>& item_matrix,
+                    const std::vector<std::vector<float>>& item_matrix,
                     const std::string& output_filename) {
         std::ofstream csv_file(output_filename);
 
@@ -138,10 +138,10 @@ namespace Tagging{
 
         // Write the matrix rows
         int count = 0;
-        for (std::vector<double> row: item_matrix) {
+        for (std::vector<float> row: item_matrix) {
             csv_file << unique_titles[count];
             count++;
-            for (double value : row) {
+            for (float value : row) {
                 csv_file << "," << value;
             }
             csv_file << "\n";
@@ -151,9 +151,9 @@ namespace Tagging{
         std::cout << "CSV file written to: " << output_filename << std::endl;
     }
 
-    void insert_item_matrix(const std::vector<std::vector<double>>& item_matrix, const std::vector<std::string>& unique_titles) {
+    void insert_item_matrix(const std::vector<std::vector<float>>& item_matrix, const std::vector<std::string>& unique_titles) {
         // Record the data into data as "from, to, distance"
-        std::vector<std::tuple<std::string, std::string, double>> data;
+        std::vector<std::tuple<std::string, std::string, float>> data;
         for (uint16_t i = 0; i < item_matrix.size(); i++) {
             for (uint16_t j = 0; j < item_matrix[i].size(); j++) {
                 data.push_back({unique_titles[i], unique_titles[j], item_matrix[i][j]});

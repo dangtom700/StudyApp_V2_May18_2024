@@ -451,12 +451,12 @@ namespace FEATURE {
         std::vector<std::string> unique_titles = Tagging::fetch_unique_titles(db);
 
         // Step 2: Fetch all data into memory
-        std::unordered_map<std::string, std::unordered_map<std::string, double>> data; // Use double for relational_distance
+        std::unordered_map<std::string, std::unordered_map<std::string, float>> data; // Use float for relational_distance
         Tagging::fetch_all_data(db, data);
 
         // Step 3: Initialize the item matrix
         int n = unique_titles.size();
-        std::vector<std::vector<double>> item_matrix(n, std::vector<double>(n, 0.0f)); // Use double for item_matrix
+        std::vector<std::vector<float>> item_matrix(n, std::vector<float>(n, 0.0f)); // Use float for item_matrix
 
         // Step 4: Compute distances in parallel
         const int num_threads = std::thread::hardware_concurrency();
