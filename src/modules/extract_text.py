@@ -4,7 +4,7 @@ from langchain.text_splitter import RecursiveCharacterTextSplitter
 import sqlite3
 from concurrent.futures import ThreadPoolExecutor, as_completed
 import time
-from os import walk
+from os import walk, listdir
 from os.path import basename, join
 from modules.path import log_file_path, chunk_database_path, pdf_path
 from collections.abc import Generator
@@ -124,8 +124,7 @@ def store_chunks_in_db(file_name, chunks, db_name):
     logging.info(f"Stored {len(chunks)} chunks for {file_name} in the database.")
 
 # Process multiple PDF files concurrently
-def process_files_in_parallel(pdf_files: str, chunk_size: int, db_name: str) -> None:
-    total_files = len(pdf_files)
+def process_files_in_parallel(pdf_files: list[str], chunk_size: int, db_name: str) -> None:
 
     with ThreadPoolExecutor() as executor:
         future_to_file = {executor.submit(extract_split_and_store_pdf, pdf_file, chunk_size, db_name): pdf_file for pdf_file in pdf_files}
@@ -176,21 +175,49 @@ def extract_text(FOLDER_PATH, CHUNK_SIZE, chunk_database_path, reset_db):
 
     logging.info(f"Starting processing of PDF files in batches...")
 
+    # Fetch existing file names from the database
+    def fetch_file_names_and_paths(conn):
+        try:
+            # Try fetching distinct file names and paths with UNION
+            pdf_in_db = {
+                row[0] for row in conn.execute("""
+                    SELECT DISTINCT file_name FROM pdf_chunks
+                    UNION
+                    SELECT DISTINCT file_path FROM file_info
+                """)
+            }
+            return pdf_in_db
+        except sqlite3.OperationalError as e:
+            # Log the error and return None if a table or column doesn't exist
+            logging.warning(f"Database error: {e}")
+            return None
+    
     if reset_db:
         create_table()
         for pdf_batch in batch_collect_files(FOLDER_PATH, batch_size=100):
             process_files_in_parallel(pdf_batch, chunk_size=CHUNK_SIZE, db_name=chunk_database_path)
     else:
-        # Fetch existing file names from the database as a set for quick lookup
-        pdf_in_db = set(row[0] for row in conn.execute("SELECT DISTINCT file_name FROM pdf_chunks"))
+        pdf_in_db = fetch_file_names_and_paths(conn)
+        if pdf_in_db is None:
+            logging.info("Could not fetch file names or paths due to a missing table or column.")
+        else:
+            # Proceed with the rest of the logic
+            logging.info(f"Fetched {len(pdf_in_db)} entries from the database.")
 
-        # Process files in the folder incrementally
+        # Iterate over files in the folder batch by batch
         for pdf_batch in batch_collect_files(FOLDER_PATH, batch_size=100):
-            pdf_to_process = [pdf for pdf in pdf_batch if basename(pdf) not in pdf_in_db]
-            # print(f"PDF files to process in this batch: {len(pdf_to_process)}")
-            process_files_in_parallel(pdf_to_process, chunk_size=CHUNK_SIZE, db_name=chunk_database_path)
+            # List all PDF files in the folder
+            pdf_in_folder = [join(root, file) for root, _, files in walk(FOLDER_PATH) for file in files if file.endswith('.pdf')]
+
+            # Identify files in the folder that are not in the database
+            pdf_to_process = list(set(pdf_in_folder) - set(pdf_in_db))
+
+            # Process the filtered list of files
+            if pdf_to_process:
+                process_files_in_parallel(pdf_to_process, chunk_size=CHUNK_SIZE, db_name=chunk_database_path)
+            else:
+                logging.info("No new PDF files to process.")
 
     conn.commit()
     logging.info("Processing complete: Extracting text from PDF files.")
     conn.close()
-

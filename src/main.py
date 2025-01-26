@@ -41,7 +41,7 @@ def app():
         chunk_size = 5000
         # extract_text
         print("Extracting text from PDF files...")
-        extract_text.extract_text(CHUNK_SIZE=chunk_size, FOLDER_PATH=path.pdf_path, chunk_database_path=path.chunk_database_path, reset_db=True)
+        extract_text.extract_text(CHUNK_SIZE=chunk_size, FOLDER_PATH=path.pdf_path, chunk_database_path=path.chunk_database_path, reset_db=False)
         print("Finished extracting text from PDF files.")
     
     if args.processWordFreq:
