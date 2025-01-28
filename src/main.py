@@ -14,6 +14,7 @@ def app():
     parser.add_argument("--extractText", action= 'store_true', help= 'Extract text from PDF files and store in database')
     parser.add_argument("--processWordFreq", action= 'store_true', help="Create index tables and analyze word frequencies all in one")
     parser.add_argument("--tokenizePrompt", action= 'store_true', help="Prompt to find references in full database based on context of search")
+    parser.add_argument("--getDataset", action= 'store_true', help="Get dataset from database")
 
     args = parser.parse_args()
 
@@ -55,6 +56,12 @@ def app():
         print("Tokenizing prompt...")
         word_freq.promptFindingReference()
         print("Finished tokenizing prompt.")
+
+    if args.getDataset: # function is functioning properly
+        
+        print("Getting dataset from database...")
+        word_freq.get_dataset()
+        print("Finished getting dataset.")
 
 if __name__ == "__main__":
     app()

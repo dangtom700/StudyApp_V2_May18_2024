@@ -4,7 +4,7 @@ import re
 import nltk
 from collections import defaultdict
 from shutil import rmtree
-from modules.path import chunk_database_path, token_json_path, buffer_json_path
+from modules.path import chunk_database_path, token_json_path, buffer_json_path, dataset_path
 from nltk.stem import PorterStemmer
 from nltk.corpus import stopwords
 from concurrent.futures import ThreadPoolExecutor
@@ -196,5 +196,30 @@ def promptFindingReference() -> None:
         dump(cleaned_prompt, f, ensure_ascii=False, indent=4)
 
 
-if __name__ == '__main__':
-    print(banned_word)
+def get_dataset():
+    conn = sqlite3.connect(chunk_database_path)
+    cursor = conn.cursor()
+    num_chunks = conn.execute("SELECT MAX(id) FROM pdf_chunks").fetchone()[0]
+    BATCH = 100
+    start = 0
+
+    # Clear the dataset file
+    if os.path.exists(dataset_path):
+        os.remove(dataset_path)
+    
+    while start < num_chunks:
+        end = min(start + BATCH, num_chunks)
+        cursor.execute("SELECT chunk_text FROM pdf_chunks WHERE id BETWEEN ? AND ?", (start, end))
+        chunks = cursor.fetchall()
+
+        # Append to the dataset file
+        with open(dataset_path, "a", encoding="utf-8") as f:
+            for chunk in chunks:
+                # Clean the text before writing to file
+                result = re.sub(r"\n", " ", chunk[0]) # Remove newlines
+                result = re.sub(r"\s+", " ", result) # Remove extra spaces
+                result = result.strip() # Remove leading/trailing spaces
+                result = re.sub(r"[^a-zA-Z0-9\s]", "", result) # Remove special characters
+                f.write(result)
+        start = end + 1
+    conn.close()

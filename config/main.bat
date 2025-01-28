@@ -18,6 +18,8 @@ REM     1. Extract Text from PDF files: Extracts and stores text from PDFs in th
 REM     (Command: --extractText)
 REM     2. Process Word Frequencies: Analyzes word frequencies and creates index tables.
 REM     (Command: --processWordFreq)
+REM     3. Get Dataset: Retrieves the dataset from the database.
+REM     (Command: --getDataset)
 REM.
 REM Merged Features:
 REM     1. Enter a paragraph styled prompt to search for references in the database.
@@ -53,6 +55,7 @@ set "processWordFreq=0"
 set "computeRelationalDistance=0"
 set "mappingItemMatrix=0"
 set "promptReference=1"
+set "getDataset=0"
 
 rem Process flags
 :process_flags
@@ -64,6 +67,7 @@ for %%A in (%*) do (
     if "%%A"=="--computeRelationalDistance" set computeRelationalDistance=1
     if "%%A"=="--mappingItemMatrix" set mappingItemMatrix=1
     if "%%A"=="--promptReference" set promptReference=1
+    if "%%A"=="--getDataset" set getDataset=1
 )
 
 rem Show Components
@@ -148,6 +152,17 @@ if %promptReference%==1 (
         echo Error executing "Find References in Database".
     ) else (
         echo "Find References in Database" completed successfully.
+    )
+)
+
+rem Get Dataset
+if %getDataset%==1 (
+    echo Getting dataset...
+    python src/main.py --getDataset
+    if %errorlevel% neq 0 (
+        echo Error executing "Get Dataset".
+    ) else (
+        echo "Get Dataset" completed successfully.
     )
 )
 
