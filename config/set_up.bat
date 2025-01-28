@@ -1,7 +1,7 @@
 @echo on
-conda env create -f requirement.yml
+conda env create -f config\requirement.yml
 conda activate StudyAssistant
-pip install -r requirement.txt
+pip install -r config\requirement.txt
 python nltk_download.py
 
 pause
