@@ -303,10 +303,10 @@ namespace Tagging{
         }
 
         int curr_index = it - titles.begin();
-        std::vector<std::string> route;
         std::vector<bool> visited(titles.size(), false);
+        float total_distance = 0.0f;
 
-        route.push_back(start);
+        output_file << start.substr(6) << "," << total_distance << ",";
         visited[curr_index] = true;
 
         for (int step = 0; step < num_steps; step++) {
@@ -324,15 +324,13 @@ namespace Tagging{
                 break; // No valid next node found
             }
 
-            route.push_back(titles[next_index]);
+            total_distance += max_value;
+
+            output_file << titles[next_index].substr(6) << "," << total_distance << ",";
             visited[next_index] = true;
             curr_index = next_index;
         }
 
-        // Write the route to the file
-        for (const auto& node : route) {
-            output_file << node << ",";
-        }
         output_file << "END\n";
     }
 

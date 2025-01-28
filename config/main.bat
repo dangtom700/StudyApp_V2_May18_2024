@@ -54,9 +54,9 @@ set "updateDatabaseInformation=0"
 set "processWordFreq=0"
 set "computeRelationalDistance=0"
 set "mappingItemMatrix=0"
-set "promptReference=0"
+set "promptReference=1"
 set "getDataset=0"
-set "createRoutes=1"
+set "createRoutes=0"
 
 rem Process flags
 :process_flags
