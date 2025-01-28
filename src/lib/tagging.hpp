@@ -18,8 +18,8 @@
     1. Randomly assigned tags to a list of files
     2. User can correctly fix tags to the files
     3. Teach the algorithm to assign tags to the files
-    4. Export the tags to a CSV file
-    5. Import the tags from a CSV file
+    4. Export the tags to a CSV file (done)
+    5. Import the tags from a CSV file (done)
 
 */
 namespace Tagging{
@@ -231,6 +231,109 @@ namespace Tagging{
 
         // Close the database connection
         sqlite3_close(db);
+    }
+
+    // Function to read numeric data from CSV
+    std::vector<std::vector<float>> get_numeric_data_from_csv(const std::string& filename) {
+        std::vector<std::vector<float>> item_matrix;
+        std::ifstream csv_file(filename);
+        if (!csv_file.is_open()) {
+            std::cerr << "Error: Could not open file " << filename << " for reading.\n";
+            return item_matrix;
+        }
+
+        std::string line;
+        std::getline(csv_file, line); // Skip the header row
+
+        while (std::getline(csv_file, line)) {
+            std::vector<float> row;
+            std::istringstream token_stream(line);
+            std::string token;
+
+            std::getline(token_stream, token, ','); // Skip first column
+
+            while (std::getline(token_stream, token, ',')) {
+                try {
+                    row.push_back(std::stof(token));
+                } catch (...) {
+                    row.push_back(0.0f); // Default to 0 if conversion fails
+                }
+            }
+            item_matrix.push_back(row);
+        }
+
+        csv_file.close();
+        return item_matrix;
+    }
+
+    // Function to read headers from CSV
+    std::vector<std::string> get_headers_from_csv(const std::string& filename) {
+        std::vector<std::string> headers;
+        std::ifstream csv_file(filename);
+        if (!csv_file.is_open()) {
+            std::cerr << "Error: Could not open file " << filename << " for reading.\n";
+            return headers;
+        }
+
+        std::string line;
+        std::getline(csv_file, line);
+        std::istringstream token_stream(line);
+        std::string token;
+
+        std::getline(token_stream, token, ','); // Skip first column
+
+        while (std::getline(token_stream, token, ',')) {
+            headers.push_back(token);
+        }
+
+        csv_file.close();
+        return headers;
+    }
+
+    // Function to create a route and write to a file
+    void create_route(const std::string& start, int num_steps, 
+                    const std::vector<std::vector<float>>& item_matrix, 
+                    const std::vector<std::string>& titles,
+                    std::ofstream& output_file) {
+        // Find index of the start node
+        auto it = std::find(titles.begin(), titles.end(), start);
+        if (it == titles.end()) {
+            std::cerr << "Error: Invalid start node '" << start << "'.\n";
+            return;
+        }
+
+        int curr_index = it - titles.begin();
+        std::vector<std::string> route;
+        std::vector<bool> visited(titles.size(), false);
+
+        route.push_back(start);
+        visited[curr_index] = true;
+
+        for (int step = 0; step < num_steps; step++) {
+            float max_value = 0.0f;
+            int next_index = -1;
+
+            for (size_t j = 0; j < item_matrix[curr_index].size(); j++) {
+                if (!visited[j] && item_matrix[curr_index][j] > max_value) {
+                    max_value = item_matrix[curr_index][j];
+                    next_index = static_cast<int>(j);
+                }
+            }
+
+            if (next_index == -1) {
+                break; // No valid next node found
+            }
+
+            route.push_back(titles[next_index]);
+            visited[next_index] = true;
+            curr_index = next_index;
+        }
+
+        // Write the route to the file
+        for (const auto& node : route) {
+            output_file << node << ",";
+        }
+        output_file << "END\n";
     }
 
 }

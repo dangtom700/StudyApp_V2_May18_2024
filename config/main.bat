@@ -54,8 +54,9 @@ set "updateDatabaseInformation=0"
 set "processWordFreq=0"
 set "computeRelationalDistance=0"
 set "mappingItemMatrix=0"
-set "promptReference=1"
+set "promptReference=0"
 set "getDataset=0"
+set "createRoutes=1"
 
 rem Process flags
 :process_flags
@@ -68,6 +69,7 @@ for %%A in (%*) do (
     if "%%A"=="--mappingItemMatrix" set mappingItemMatrix=1
     if "%%A"=="--promptReference" set promptReference=1
     if "%%A"=="--getDataset" set getDataset=1
+    if "%%A"=="--createRoutes" set createRoutes=1
 )
 
 rem Show Components
@@ -157,12 +159,23 @@ if %promptReference%==1 (
 
 rem Get Dataset
 if %getDataset%==1 (
-    echo Getting dataset...
+    echo Getting dataset using Python...
     python src/main.py --getDataset
     if %errorlevel% neq 0 (
         echo Error executing "Get Dataset".
     ) else (
         echo "Get Dataset" completed successfully.
+    )
+)
+
+rem Create Route
+if %createRoutes%==1 (
+    echo Creating routes using C++...
+    word_tokenizer --createRoutes
+    if %errorlevel% neq 0 (
+        echo Error executing "Create Route".
+    ) else (
+        echo "Create Route" completed successfully.
     )
 )
 

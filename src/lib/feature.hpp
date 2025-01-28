@@ -547,6 +547,31 @@ namespace FEATURE {
         return files; // Return the filtered list
     }
 
+    void createRoutes(uint16_t num_steps) {
+        std::vector<std::vector<float>> item_matrix = Tagging::get_numeric_data_from_csv(ENV_HPP::item_matrix.string());
+        std::vector<std::string> titles = Tagging::get_headers_from_csv(ENV_HPP::item_matrix.string());
+
+        if (item_matrix.empty() || titles.empty()) {
+            return;
+        }
+
+        // Open output file for writing
+        std::ofstream output_file(ENV_HPP::route_list);
+        if (!output_file.is_open()) {
+            std::cerr << "Error: Could not open " << ENV_HPP::route_list << " for writing.\n";
+            return;
+        }
+
+        // Take the min value between resource limit and choice
+        num_steps = (num_steps > titles.size()) ? titles.size() : num_steps;
+
+        for (const auto& title : titles) {
+            Tagging::create_route(title, num_steps, item_matrix, titles, output_file);
+        }
+
+        output_file.close();
+        std::cout << "Routes successfully written to " << ENV_HPP::route_list << " !\n";
+    }
 }
 
 #endif // FEATURE_HPP

@@ -64,6 +64,12 @@ void mappingItemMatrix() {
     std::cout << "Finished: Item matrix mapped." << std::endl;
 }
 
+void createRoutes() {
+    std::cout << "Creating routes of relation distance..." << std::endl;
+    FEATURE::createRoutes(std::numeric_limits<uint16_t>::max());
+    std::cout << "Finished: Route created." << std::endl;
+}
+
 int main(int argc, char* argv[]) {
     // Check if any command-line arguments were provided
     if (argc < 2) {
@@ -77,7 +83,8 @@ int main(int argc, char* argv[]) {
         {"--computerelationaldistance", computeRelationalDistance},
         {"--updatedatabaseinformation", updateDatabaseInformation},
         {"--processprompt", processPrompt},
-        {"--mappingitemmatrix", mappingItemMatrix}
+        {"--mappingitemmatrix", mappingItemMatrix},
+        {"--createroutes", createRoutes}
     };
 
     // Iterate through the provided command-line arguments and execute corresponding actions
