@@ -66,7 +66,7 @@ void mappingItemMatrix() {
 
 void createRoutes() {
     std::cout << "Creating routes of relation distance..." << std::endl;
-    FEATURE::createRoutes(std::numeric_limits<uint16_t>::max());
+    FEATURE::createRoutes(5);
     std::cout << "Finished: Route created." << std::endl;
 }
 
