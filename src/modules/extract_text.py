@@ -40,7 +40,6 @@ def retry_on_exception(retries=99, delay=5, retry_exceptions=(Exception,), log_m
 
 # Function to extract text from a PDF file
 def extract_text_from_pdf(pdf_file):
-    logging.info(f"Extracting text from {pdf_file}...")
     text = ""
     try:
         doc = fitz.open(pdf_file)
@@ -49,7 +48,7 @@ def extract_text_from_pdf(pdf_file):
             page_text = page.get_text()
             logging.debug(f"Extracted text from page {page_num} of {pdf_file}: {page_text[:50]}...")
             text += page_text
-    except fitz.fitz_error as e:
+    except Exception as e:
         logging.error(f"MuPDF error in {pdf_file}: {e}")
     except Exception as e:
         logging.error(f"Error extracting text from {pdf_file}: {e}")
