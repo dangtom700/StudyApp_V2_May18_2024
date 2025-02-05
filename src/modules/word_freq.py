@@ -39,6 +39,13 @@ stop_words.update(banned_word)
 stop_words.update(string.punctuation)
 stop_words = frozenset(stop_words)  # Optimize stopwords lookup
 
+def ultra_clean_token(text):
+    text = text.strip() # Remove leading/trailing spaces
+    text = re.sub(r"\n", " ", text) # Remove newlines
+    text = re.sub(r"[^a-zA-Z0-9\s]", " ", text) # Remove special characters
+    text = re.sub(r"\s+", "", text) # Remove extra spaces
+    return text
+
 def has_repeats_regex(word):
     return bool(REPEATED_CHAR_PATTERN.search(word))
 
@@ -185,10 +192,7 @@ def promptFindingReference() -> None:
     prompt = " ".join(prompt)
     
     # Cleaning
-    prompt = re.sub(r"\n", " ", prompt) # Remove newlines
-    prompt = re.sub(r"\s+", " ", prompt) # Remove extra spaces
-    prompt = prompt.strip() # Remove leading/trailing spaces
-    prompt = re.sub(r"[^a-zA-Z0-9\s]", "", prompt) # Remove special characters
+    prompt = ultra_clean_token(prompt)
 
     # Clean the prompt text
     cleaned_prompt = clean_text(prompt)
@@ -222,10 +226,7 @@ def get_dataset():
         with open(dataset_path, "a", encoding="utf-8") as f:
             for chunk in chunks:
                 # Clean the text before writing to file
-                result = re.sub(r"\n", " ", chunk[0]) # Remove newlines
-                result = re.sub(r"\s+", " ", result) # Remove extra spaces
-                result = result.strip() # Remove leading/trailing spaces
-                result = re.sub(r"[^a-zA-Z0-9\s]", "", result) # Remove special characters
+                result = ultra_clean_token(chunk)
                 f.write(result)
         start = end + 1
     conn.close()
