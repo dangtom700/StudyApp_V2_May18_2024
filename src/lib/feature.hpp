@@ -441,7 +441,7 @@ namespace FEATURE {
      * 
      * @note The function uses std::thread for parallel computation and std::mutex for synchronized access to shared resources.
      */
-    void mappingItemMatrix(const std::filesystem::path& output_filename = ENV_HPP::item_matrix) {
+    void mappingItemMatrix(const std::filesystem::path& output_filename = ENV_HPP::item_matrix, const int limit = 10) {
         sqlite3* db;
         if (sqlite3_open(ENV_HPP::database_path.string().c_str(), &db) != SQLITE_OK) {
             std::cerr << "Error opening database: " << sqlite3_errmsg(db) << std::endl;
@@ -456,7 +456,7 @@ namespace FEATURE {
 
         // Step 3: Initialize the item matrix
         int n = unique_titles.size();
-        std::vector<std::vector<float>> item_matrix(n, std::vector<float>(n, 0.0f)); // Use float for item_matrix
+        std::vector<std::vector<float>> item_matrix(n, std::vector<float>(limit, 0.0f)); // Use float for item_matrix
 
         // Step 4: Compute distances in parallel
         const int num_threads = std::thread::hardware_concurrency();
