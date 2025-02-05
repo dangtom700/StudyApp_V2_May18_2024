@@ -183,6 +183,12 @@ def promptFindingReference() -> None:
         prompt = f.readlines()
 
     prompt = " ".join(prompt)
+    
+    # Cleaning
+    prompt = re.sub(r"\n", " ", prompt) # Remove newlines
+    prompt = re.sub(r"\s+", " ", prompt) # Remove extra spaces
+    prompt = prompt.strip() # Remove leading/trailing spaces
+    prompt = re.sub(r"[^a-zA-Z0-9\s]", "", prompt) # Remove special characters
 
     # Clean the prompt text
     cleaned_prompt = clean_text(prompt)
