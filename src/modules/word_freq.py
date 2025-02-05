@@ -52,7 +52,7 @@ def has_repeats_regex(word):
 def clean_text(text: str):
     # Remove punctuation and convert to lowercase
     text = re.sub(r'[^\w\s]', '', text).lower()
-
+    text = ultra_clean_token(text)
     # Tokenize text
     tokens = nltk.word_tokenize(text)
 
