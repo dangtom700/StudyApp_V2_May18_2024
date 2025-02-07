@@ -4,9 +4,10 @@ from langchain.text_splitter import RecursiveCharacterTextSplitter
 import sqlite3
 from concurrent.futures import ThreadPoolExecutor, as_completed
 import time
-from os import walk, listdir
+from os import walk
+import re
 from os.path import basename, join
-from modules.path import log_file_path, chunk_database_path, pdf_path
+from modules.path import log_file_path
 from collections.abc import Generator
 
 # Setup logging to log messages to a file, with the option to reset the log file
@@ -96,6 +97,13 @@ def store_chunks_in_db(file_name, chunks, db_name):
     execute_db_operation(db_name, _store_chunks, file_name, chunks)
     logging.info(f"Stored {len(chunks)} chunks for {file_name} in the database.")
 
+def ultra_clean_token(text):
+    text = text.strip() # Remove leading/trailing spaces
+    text = re.sub(r"\n", " ", text) # Remove newlines
+    text = re.sub(r"[^a-zA-Z0-9\s]", " ", text) # Remove special characters
+    text = re.sub(r"\s+", " ", text) # Remove extra spaces
+    return text
+
 # Function to extract, split, and store text from a PDF file
 def extract_split_and_store_pdf(pdf_file, chunk_size, db_name):
     try:
@@ -104,6 +112,7 @@ def extract_split_and_store_pdf(pdf_file, chunk_size, db_name):
             logging.warning(f"No text extracted from {pdf_file}.")
             return
         chunks = split_text_into_chunks(text, chunk_size=chunk_size)
+        chunks = [ultra_clean_token(chunk) for chunk in chunks]
         if not chunks:
             logging.warning(f"No chunks created for {pdf_file}.")
             return

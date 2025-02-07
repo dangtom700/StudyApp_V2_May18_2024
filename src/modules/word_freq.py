@@ -43,7 +43,7 @@ def ultra_clean_token(text):
     text = text.strip() # Remove leading/trailing spaces
     text = re.sub(r"\n", " ", text) # Remove newlines
     text = re.sub(r"[^a-zA-Z0-9\s]", " ", text) # Remove special characters
-    text = re.sub(r"\s+", "", text) # Remove extra spaces
+    text = re.sub(r"\s+", " ", text) # Remove extra spaces
     return text
 
 def has_repeats_regex(word):
