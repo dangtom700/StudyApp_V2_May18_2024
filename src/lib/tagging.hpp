@@ -51,8 +51,7 @@ namespace Tagging{
 
         if (sqlite3_prepare_v2(db, query, -1, &stmt, nullptr) == SQLITE_OK) {
             while (sqlite3_step(stmt) == SQLITE_ROW) {
-                const unsigned char* file_name = sqlite3_column_text(stmt, 0);
-                unique_titles.emplace_back(reinterpret_cast<const char*>(file_name));
+                unique_titles.emplace_back(reinterpret_cast<const char*>(sqlite3_column_text(stmt, 0)));
             }
         } else {
             std::cerr << "Error preparing statement: " << sqlite3_errmsg(db) << std::endl;
@@ -62,21 +61,18 @@ namespace Tagging{
         return unique_titles;
     }
 
-    // Fetch all data in chunks for memory efficiency
+    // Fetch data in chunks for efficiency
     void fetch_all_data(sqlite3* db, std::unordered_map<std::string, std::unordered_map<std::string, float>>& data) {
         sqlite3_stmt* stmt;
         const char* query = "SELECT file_name, token, relational_distance FROM relation_distance";
 
         if (sqlite3_prepare_v2(db, query, -1, &stmt, nullptr) == SQLITE_OK) {
             while (sqlite3_step(stmt) == SQLITE_ROW) {
-                const unsigned char* file_name = sqlite3_column_text(stmt, 0);
-                const unsigned char* token = sqlite3_column_text(stmt, 1);
-                float distance = static_cast<float>(sqlite3_column_double(stmt, 2)); // Correctly fetch as float
+                std::string file_name(reinterpret_cast<const char*>(sqlite3_column_text(stmt, 0)));
+                std::string token(reinterpret_cast<const char*>(sqlite3_column_text(stmt, 1)));
+                float distance = static_cast<float>(sqlite3_column_double(stmt, 2));
 
-                std::string file_name_str(reinterpret_cast<const char*>(file_name));
-                std::string token_str(reinterpret_cast<const char*>(token));
-
-                data[file_name_str][token_str] = distance;
+                data[file_name][token] = distance;
             }
         } else {
             std::cerr << "Error preparing statement: " << sqlite3_errmsg(db) << std::endl;
@@ -85,91 +81,15 @@ namespace Tagging{
         sqlite3_finalize(stmt);
     }
 
-    // Compute distances in parallel
-    void compute_distances(const std::vector<std::string>& unique_titles,
-                        const std::unordered_map<std::string, std::unordered_map<std::string, float>>& data,
-                        std::vector<std::vector<float>>& item_matrix, int start, int end,
-                        std::mutex& matrix_mutex, std::mutex& log_mutex) {
-        for (int i = start; i < end; ++i) {
-            const auto& title = unique_titles[i];
-            const auto& token_distance_pairs = data.at(title);
-
-            for (uint16_t j = 0; j < unique_titles.size(); ++j) {
-                if (i == j) continue;
-
-                const auto& target_title = unique_titles[j];
-                const auto& target_token_distance_pairs = data.at(target_title);
-
-                float total_distance = 0.0;
-
-                // Compute total distance
-                for (const auto& [token, distance] : token_distance_pairs) {
-                    auto it = target_token_distance_pairs.find(token);
-                    float target_distance = (it != target_token_distance_pairs.end()) ? it->second : 0.0;
-
-                    total_distance += distance + target_distance; // Accumulate distance
-                }
-
-                // Update the matrix safely
-                {
-                    std::lock_guard<std::mutex> lock(matrix_mutex);
-                    item_matrix[i][j] = total_distance;
-                }
-            }
-        }
-    }
-
-    void export_to_csv(const std::vector<std::string>& unique_titles,
-                    const std::vector<std::vector<float>>& item_matrix,
-                    const std::string& output_filename) {
-        std::ofstream csv_file(output_filename);
-
-        if (!csv_file.is_open()) {
-            std::cerr << "Error: Could not open file " << output_filename << " for writing." << std::endl;
-            return;
-        }
-
-        // Write the header row
-        csv_file << "Source";
-        for (const auto& title : unique_titles) {
-            csv_file << "," << title;
-        }
-        csv_file << "\n";
-
-        // Write the matrix rows
-        int count = 0;
-        for (std::vector<float> row: item_matrix) {
-            csv_file << unique_titles[count];
-            count++;
-            for (float value : row) {
-                csv_file << "," << value;
-            }
-            csv_file << "\n";
-        }
-
-        csv_file.close();
-        std::cout << "CSV file written to: " << output_filename << std::endl;
-    }
-
-    void insert_item_matrix(const std::vector<std::vector<float>>& item_matrix, const std::vector<std::string>& unique_titles) {
-        // Record the data into data as "from, to, distance"
-        std::vector<std::tuple<std::string, std::string, float>> data;
-        for (uint16_t i = 0; i < item_matrix.size(); i++) {
-            for (uint16_t j = 0; j < item_matrix[i].size(); j++) {
-                data.push_back({unique_titles[i], unique_titles[j], item_matrix[i][j]});
-            }
-        }
-
-        // Open the database connection
+    // Optimized database insert function (batch insert)
+    void insert_item_matrix(const std::vector<std::tuple<std::string, std::string, float>>& data) {
         sqlite3* db;
         if (sqlite3_open(ENV_HPP::database_path.string().c_str(), &db) != SQLITE_OK) {
             std::cerr << "Error opening database: " << sqlite3_errmsg(db) << std::endl;
             return;
         }
 
-        // Create the table if it does not exist
         std::string create_table_sql = R"(
-            DROP TABLE IF EXISTS item_matrix;
             CREATE TABLE IF NOT EXISTS item_matrix (
                 source TEXT,
                 target TEXT,
@@ -186,16 +106,9 @@ namespace Tagging{
             return;
         }
 
-        // Begin a transaction to optimize insertion speed
-        if (sqlite3_exec(db, "BEGIN TRANSACTION;", nullptr, nullptr, &error_msg) != SQLITE_OK) {
-            std::cerr << "Error starting transaction: " << error_msg << std::endl;
-            sqlite3_free(error_msg);
-            sqlite3_close(db);
-            return;
-        }
+        sqlite3_exec(db, "BEGIN TRANSACTION;", nullptr, nullptr, nullptr);
 
-        // Prepare the SQL statement for insertion
-        std::string insert_sql = "INSERT INTO item_matrix (source, target, distance) VALUES (?, ?, ?);";
+        std::string insert_sql = "INSERT OR REPLACE INTO item_matrix (source, target, distance) VALUES (?, ?, ?);";
         sqlite3_stmt* stmt;
         if (sqlite3_prepare_v2(db, insert_sql.c_str(), -1, &stmt, nullptr) != SQLITE_OK) {
             std::cerr << "Error preparing insert statement: " << sqlite3_errmsg(db) << std::endl;
@@ -203,34 +116,90 @@ namespace Tagging{
             return;
         }
 
-        // Bind and execute the insert statement for each record
         for (const auto& [source, target, distance] : data) {
             sqlite3_bind_text(stmt, 1, source.c_str(), -1, SQLITE_TRANSIENT);
             sqlite3_bind_text(stmt, 2, target.c_str(), -1, SQLITE_TRANSIENT);
             sqlite3_bind_double(stmt, 3, distance);
 
-            if (sqlite3_step(stmt) != SQLITE_DONE) {
-                std::cerr << "Error inserting record: " << sqlite3_errmsg(db) << std::endl;
-                sqlite3_finalize(stmt);
-                sqlite3_close(db);
-                return;
-            }
-
-            // Reset the statement for the next record
+            sqlite3_step(stmt);
             sqlite3_reset(stmt);
         }
 
-        // Finalize the statement and commit the transaction
         sqlite3_finalize(stmt);
-        if (sqlite3_exec(db, "COMMIT;", nullptr, nullptr, &error_msg) != SQLITE_OK) {
-            std::cerr << "Error committing transaction: " << error_msg << std::endl;
-            sqlite3_free(error_msg);
-            sqlite3_close(db);
+        sqlite3_exec(db, "COMMIT;", nullptr, nullptr, nullptr);
+        sqlite3_close(db);
+    }
+
+    // Compute distances in parallel and write results directly
+    void compute_and_store_distances(
+        const std::vector<std::string>& unique_titles,
+        const std::unordered_map<std::string, std::unordered_map<std::string, float>>& data,
+        const std::filesystem::path& output_filename) {
+
+        std::ofstream csv_file(output_filename);
+        if (!csv_file.is_open()) {
+            std::cerr << "Error: Could not open file " << output_filename << " for writing." << std::endl;
             return;
         }
 
-        // Close the database connection
-        sqlite3_close(db);
+        csv_file << "Source,Target,Distance\n"; // CSV header
+
+        std::vector<std::tuple<std::string, std::string, float>> db_data; // Buffer for batched DB insert
+        std::mutex file_mutex, db_mutex; // Mutex for CSV and DB writes
+
+        int num_threads = std::thread::hardware_concurrency();
+        std::vector<std::thread> threads;
+        
+        auto compute_chunk = [&](int start, int end) {
+            std::vector<std::tuple<std::string, std::string, float>> local_db_data;
+
+            for (int i = start; i < end; ++i) {
+                for (uint16_t j = 0; j < unique_titles.size(); ++j) {
+                    if (i == j) continue; // Skip self-comparisons
+
+                    float total_distance = 0.0f;
+                    const auto& token_distance_pairs = data.at(unique_titles[i]);
+                    const auto& target_token_distance_pairs = data.at(unique_titles[j]);
+
+                    for (const auto& [token, distance] : token_distance_pairs) {
+                        auto it = target_token_distance_pairs.find(token);
+                        float target_distance = (it != target_token_distance_pairs.end()) ? it->second : 0.0f;
+                        total_distance += distance + target_distance;
+                    }
+
+                    {
+                        std::lock_guard<std::mutex> lock(file_mutex);
+                        csv_file << unique_titles[i] << "," << unique_titles[j] << "," << total_distance << "\n";
+                    }
+
+                    local_db_data.emplace_back(unique_titles[i], unique_titles[j], total_distance);
+
+                    if (local_db_data.size() >= 1000) { // Batch insert every 1000 records
+                        std::lock_guard<std::mutex> lock(db_mutex);
+                        insert_item_matrix(local_db_data);
+                        local_db_data.clear();
+                    }
+                }
+            }
+
+            if (!local_db_data.empty()) {
+                std::lock_guard<std::mutex> lock(db_mutex);
+                insert_item_matrix(local_db_data);
+            }
+        };
+
+        int chunk_size = (unique_titles.size() + num_threads - 1) / num_threads;
+        for (int t = 0; t < num_threads; ++t) {
+            int start = t * chunk_size;
+            int end = std::min(start + chunk_size, static_cast<int>(unique_titles.size()));
+            threads.emplace_back(compute_chunk, start, end);
+        }
+
+        for (auto& thread : threads) {
+            thread.join();
+        }
+
+        csv_file.close();
     }
 
     // Function to read numeric data from CSV

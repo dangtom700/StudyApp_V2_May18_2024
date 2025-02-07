@@ -7,6 +7,7 @@
 #include <fstream>
 #include <memory> // For smart pointers
 #include <sqlite3.h>
+#include <unordered_map>
 
 #include "utilities.hpp"
 #include "env.hpp"
@@ -421,69 +422,20 @@ namespace FEATURE {
         }
     }
 
-    /**
-     * @brief Computes a matrix of relational distances between unique titles and exports the results to a CSV file.
-     * 
-     * This function performs the following steps:
-     * 1. Opens a SQLite database connection.
-     * 2. Fetches unique titles from the database.
-     * 3. Fetches all relevant data into memory.
-     * 4. Initializes an item matrix to store relational distances.
-     * 5. Computes distances in parallel using multiple threads.
-     * 6. Closes the database connection.
-     * 7. Exports the computed item matrix to a CSV file.
-     * 
-     * The function uses the following helper functions:
-     * - Tagging::fetch_unique_titles: Fetches unique titles from the database.
-     * - Tagging::fetch_all_data: Fetches all relevant data into memory.
-     * - Tagging::compute_distances: Computes relational distances between titles.
-     * - Tagging::export_to_csv: Exports the item matrix to a CSV file.
-     * 
-     * @note The function uses std::thread for parallel computation and std::mutex for synchronized access to shared resources.
-     */
     void mappingItemMatrix(const std::filesystem::path& output_filename = ENV_HPP::item_matrix, const int limit = 10) {
         sqlite3* db;
         if (sqlite3_open(ENV_HPP::database_path.string().c_str(), &db) != SQLITE_OK) {
             std::cerr << "Error opening database: " << sqlite3_errmsg(db) << std::endl;
+            return;
         }
 
-        // Step 1: Fetch unique titles
         std::vector<std::string> unique_titles = Tagging::fetch_unique_titles(db);
-
-        // Step 2: Fetch all data into memory
-        std::unordered_map<std::string, std::unordered_map<std::string, float>> data; // Use float for relational_distance
+        std::unordered_map<std::string, std::unordered_map<std::string, float>> data;
         Tagging::fetch_all_data(db, data);
-
-        // Step 3: Initialize the item matrix
-        int n = unique_titles.size();
-        std::vector<std::vector<float>> item_matrix(n, std::vector<float>(limit, 0.0f)); // Use float for item_matrix
-
-        // Step 4: Compute distances in parallel
-        const int num_threads = std::thread::hardware_concurrency();
-        std::vector<std::thread> threads;
-        std::mutex matrix_mutex;
-        std::mutex log_mutex; // For synchronized logging
-
-        int chunk_size = (n + num_threads - 1) / num_threads;
-        for (int t = 0; t < num_threads; ++t) {
-            int start = t * chunk_size;
-            int end = std::min(start + chunk_size, n);
-
-            threads.emplace_back(Tagging::compute_distances, std::ref(unique_titles), std::ref(data),
-                                std::ref(item_matrix), start, end, std::ref(matrix_mutex), std::ref(log_mutex));
-        }
-
-        for (auto& thread : threads) {
-            thread.join();
-        }
 
         sqlite3_close(db);
 
-        // Step 5: Export results to CSV
-        Tagging::export_to_csv(unique_titles, item_matrix, output_filename.string().c_str());
-
-        // Step 6: Insert into database
-        Tagging::insert_item_matrix(item_matrix, unique_titles);
+        Tagging::compute_and_store_distances(unique_titles, data, output_filename);
     }
 
     std::vector<std::filesystem::path> skim_files(std::vector<std::filesystem::path>& files, const std::string& extension) {
