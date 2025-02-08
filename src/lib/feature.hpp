@@ -422,7 +422,7 @@ namespace FEATURE {
         }
     }
 
-    void mappingItemMatrix(const std::filesystem::path& output_filename = ENV_HPP::item_matrix, const int limit = 10) {
+    void mappingItemMatrix(const std::filesystem::path& output_filename = ENV_HPP::item_matrix) {
         sqlite3* db;
         if (sqlite3_open(ENV_HPP::database_path.string().c_str(), &db) != SQLITE_OK) {
             std::cerr << "Error opening database: " << sqlite3_errmsg(db) << std::endl;
@@ -499,13 +499,115 @@ namespace FEATURE {
         return files; // Return the filtered list
     }
 
-    void createRoutes(uint16_t num_steps) {
-        std::vector<std::vector<float>> item_matrix = Tagging::get_numeric_data_from_csv(ENV_HPP::item_matrix.string());
-        std::vector<std::string> titles = Tagging::get_headers_from_csv(ENV_HPP::item_matrix.string());
-
-        if (item_matrix.empty() || titles.empty()) {
+    void createRoutes() {
+        int search_mode = 0;
+        uint16_t num_steps = 0;
+        std::vector<std::string> input_titles;
+        std::string title;
+    
+        sqlite3* db;
+        if (sqlite3_open(ENV_HPP::database_path.string().c_str(), &db) != SQLITE_OK) {
+            std::cerr << "Error opening database: " << sqlite3_errmsg(db) << std::endl;
             return;
         }
+
+        const std::vector<std::string> unique_titles = Tagging::fetch_unique_titles(db);
+    
+        std::cout << "Route mode list:\n"
+                  << "0. Every file exists in the database\n"
+                  << "1. A list of specific files\n"
+                  << "2. A specific file\n"
+                  << "3. Partial look-up (e.g., scien*)\n"
+                  << "4. Full keyword look-up\n";
+    
+        std::cout << "Enter your search mode: ";
+        std::cin >> search_mode;
+        std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');  // Clear input buffer
+    
+        sqlite3_stmt* stmt = nullptr;
+        switch (search_mode) {
+            case 1: {  // Multiple specific files
+                while (true) {
+                    std::cout << "Enter the file name you are looking for (Press q to exit): ";
+                    std::getline(std::cin, title);
+                    if (title == "q") break;
+                    if (!title.empty()) {
+                        input_titles.push_back(title);
+                    }
+                }
+                break;
+            }
+            case 2: {  // Single specific file
+                std::cout << "Enter the file name you are looking for: ";
+                std::getline(std::cin, title);
+                if (!title.empty()) {
+                    input_titles.push_back(title);
+                }
+                break;
+            }
+            case 3: {  // Partial look-up (e.g., scien*)
+                std::cout << "Enter the partial keyword with * (e.g., scien*): ";
+                std::getline(std::cin, title);
+    
+                std::string query = "SELECT DISTINCT file_name FROM file_info WHERE file_name LIKE ?;";
+                std::string search_pattern = title;
+                std::replace(search_pattern.begin(), search_pattern.end(), '*', '%'); // Convert * to %
+    
+                if (sqlite3_prepare_v2(db, query.c_str(), -1, &stmt, nullptr) == SQLITE_OK) {
+                    sqlite3_bind_text(stmt, 1, search_pattern.c_str(), -1, SQLITE_TRANSIENT);
+                    while (sqlite3_step(stmt) == SQLITE_ROW) {
+                        input_titles.emplace_back(reinterpret_cast<const char*>(sqlite3_column_text(stmt, 0)));
+                    }
+                } else {
+                    std::cerr << "SQL Error: " << sqlite3_errmsg(db) << std::endl;
+                }
+                break;
+            }
+            case 4: {  // Full keyword search (e.g., "science")
+                std::cout << "Enter the full keyword to search: ";
+                std::getline(std::cin, title);
+    
+                std::string query = "SELECT DISTINCT file_name FROM file_info WHERE file_name LIKE ?;";
+                std::string search_pattern = "%" + title + "%";  // LIKE requires `%` for wildcard
+    
+                if (sqlite3_prepare_v2(db, query.c_str(), -1, &stmt, nullptr) == SQLITE_OK) {
+                    sqlite3_bind_text(stmt, 1, search_pattern.c_str(), -1, SQLITE_TRANSIENT);
+                    while (sqlite3_step(stmt) == SQLITE_ROW) {
+                        input_titles.emplace_back(reinterpret_cast<const char*>(sqlite3_column_text(stmt, 0)));
+                    }
+                } else {
+                    std::cerr << "SQL Error: " << sqlite3_errmsg(db) << std::endl;
+                }
+                break;
+            }
+            default:  // Fetch all files
+                std::cout << "Create routes for all files in database\n";
+                input_titles = Tagging::fetch_unique_titles(db);
+                break;
+        }
+    
+        // Finalize statement if used
+        if (stmt) {
+            sqlite3_finalize(stmt);
+        }
+    
+        if (input_titles.empty()) {
+            std::cerr << "No matching files found. Exiting.\n";
+            sqlite3_close(db);
+            return;
+        }
+    
+        if (search_mode != 0) Tagging::encrypted_file_name_list(db, input_titles);
+    
+        // Close database connection
+        sqlite3_close(db);
+
+        // Get number of step node
+        std::cout << "Enter the number of steps to create route: ";
+        std::cin >> num_steps;
+        std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+        num_steps = std::min(num_steps, static_cast<uint16_t>(unique_titles.size()));
+        std::cout << "Number of steps selected: " << num_steps <<std::endl;
 
         // Open output file for writing
         std::ofstream output_file(ENV_HPP::route_list);
@@ -513,17 +615,15 @@ namespace FEATURE {
             std::cerr << "Error: Could not open " << ENV_HPP::route_list << " for writing.\n";
             return;
         }
-
-        // Take the min value between resource limit and choice
-        num_steps = (num_steps > titles.size()) ? titles.size() : num_steps;
-
-        for (const auto& title : titles) {
-            Tagging::create_route(title, num_steps, item_matrix, titles, output_file);
+    
+        // Generate routes
+        for (const auto& title : input_titles) {
+            Tagging::create_route(title, num_steps, unique_titles, output_file);
         }
-
+    
         output_file.close();
-        std::cout << "Routes successfully written to " << ENV_HPP::route_list << " !\n";
-    }
+        std::cout << "Routes successfully written to " << ENV_HPP::route_list << "!\n";
+    }    
 }
 
 #endif // FEATURE_HPP

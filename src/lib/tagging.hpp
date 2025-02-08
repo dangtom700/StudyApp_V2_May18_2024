@@ -14,40 +14,12 @@
 
 #include "utilities.hpp"
 
-/* The purposes of this header are to:
-    1. Randomly assigned tags to a list of files
-    2. User can correctly fix tags to the files
-    3. Teach the algorithm to assign tags to the files
-    4. Export the tags to a CSV file (done)
-    5. Import the tags from a CSV file (done)
-
-*/
 namespace Tagging{
-    const std::string topics[] = {
-    "environment", "journalism", "health", "psychology", "data", "meteorology", "literature", 
-    "ethics", "computing", "architecture", "game", "mathematics", "mechanics", "HR", "zoology", 
-    "textbook", "research", "religion", "networking", "sociology", "development", "interior", 
-    "accounting", "sports", "responsibility", "business", "programming", "robotics", "graphic", 
-    "modeling", "philosophy", "technology", "film", "software", "law", "industrial", "electronics", 
-    "IoT", "social", "guide", "cybersecurity", "physics", "history", "botany", "entrepreneurship", 
-    "medicine", "engineering", "science", "security", "statistics", "economics", "database", 
-    "education", "simulation", "archaeology", "culture", "corporate", "electrics", "media", 
-    "astronomy", "AI", "oceanography", "computer", "geography", "analytics", "others", "introductory", 
-    "chemistry", "arts", "biology", "communication", "urban", "nanotechnology", "finance", "fashion", 
-    "anthropology", "big", "mobile", "leadership", "linguistics", "music", "planning", "design", "food", 
-    "politics", "landscape", "marketing", "web", "travel", "government", "genetics", "theater", 
-    "management", "ecology", "hardware", "product", "cloud"
-    };
-
-    const int topicsSize = sizeof(topics)/sizeof(topics[0]);
-
-    //--------------------The functions below are implemented in the main code base. Not the above ones----------------------
-
     // Fetch unique titles
     std::vector<std::string> fetch_unique_titles(sqlite3* db) {
         std::vector<std::string> unique_titles;
         sqlite3_stmt* stmt;
-        const char* query = "SELECT DISTINCT file_name FROM relation_distance";
+        const char* query = "SELECT DISTINCT file_name FROM file_token";
 
         if (sqlite3_prepare_v2(db, query, -1, &stmt, nullptr) == SQLITE_OK) {
             while (sqlite3_step(stmt) == SQLITE_ROW) {
@@ -202,6 +174,46 @@ namespace Tagging{
         csv_file.close();
     }
 
+    void encrypted_file_name_list(sqlite3* db, std::vector<std::string>& titles) {
+        /* This function modifies the `titles` vector:
+         * - Replaces each title with its corresponding ID from the database, prefixed with "title_".
+         * - If a title is not found, it is removed from the vector.
+         */
+    
+        const std::string query = "SELECT id FROM file_info WHERE file_name = ?";
+        sqlite3_stmt* stmt = nullptr;
+        std::vector<std::string> updated_titles; // Temporary vector to store valid encrypted titles
+    
+        // Prepare the statement once
+        if (sqlite3_prepare_v2(db, query.c_str(), -1, &stmt, nullptr) != SQLITE_OK) {
+            std::cerr << "SQL Error: " << sqlite3_errmsg(db) << std::endl;
+            return;
+        }
+    
+        for (const std::string& title : titles) {
+            sqlite3_reset(stmt);  // Reset the prepared statement for reuse
+            sqlite3_clear_bindings(stmt);
+    
+            // Bind the title to the query
+            if (sqlite3_bind_text(stmt, 1, title.c_str(), -1, SQLITE_TRANSIENT) != SQLITE_OK) {
+                std::cerr << "Binding Error: " << sqlite3_errmsg(db) << std::endl;
+                continue;
+            }
+    
+            // Execute query
+            if (sqlite3_step(stmt) == SQLITE_ROW) {
+                std::string id = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 0));
+                updated_titles.push_back("title_" + id);
+            }
+        }
+    
+        sqlite3_finalize(stmt); // Finalize the statement
+    
+        // Replace original titles with the updated ones
+        titles = std::move(updated_titles);
+    }
+    
+
     // Function to read numeric data from CSV
     std::vector<std::vector<float>> get_numeric_data_from_csv(const std::string& filename) {
         std::vector<std::vector<float>> item_matrix;
@@ -259,48 +271,96 @@ namespace Tagging{
         return headers;
     }
 
-    // Function to create a route and write to a file
-    void create_route(const std::string& start, int num_steps, 
-                    const std::vector<std::vector<float>>& item_matrix, 
-                    const std::vector<std::string>& titles,
-                    std::ofstream& output_file) {
-        // Find index of the start node
-        auto it = std::find(titles.begin(), titles.end(), start);
-        if (it == titles.end()) {
-            std::cerr << "Error: Invalid start node '" << start << "'.\n";
+    // Function to create a route and write it to a file
+    void create_route(const std::string& start, const uint16_t num_steps,
+                      const std::vector<std::string> unique_titles,
+                      std::ofstream& output_file) {
+        // Open the SQLite connection
+        sqlite3* db;
+        if (sqlite3_open(ENV_HPP::database_path.string().c_str(), &db) != SQLITE_OK) {
+            std::cerr << "Error opening database: " << sqlite3_errmsg(db) << std::endl;
             return;
         }
-
-        int curr_index = it - titles.begin();
-        std::vector<bool> visited(titles.size(), false);
+    
+        // Find the index of the start node
+        auto it = std::find(unique_titles.begin(), unique_titles.end(), start);
+        if (it == unique_titles.end()) {
+            std::cerr << "Error: Invalid start node '" << start << "'.\n";
+            sqlite3_close(db);
+            return;
+        }
+    
+        int curr_index = it - unique_titles.begin();
+        std::vector<bool> visited(unique_titles.size(), false);
         float total_distance = 0.0f;
-
-        output_file << start.substr(6) << "," << total_distance << ",";
+    
+        // Prepare SQL statement for fetching relational distances
+        sqlite3_stmt* stmt;
+        const char* query = "SELECT target, distance FROM item_matrix WHERE source = ?";
+    
+        if (sqlite3_prepare_v2(db, query, -1, &stmt, nullptr) != SQLITE_OK) {
+            std::cerr << "Error preparing statement: " << sqlite3_errmsg(db) << std::endl;
+            sqlite3_close(db);
+            return;
+        }
+    
+        // Initialize a map to store relational distances
+        std::map<std::string, float> target_and_relation_distance;
+        for (const std::string& title : unique_titles) {
+            target_and_relation_distance[title] = 0.0f;
+        }
+    
+        output_file << start.substr(6) << "," << total_distance << ","; // Write initial node
         visited[curr_index] = true;
-
+    
         for (int step = 0; step < num_steps; step++) {
+    
+            // Reset the distance map for the current node
+            for (auto& pair : target_and_relation_distance) {
+                pair.second = 0.0f;
+            }
+    
+            // Bind the current title and fetch relational distances
+            sqlite3_reset(stmt);
+            sqlite3_clear_bindings(stmt);
+            sqlite3_bind_text(stmt, 1, unique_titles[curr_index].c_str(), -1, SQLITE_TRANSIENT);
+    
+            while (sqlite3_step(stmt) == SQLITE_ROW) {
+                std::string target = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 0));
+                float distance = static_cast<float>(sqlite3_column_double(stmt, 1));
+                target_and_relation_distance[target] = distance;
+            }
+    
+            // Find the next node with the highest relational distance that hasn't been visited
             float max_value = 0.0f;
             int next_index = -1;
-
-            for (size_t j = 0; j < item_matrix[curr_index].size(); j++) {
-                if (!visited[j] && item_matrix[curr_index][j] > max_value) {
-                    max_value = item_matrix[curr_index][j];
-                    next_index = static_cast<int>(j);
+    
+            for (size_t i = 0; i < unique_titles.size(); i++) {
+                if (!visited[i] && target_and_relation_distance[unique_titles[i]] > max_value) {
+                    max_value = target_and_relation_distance[unique_titles[i]];
+                    next_index = i;
                 }
             }
-
+    
+            // If no valid next node is found, terminate the route early
             if (next_index == -1) {
-                break; // No valid next node found
+                std::cout << "No more valid next nodes. Ending search.\n";
+                break;
             }
-
-            total_distance += max_value;
-
-            output_file << titles[next_index].substr(6) << "," << total_distance << ",";
-            visited[next_index] = true;
+    
+            // Move to the next node
             curr_index = next_index;
+            visited[curr_index] = true;
+            total_distance += max_value;
+    
+            // Write the selected node to the output file
+            output_file << unique_titles[curr_index].substr(6) << "," << total_distance << ",";
         }
-
+    
         output_file << "END\n";
-    }
-
+    
+        // Finalize the statement and close the database
+        sqlite3_finalize(stmt);
+        sqlite3_close(db);
+    }    
 }
