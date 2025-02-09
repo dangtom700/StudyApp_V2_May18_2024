@@ -185,17 +185,31 @@ def process_word_frequencies_in_batches(reset_state=False, folder_path=token_jso
     conn.close()
 
 def promptFindingReference() -> None:
+    def clean_prompt(text: str):
+        # Remove punctuation and convert to lowercase
+        text = re.sub(r'[^\w\s]', '', text).lower()
+        text = ultra_clean_token(text)
+        # Tokenize text
+        tokens = nltk.word_tokenize(text)
+
+        # Initialize filtered tokens
+        filtered_tokens = defaultdict(int)
+
+        # Process tokens
+        for token in tokens:  # Exclude the first and last token
+            if token.isalpha() and token not in stop_words and not has_repeats_regex(token):
+                root_word = stemmer.stem(token)
+                filtered_tokens[root_word] += 1
+
+        return filtered_tokens
     # Read in from prompt.txt
     with open("PROMPT.txt", "r", encoding="utf-8") as f:
         prompt = f.readlines()
 
     prompt = " ".join(prompt)
-    
-    # Cleaning
-    prompt = ultra_clean_token(prompt)
 
     # Clean the prompt text
-    cleaned_prompt = clean_text(prompt)
+    cleaned_prompt = clean_prompt(prompt)
 
     # Check if cleaned prompt is empty
     if not cleaned_prompt:
