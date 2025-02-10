@@ -271,9 +271,30 @@ namespace Tagging{
         return headers;
     }
 
+    std::map<std::string, std::string> get_look_up_table_title(sqlite3* db){
+        std::map<std::string, std::string> result;
+        const char* query = "SELECT id, file_name FROM file_info";
+        sqlite3_stmt* stmt;
+        std::string encrypted_key, decrypted_key;
+
+        if (sqlite3_prepare_v2(db, query, -1, &stmt, nullptr) == SQLITE_OK) {
+            while (sqlite3_step(stmt) == SQLITE_ROW) {
+                encrypted_key = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 0));
+                decrypted_key = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 1));
+                result[encrypted_key] = decrypted_key;
+            }
+        } else {
+            std::cerr << "Error preparing statement: " << sqlite3_errmsg(db) << std::endl;
+        }
+
+        sqlite3_finalize(stmt);
+        return result;
+    }
+
     // Function to create a route and write it to a file
     void create_route(const std::string& start, const uint16_t num_steps,
                       const std::vector<std::string> unique_titles,
+                      const std::map<std::string, std::string> look_up_table,
                       std::ofstream& output_file) {
         // Open the SQLite connection
         sqlite3* db;
@@ -292,7 +313,6 @@ namespace Tagging{
     
         int curr_index = it - unique_titles.begin();
         std::vector<bool> visited(unique_titles.size(), false);
-        float total_distance = 0.0f;
     
         // Prepare SQL statement for fetching relational distances
         sqlite3_stmt* stmt;
@@ -310,7 +330,7 @@ namespace Tagging{
             target_and_relation_distance[title] = 0.0f;
         }
     
-        output_file << start.substr(6) << "," << total_distance << ","; // Write initial node
+        output_file << "From " << look_up_table.at(start.substr(6)) << ": ";
         visited[curr_index] = true;
     
         for (int step = 0; step < num_steps; step++) {
@@ -351,10 +371,9 @@ namespace Tagging{
             // Move to the next node
             curr_index = next_index;
             visited[curr_index] = true;
-            total_distance += max_value;
     
             // Write the selected node to the output file
-            output_file << unique_titles[curr_index].substr(6) << "," << total_distance << ",";
+            output_file << look_up_table.at(unique_titles[curr_index].substr(6)) << "," << max_value << ",";
         }
     
         output_file << "END\n";
