@@ -500,7 +500,7 @@ namespace FEATURE {
     }
 
     void createRoutes() {
-        int search_mode = 0;
+        int search_mode = -1;
         uint16_t num_steps = 0;
         std::vector<std::string> input_titles;
         std::string title;
@@ -512,21 +512,29 @@ namespace FEATURE {
         }
 
         const std::vector<std::string> unique_titles = Tagging::fetch_unique_titles(db);
+        const std::map<std::string, std::string> look_up_table = Tagging::get_look_up_table_title(db);
     
         std::cout << "Route mode list:\n"
                   << "0. Every file exists in the database\n"
                   << "1. A list of specific files\n"
                   << "2. A specific file\n"
-                  << "3. Partial look-up (e.g., scien*)\n"
-                  << "4. Full keyword look-up\n";
+                  << "3. Partial look-up (e.g., scien)\n";
     
         std::cout << "Enter your search mode: ";
-        std::cin >> search_mode;
-        std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');  // Clear input buffer
-    
         sqlite3_stmt* stmt = nullptr;
+        if (!(std::cin >> search_mode)) {  
+            std::cerr << "Invalid input. Please enter a number between 0 and 3.\n";
+            sqlite3_close(db);
+            return;
+        }
+        std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+        
         switch (search_mode) {
-            case 1: {  // Multiple specific files
+            case 0:
+                std::cout << "Create routes for all files in database\n";
+                input_titles = Tagging::fetch_unique_titles(db);
+                break;
+            case 1:
                 while (true) {
                     std::cout << "Enter the file name you are looking for (Press q to exit): ";
                     std::getline(std::cin, title);
@@ -536,56 +544,35 @@ namespace FEATURE {
                     }
                 }
                 break;
-            }
-            case 2: {  // Single specific file
+            case 2:
                 std::cout << "Enter the file name you are looking for: ";
                 std::getline(std::cin, title);
                 if (!title.empty()) {
                     input_titles.push_back(title);
                 }
                 break;
-            }
-            case 3: {  // Partial look-up (e.g., scien*)
-                std::cout << "Enter the partial keyword with * (e.g., scien*): ";
+            case 3:
+                std::cout << "Enter the partial text to search: ";
                 std::getline(std::cin, title);
-    
-                std::string query = "SELECT DISTINCT file_name FROM file_info WHERE file_name LIKE ?;";
-                std::string search_pattern = title;
-                std::replace(search_pattern.begin(), search_pattern.end(), '*', '%'); // Convert * to %
-    
-                if (sqlite3_prepare_v2(db, query.c_str(), -1, &stmt, nullptr) == SQLITE_OK) {
-                    sqlite3_bind_text(stmt, 1, search_pattern.c_str(), -1, SQLITE_TRANSIENT);
-                    while (sqlite3_step(stmt) == SQLITE_ROW) {
-                        input_titles.emplace_back(reinterpret_cast<const char*>(sqlite3_column_text(stmt, 0)));
+                {
+                    std::string query = "SELECT DISTINCT file_name FROM file_info WHERE file_name LIKE ?;";
+                    std::string search_pattern = "%" + title + "%";
+        
+                    if (sqlite3_prepare_v2(db, query.c_str(), -1, &stmt, nullptr) == SQLITE_OK) {
+                        sqlite3_bind_text(stmt, 1, search_pattern.c_str(), -1, SQLITE_TRANSIENT);
+                        while (sqlite3_step(stmt) == SQLITE_ROW) {
+                            input_titles.emplace_back(reinterpret_cast<const char*>(sqlite3_column_text(stmt, 0)));
+                        }
+                    } else {
+                        std::cerr << "SQL Error: " << sqlite3_errmsg(db) << std::endl;
                     }
-                } else {
-                    std::cerr << "SQL Error: " << sqlite3_errmsg(db) << std::endl;
                 }
                 break;
-            }
-            case 4: {  // Full keyword search (e.g., "science")
-                std::cout << "Enter the full keyword to search: ";
-                std::getline(std::cin, title);
-    
-                std::string query = "SELECT DISTINCT file_name FROM file_info WHERE file_name LIKE ?;";
-                std::string search_pattern = "%" + title + "%";  // LIKE requires `%` for wildcard
-    
-                if (sqlite3_prepare_v2(db, query.c_str(), -1, &stmt, nullptr) == SQLITE_OK) {
-                    sqlite3_bind_text(stmt, 1, search_pattern.c_str(), -1, SQLITE_TRANSIENT);
-                    while (sqlite3_step(stmt) == SQLITE_ROW) {
-                        input_titles.emplace_back(reinterpret_cast<const char*>(sqlite3_column_text(stmt, 0)));
-                    }
-                } else {
-                    std::cerr << "SQL Error: " << sqlite3_errmsg(db) << std::endl;
-                }
-                break;
-            }
-            default:  // Fetch all files
-                std::cout << "Create routes for all files in database\n";
-                input_titles = Tagging::fetch_unique_titles(db);
-                break;
+            default:
+                std::cerr << "Invalid search mode selected. Exiting.\n";
+                sqlite3_close(db);
+                return;
         }
-    
         // Finalize statement if used
         if (stmt) {
             sqlite3_finalize(stmt);
@@ -618,7 +605,7 @@ namespace FEATURE {
     
         // Generate routes
         for (const auto& title : input_titles) {
-            Tagging::create_route(title, num_steps, unique_titles, output_file);
+            Tagging::create_route(title, num_steps, unique_titles, look_up_table, output_file);
         }
     
         output_file.close();
