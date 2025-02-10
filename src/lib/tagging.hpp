@@ -330,7 +330,7 @@ namespace Tagging{
             target_and_relation_distance[title] = 0.0f;
         }
     
-        output_file << "From " << look_up_table.at(start.substr(6)) << ": ";
+        output_file << look_up_table.at(start.substr(6)) << ",";
         visited[curr_index] = true;
     
         for (int step = 0; step < num_steps; step++) {
