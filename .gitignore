@@ -12,3 +12,4 @@ src/test_file.cpp
 test_file.exe
 outputPrompt.txt
 PROMPT.txt
+models/
