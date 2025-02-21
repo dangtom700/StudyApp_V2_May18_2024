@@ -167,11 +167,11 @@ def batch_collect_files(folder_path: str, extension='.pdf', batch_size=100) -> G
     if current_batch:
         yield current_batch
 
-# Extract text from PDF files in batches and store in DB
 def extract_text(FOLDER_PATH, CHUNK_SIZE, chunk_database_path, reset_db):
-    conn = sqlite3.connect(chunk_database_path)
-
-    def create_table():
+    """Extracts text from PDF files in batches and stores them in a database."""
+    
+    def create_table(conn):
+        """Creates or resets the database table."""
         conn.execute("DROP TABLE IF EXISTS pdf_chunks")
         conn.execute("""CREATE TABLE pdf_chunks (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -180,51 +180,34 @@ def extract_text(FOLDER_PATH, CHUNK_SIZE, chunk_database_path, reset_db):
             chunk_text TEXT)
         """)
 
-    logging.info(f"Starting processing of PDF files in batches...")
-
-    # Fetch existing file names from the database
-    def fetch_file_names_and_paths(conn):
+    def fetch_existing_files(conn):
+        """Fetches file names already stored in the database."""
         try:
-            # Try fetching distinct file names and paths with UNION
-            pdf_in_db = {
-                row[0] for row in conn.execute("""
-                    SELECT DISTINCT file_name FROM pdf_chunks
-                    UNION
-                    SELECT DISTINCT file_path FROM file_info
-                """)
-            }
-            return pdf_in_db
+            return {row[0] for row in conn.execute("SELECT DISTINCT file_name FROM pdf_chunks")}
         except sqlite3.OperationalError as e:
-            # Log the error and return None if a table or column doesn't exist
             logging.warning(f"Database error: {e}")
-            return None
-    
-    if reset_db:
-        create_table()
-        for pdf_batch in batch_collect_files(FOLDER_PATH, batch_size=100):
-            process_files_in_parallel(pdf_batch, chunk_size=CHUNK_SIZE, db_name=chunk_database_path)
-    else:
-        pdf_in_db = fetch_file_names_and_paths(conn)
-        if pdf_in_db is None:
-            logging.info("Could not fetch file names or paths due to a missing table or column.")
+            return set()
+
+    def list_pdf_files(folder_path):
+        """Lists all PDF files in the given folder."""
+        return {join(root, file) for root, _, files in walk(folder_path) for file in files if file.endswith('.pdf')}
+
+    logging.info("Starting processing of PDF files...")
+
+    with sqlite3.connect(chunk_database_path) as conn:
+        if reset_db:
+            create_table(conn)
+            pdf_to_process = list_pdf_files(FOLDER_PATH)
         else:
-            # Proceed with the rest of the logic
-            logging.info(f"Fetched {len(pdf_in_db)} entries from the database.")
-
+            existing_files = fetch_existing_files(conn)
+            all_files = list_pdf_files(FOLDER_PATH)
+            pdf_to_process = all_files - existing_files
         
-        # List all PDF files in the folder
-        pdf_in_folder = [join(root, file) for root, _, files in walk(FOLDER_PATH) for file in files if file.endswith('.pdf')]
-        # Identify files in the folder that are not in the database
-        pdf_not_in_db = list(set(pdf_in_folder) - set(pdf_in_db))
-        logging.info(f"Found {len(pdf_not_in_db)} new PDF files in the folder.")
-        # Iterate over files in the folder batch by batch
-        for pdf_to_process in pdf_not_in_db:
-            # Process the filtered list of files
-            if pdf_to_process:
-                process_files_in_parallel(pdf_to_process, chunk_size=CHUNK_SIZE, db_name=chunk_database_path)
-            else:
-                logging.info("No new PDF files to process.")
+        logging.info(f"Found {len(pdf_to_process)} new PDF files to process.")
 
-    conn.commit()
-    logging.info("Processing complete: Extracting text from PDF files.")
-    conn.close()
+        if pdf_to_process:
+            process_files_in_parallel(list(pdf_to_process), chunk_size=CHUNK_SIZE, db_name=chunk_database_path)
+        else:
+            logging.info("No new PDF files to process.")
+
+    logging.info("Processing complete.")
