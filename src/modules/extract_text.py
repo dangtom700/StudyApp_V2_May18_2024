@@ -12,10 +12,15 @@ from collections.abc import Generator
 
 # Setup logging to log messages to a file, with the option to reset the log file
 def setup_logging(log_file= log_file_path):
+    """Setup logging to log messages to a file, with the option to reset the log file.
+    
+    Args:
+        log_file (str): The path to the log file. If not specified, defaults to the path in `modules.path`.
+    """
     logging.basicConfig(
         filename=log_file,
         level=logging.INFO,
-        format='%(asctime)s - %(levelname)s - %(message)s',
+        format='%(asctime)s;%(levelname)s;%(message)s',
         datefmt='%Y-%m-%d %H:%M:%S',
         filemode='a'  # This will overwrite the log file each time the script runs
     )
@@ -24,6 +29,17 @@ setup_logging()
 
 # Retry decorator with configurable retries and delays
 def retry_on_exception(retries=99, delay=5, retry_exceptions=(Exception,), log_message=None):
+    """A decorator that retries a function on exceptions, with configurable retries and delays.
+
+    Args:
+        retries (int): The number of times to retry the function. Defaults to 99.
+        delay (int): The number of seconds to wait between retries. Defaults to 5.
+        retry_exceptions (tuple): A tuple of exceptions to catch and retry on. Defaults to (Exception,).
+        log_message (str): An optional message to log before retrying. Defaults to None.
+
+    Returns:
+        A decorator that wraps the function in a retry loop.
+    """
     def decorator(func):
         def wrapper(*args, **kwargs):
             for attempt in range(retries):
@@ -41,6 +57,14 @@ def retry_on_exception(retries=99, delay=5, retry_exceptions=(Exception,), log_m
 
 # Function to extract text from a PDF file
 def extract_text_from_pdf(pdf_file):
+    """Extract text from a PDF file using MuPDF.
+
+    Args:
+        pdf_file (str): The path to the PDF file.
+
+    Returns:
+        str: The extracted text from the PDF file.
+    """
     text = ""
     try:
         doc = fitz.open(pdf_file)
@@ -61,6 +85,15 @@ def extract_text_from_pdf(pdf_file):
 
 # Function to split text into chunks
 def split_text_into_chunks(text, chunk_size):
+    """Split text into chunks of a specified size.
+
+    Args:
+        text (str): The text to split into chunks.
+        chunk_size (int): The size of each chunk in characters.
+
+    Returns:
+        list: A list of strings, where each string is a chunk of the input text.
+    """
     logging.info(f"Splitting text into chunks of {chunk_size} characters...")
     if not isinstance(text, str):
         logging.error(f"Expected text to be a string but got {type(text)}: {text}")
@@ -78,6 +111,16 @@ def split_text_into_chunks(text, chunk_size):
 # Reusable database operation with retry logic
 @retry_on_exception(retries=999, delay=5, retry_exceptions=(sqlite3.OperationalError,), log_message="Database is locked")
 def execute_db_operation(db_name, operation, *args):
+    """A reusable database operation with retry logic to handle OperationalErrors (i.e. "Database is locked").
+    
+    Args:
+        db_name (str): The name of the database to connect to.
+        operation (function): A function that takes a cursor and variable arguments, and performs a database operation.
+        *args: Any additional arguments to pass to the operation function.
+    
+    Returns:
+        None
+    """
     conn = sqlite3.connect(db_name)
     cursor = conn.cursor()
     try:
@@ -88,6 +131,16 @@ def execute_db_operation(db_name, operation, *args):
 
 # Function to store text chunks in the SQLite database
 def store_chunks_in_db(file_name, chunks, db_name):
+    """Store text chunks in the SQLite database.
+
+    Args:
+        file_name (str): The file name to associate with the chunks.
+        chunks (list): A list of strings, where each string is a chunk of the input text.
+        db_name (str): The name of the database to connect to.
+
+    Returns:
+        None
+    """
     def _store_chunks(cursor, file_name, chunks):
         for index, chunk in enumerate(chunks):
             cursor.execute('''
@@ -98,6 +151,20 @@ def store_chunks_in_db(file_name, chunks, db_name):
     logging.info(f"Stored {len(chunks)} chunks for {file_name} in the database.")
 
 def ultra_clean_token(text):
+    """Perform ultra cleaning on a given string by removing leading/trailing spaces, 
+    newlines, special characters, and extra spaces. This is a more aggressive 
+    version of the clean_text function.
+
+    Parameters
+    ----------
+    text : str
+        The string to be cleaned.
+
+    Returns
+    -------
+    str
+        The cleaned string.
+    """
     text = text.strip() # Remove leading/trailing spaces
     text = re.sub(r"\n", " ", text) # Remove newlines
     text = re.sub(r"[^a-zA-Z0-9\s]", " ", text) # Remove special characters
@@ -106,6 +173,16 @@ def ultra_clean_token(text):
 
 # Function to extract, split, and store text from a PDF file
 def extract_split_and_store_pdf(pdf_file, chunk_size, db_name):
+    """Extract text from a PDF file using MuPDF, split the text into chunks of the given size, clean the chunks using ultra_clean_token, and store the chunks in the SQLite database.
+
+    Args:
+        pdf_file (str): The path to the PDF file.
+        chunk_size (int): The size of each chunk in characters.
+        db_name (str): The name of the database to connect to.
+
+    Returns:
+        None
+    """
     try:
         text = extract_text_from_pdf(pdf_file)
         if not text:
@@ -122,6 +199,22 @@ def extract_split_and_store_pdf(pdf_file, chunk_size, db_name):
 
 # Store text chunks in the SQLite database
 def store_chunks_in_db(file_name, chunks, db_name):
+    """
+    Store text chunks in the SQLite database.
+
+    This function takes a file name, a list of text chunks, and a database name,
+    and stores the text chunks in the `pdf_chunks` table of the SQLite database.
+    Each chunk is associated with the file name and its index within the file.
+
+    Args:
+        file_name (str): The name of the file from which the chunks were extracted.
+        chunks (list): A list of text chunks to be stored in the database.
+        db_name (str): The name of the SQLite database to connect to.
+
+    Returns:
+        None
+    """
+
     def _store_chunks(cursor, file_name, chunks):
         for index, chunk in enumerate(chunks):
             cursor.execute('''
@@ -134,6 +227,23 @@ def store_chunks_in_db(file_name, chunks, db_name):
 # Process multiple PDF files concurrently
 def process_files_in_parallel(pdf_files: list[str], chunk_size: int, db_name: str) -> None:
 
+    """
+    Process multiple PDF files concurrently in batches.
+
+    This function takes a list of PDF file paths, a chunk size, and a database name,
+    and processes each PDF file in parallel using ThreadPoolExecutor. For each PDF file,
+    it extracts text using `extract_text_from_pdf`, splits the text into chunks of the given size
+    using `split_text_into_chunks`, and stores the chunks in the `pdf_chunks` table of the SQLite
+    database using `store_chunks_in_db`.
+
+    Args:
+        pdf_files (list[str]): A list of PDF file paths to be processed.
+        chunk_size (int): The size of each chunk in characters.
+        db_name (str): The name of the SQLite database to connect to.
+
+    Returns:
+        None
+    """
     with ThreadPoolExecutor() as executor:
         future_to_file = {executor.submit(extract_split_and_store_pdf, pdf_file, chunk_size, db_name): pdf_file for pdf_file in pdf_files}
 

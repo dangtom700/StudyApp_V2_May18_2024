@@ -7,6 +7,5 @@ chunk_database_path = StudyApp_root_path + "data\\pdf_text.db"
 token_json_path = StudyApp_root_path + "data\\token_json"
 
 log_file_path = StudyApp_root_path + "data\\process.log"
-log_database_path = StudyApp_root_path + "data\\log_message.db"
 buffer_json_path = StudyApp_root_path + "data\\buffer.json"
 dataset_path = StudyApp_root_path + "data\\dataset.txt"

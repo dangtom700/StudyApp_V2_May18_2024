@@ -4,13 +4,14 @@ import re
 import nltk
 from collections import defaultdict
 from shutil import rmtree
-from modules.path import chunk_database_path, token_json_path, buffer_json_path, dataset_path
+from modules.path import chunk_database_path, token_json_path, buffer_json_path, dataset_path, log_file_path
 from nltk.stem import PorterStemmer
 from nltk.corpus import stopwords
 from concurrent.futures import ThreadPoolExecutor
 from json import dump
 import string
 from functools import partial
+import csv
 
 # One-time compiled regex pattern
 REPEATED_CHAR_PATTERN = re.compile(r"([a-zA-Z])\1{2,}")
@@ -40,6 +41,21 @@ stop_words.update(string.punctuation)
 stop_words = frozenset(stop_words)  # Optimize stopwords lookup
 
 def ultra_clean_token(text):
+    """
+    Perform ultra cleaning on a given string by removing leading/trailing spaces, 
+    newlines, special characters, and extra spaces. This is a more aggressive 
+    version of the clean_text function.
+
+    Parameters
+    ----------
+    text : str
+        The string to be cleaned.
+
+    Returns
+    -------
+    str
+        The cleaned string.
+    """
     text = text.strip() # Remove leading/trailing spaces
     text = re.sub(r"\n", " ", text) # Remove newlines
     text = re.sub(r"[^a-zA-Z0-9\s]", " ", text) # Remove special characters
@@ -47,10 +63,38 @@ def ultra_clean_token(text):
     return text
 
 def has_repeats_regex(word):
+    """
+    Check if a given word has repeated characters (3 or more) with a pre-compiled regex pattern.
+
+    Parameters
+    ----------
+    word : str
+        The word to be checked.
+
+    Returns
+    -------
+    bool
+        Whether the word has repeated characters or not.
+    """
     return bool(REPEATED_CHAR_PATTERN.search(word))
 
 def clean_text(text: str):
     # Remove punctuation and convert to lowercase
+    """
+    Clean a given string by removing punctuation, converting to lowercase, tokenizing, 
+    removing stop words, removing words with repeated characters, and stemming. The 
+    first and last token of the string are excluded from the cleaning process.
+
+    Parameters
+    ----------
+    text : str
+        The string to be cleaned.
+
+    Returns
+    -------
+    dict
+        A dictionary containing the cleaned tokens as keys and their frequency as values.
+    """
     text = re.sub(r'[^\w\s]', '', text).lower()
     text = ultra_clean_token(text)
     # Tokenize text
@@ -69,11 +113,45 @@ def clean_text(text: str):
 
 # Retrieve title IDs from the database
 def get_title_ids(cursor):
+    """
+    Retrieve title IDs from the database.
+
+    Parameters
+    ----------
+    cursor : sqlite3.Cursor
+        A database cursor.
+
+    Returns
+    -------
+    dict
+        A dictionary containing title IDs as values and their corresponding file names as keys.
+    """
+
     cursor.execute("SELECT id, file_name FROM file_info WHERE chunk_count > 0")
     return {title[1]: title[0] for title in cursor.fetchall()}
 
 # Retrieve and clean text chunks for a single title using a generator
 def retrieve_token_list(title_id, database):
+    """
+    Retrieve and clean text chunks for a single title using a generator.
+
+    Parameters
+    ----------
+    title_id : str
+        The title ID to retrieve the text chunks for.
+    database : str
+        The name of the SQLite database to connect to.
+
+    Returns
+    -------
+    dict
+        A dictionary containing the cleaned tokens as keys and their frequency as values.
+
+    Notes
+    -----
+    This function uses a generator to process each chunk one at a time to minimize memory usage.
+    It also handles invalid data and SQLite errors gracefully.
+    """
     conn = sqlite3.connect(database)
     cursor = conn.cursor()
 
@@ -110,6 +188,14 @@ def retrieve_token_list(title_id, database):
 
 # Process chunks in batches and store word frequencies in individual JSON files
 def process_chunks_in_batches(database, pdf_titles, fetched_result):
+    """
+    Process chunks in batches and store word frequencies in individual JSON files.
+
+    This function takes a list of title IDs, a dictionary of title IDs to starting IDs and chunk counts, and a connection to a SQLite database.
+    It processes chunks in batches and stores word frequencies in individual JSON files in the `token_json_path` folder.
+    It also keeps track of the global word frequencies and stores them in a single JSON file after all titles have been processed.
+    """
+    
     conn = sqlite3.connect(database)
     cursor = conn.cursor()
     global_word_freq = defaultdict(int)
@@ -144,6 +230,19 @@ def process_chunks_in_batches(database, pdf_titles, fetched_result):
 
 # Retrieve title IDs from JSON files with pattern title_*.json -> *
 def get_title_ids_from_json(folder_path):
+    """
+    Retrieve title IDs from JSON files with pattern title_*.json -> *
+    
+    Parameters
+    ----------
+    folder_path : str
+        The path to the folder containing the JSON files.
+    
+    Returns
+    -------
+    set
+        A set of title IDs extracted from the file names.
+    """
     title_ids = set()
     for file in os.listdir(folder_path):
         if file.startswith('title_') and file.endswith('.json'):
@@ -152,6 +251,15 @@ def get_title_ids_from_json(folder_path):
 
 # Main function to process word frequencies in batches
 def process_word_frequencies_in_batches(reset_state=False, folder_path=token_json_path):
+    """
+    Process word frequencies in batches and store them in individual JSON files.
+
+    Args:
+        reset_state (bool, optional): If True, delete the existing folder and recreate it. Defaults to False.
+        folder_path (str, optional): The path to the folder where the JSON files will be saved. Defaults to token_json_path.
+
+    If reset_state is False, the function will check if there are any missing title IDs in the folder and process them. If there are no missing title IDs, the function will print a message and do nothing.
+    """
     conn = sqlite3.connect(chunk_database_path, check_same_thread=False)
     cursor = conn.cursor()
 
@@ -185,6 +293,12 @@ def process_word_frequencies_in_batches(reset_state=False, folder_path=token_jso
     conn.close()
 
 def promptFindingReference() -> None:
+    """Reads in a prompt from a text file, cleans the text, and stores the cleaned
+    prompt in a JSON file. The prompt is cleaned by removing punctuation, converting
+    to lowercase, tokenizing, removing stop words, removing words with repeated
+    characters, and stemming. If the cleaned prompt is empty, a message is printed
+    and the function returns early. Otherwise, the cleaned prompt is stored in the
+    buffer.json file."""
     def clean_prompt(text: str):
         # Remove punctuation and convert to lowercase
         text = re.sub(r'[^\w\s]', '', text).lower()
@@ -221,6 +335,12 @@ def promptFindingReference() -> None:
 
 
 def get_dataset():
+    """Retrieves the dataset from the database and writes it to the dataset file.
+
+    This function retrieves the text chunks from the database in batches and writes them to the dataset file. The dataset file is cleared before writing to it.
+
+    :return: None
+    """
     conn = sqlite3.connect(chunk_database_path)
     cursor = conn.cursor()
     num_chunks = conn.execute("SELECT MAX(id) FROM pdf_chunks").fetchone()[0]
@@ -244,3 +364,39 @@ def get_dataset():
                 f.write(result)
         start = end + 1
     conn.close()
+
+def update_logging():
+    """
+    Updates the log table in the database with the contents of the log file.
+
+    :return: None
+    """
+    conn = sqlite3.connect(chunk_database_path)
+    cursor = conn.cursor()
+
+    # Check if the table exists, else exit the function
+    if cursor.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='logging'").fetchone() is None:
+        print("Table 'logging' does not exist in the database.")
+        conn.close()  # Ensure the connection is closed
+        return
+
+    with open(log_file_path, "r", encoding="utf-8") as f:
+        reader = csv.reader(f, delimiter=";")
+        log_data = [tuple(row) for row in reader]
+
+    if not log_data:
+        print("No log data found.")
+        conn.close()
+        return
+
+    # Insert data into the table
+    cursor.executemany("INSERT INTO logging (time_stamp, info_type, message) VALUES (?, ?, ?)", log_data)
+
+    conn.commit()
+    conn.close()
+
+    # Clear the log file
+    with open(log_file_path, "w", encoding="utf-8") as f:
+        f.write("")
+
+    print("Log table updated successfully.")

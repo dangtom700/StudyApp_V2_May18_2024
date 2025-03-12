@@ -15,6 +15,7 @@ def app():
     parser.add_argument("--processWordFreq", action= 'store_true', help="Create index tables and analyze word frequencies all in one")
     parser.add_argument("--tokenizePrompt", action= 'store_true', help="Prompt to find references in full database based on context of search")
     parser.add_argument("--getDataset", action= 'store_true', help="Get dataset from database")
+    parser.add_argument("--updateLogging", action="store_true", help="Update logging database")
 
     args = parser.parse_args()
 
@@ -62,6 +63,12 @@ def app():
         print("Getting dataset from database...")
         word_freq.get_dataset()
         print("Finished getting dataset.")
+
+    if args.updateLogging: # function is functioning properly
+        
+        print("Updating logging database...")
+        word_freq.update_logging()
+        print("Finished updating logging database.")
 
 if __name__ == "__main__":
     app()

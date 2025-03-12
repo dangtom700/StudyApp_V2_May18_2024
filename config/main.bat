@@ -56,6 +56,7 @@ set "computeRelationalDistance=0"
 set "mappingItemMatrix=0"
 set "promptReference=1"
 set "createRoutes=0"
+set "updateLogging=0"
 
 rem Process flags
 :process_flags
@@ -68,6 +69,7 @@ for %%A in (%*) do (
     if "%%A"=="--mappingItemMatrix" set mappingItemMatrix=1
     if "%%A"=="--promptReference" set promptReference=1
     if "%%A"=="--createRoutes" set createRoutes=1
+    if "%%A"=="--updateLogging" set updateLogging=1
 )
 
 rem Show Components
@@ -163,6 +165,17 @@ if %createRoutes%==1 (
         echo Error executing "Create Route".
     ) else (
         echo "Create Route" completed successfully.
+    )
+)
+
+rem Update Logging
+if %updateLogging%==1 (
+    echo Updating log data using Python...
+    python src/main.py --updateLogging
+    if %errorlevel% neq 0 (
+        echo Error executing "Update Logging".
+    ) else (
+        echo "Update Logging" completed successfully.
     )
 )
 
