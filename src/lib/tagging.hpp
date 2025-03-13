@@ -9,8 +9,6 @@
 #include <unordered_set>
 #include <algorithm>
 #include <tuple>
-#include <thread>
-#include <mutex>
 
 #include "utilities.hpp"
 
@@ -102,77 +100,63 @@ namespace Tagging{
         sqlite3_close(db);
     }
 
-    // Compute distances in parallel and write results directly
     void compute_and_store_distances(
         const std::vector<std::string>& unique_titles,
         const std::unordered_map<std::string, std::unordered_map<std::string, float>>& data,
         const std::filesystem::path& output_filename) {
-
+    
         std::ofstream csv_file(output_filename);
         if (!csv_file.is_open()) {
             std::cerr << "Error: Could not open file " << output_filename << " for writing." << std::endl;
             return;
         }
-
-        csv_file << "Source,Target,Distance\n"; // CSV header
-
-        std::vector<std::tuple<std::string, std::string, float>> db_data; // Buffer for batched DB insert
-        std::mutex file_mutex, db_mutex; // Mutex for CSV and DB writes
-
-        int num_threads = std::thread::hardware_concurrency();
-        std::vector<std::thread> threads;
-        
-        auto compute_chunk = [&](int start, int end) {
-            std::vector<std::tuple<std::string, std::string, float>> local_db_data;
-
-            for (int i = start; i < end; ++i) {
-                for (uint16_t j = 0; j < unique_titles.size(); ++j) {
-                    if (i == j) continue; // Skip self-comparisons
-
-                    float total_distance = 0.0f;
-                    const auto& token_distance_pairs = data.at(unique_titles[i]);
-                    const auto& target_token_distance_pairs = data.at(unique_titles[j]);
-
-                    for (const auto& [token, distance] : token_distance_pairs) {
-                        auto it = target_token_distance_pairs.find(token);
-                        float target_distance = (it != target_token_distance_pairs.end()) ? it->second : 0.0f;
-                        total_distance += distance + target_distance;
-                    }
-
-                    {
-                        std::lock_guard<std::mutex> lock(file_mutex);
-                        csv_file << unique_titles[i] << "," << unique_titles[j] << "," << total_distance << "\n";
-                    }
-
-                    local_db_data.emplace_back(unique_titles[i], unique_titles[j], total_distance);
-
-                    if (local_db_data.size() >= 1000) { // Batch insert every 1000 records
-                        std::lock_guard<std::mutex> lock(db_mutex);
-                        insert_item_matrix(local_db_data);
-                        local_db_data.clear();
-                    }
+    
+        csv_file << "Source,Target,Distance\n"; // Write CSV header
+    
+        std::vector<std::tuple<std::string, std::string, float>> db_data; // Buffer for batched DB inserts
+    
+        for (size_t i = 0; i < unique_titles.size(); ++i) {
+            for (size_t j = 0; j < unique_titles.size(); ++j) {
+                if (i == j) continue; // Skip self-comparisons
+    
+                float total_distance = 0.0f;
+    
+                auto it1 = data.find(unique_titles[i]);
+                auto it2 = data.find(unique_titles[j]);
+    
+                // Skip missing entries
+                if (it1 == data.end() || it2 == data.end()) continue;
+    
+                const auto& source_data = it1->second;
+                const auto& target_data = it2->second;
+    
+                for (const auto& [token, distance] : source_data) {
+                    auto it = target_data.find(token);
+                    float target_distance = (it != target_data.end()) ? it->second : 0.0f;
+                    total_distance += distance + target_distance;
+                }
+    
+                // Write to CSV file
+                csv_file << unique_titles[i] << "," << unique_titles[j] << "," << total_distance << "\n";
+    
+                // Store in batch for DB insert
+                db_data.emplace_back(unique_titles[i], unique_titles[j], total_distance);
+    
+                // Insert into DB every 1000 records (batch insert)
+                if (db_data.size() >= 1000) {
+                    insert_item_matrix(db_data);
+                    db_data.clear();
                 }
             }
-
-            if (!local_db_data.empty()) {
-                std::lock_guard<std::mutex> lock(db_mutex);
-                insert_item_matrix(local_db_data);
-            }
-        };
-
-        int chunk_size = (unique_titles.size() + num_threads - 1) / num_threads;
-        for (int t = 0; t < num_threads; ++t) {
-            int start = t * chunk_size;
-            int end = std::min(start + chunk_size, static_cast<int>(unique_titles.size()));
-            threads.emplace_back(compute_chunk, start, end);
         }
-
-        for (auto& thread : threads) {
-            thread.join();
+    
+        // Insert any remaining data
+        if (!db_data.empty()) {
+            insert_item_matrix(db_data);
         }
-
+    
         csv_file.close();
-    }
+    }    
 
     void encrypted_file_name_list(sqlite3* db, std::vector<std::string>& titles) {
         /* This function modifies the `titles` vector:

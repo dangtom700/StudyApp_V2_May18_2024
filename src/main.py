@@ -49,7 +49,7 @@ def app():
     if args.processWordFreq:
 
         print("Processing word frequencies...")
-        word_freq.process_word_frequencies_in_batches()
+        word_freq.process_word_frequencies_in_batches(reset_state = False)
         print("Finished processing word frequencies.")
 
     if args.tokenizePrompt: # function is functioning properly
