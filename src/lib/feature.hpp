@@ -308,7 +308,7 @@ namespace FEATURE {
      * The function will also print the first n results in descending order of relational distance.
      * If an error occurs, an error message will be printed to the console.
      */
-    void processPrompt(const int& top_n = 100) {
+    void processPrompt(const int& top_n) {
         try {
             // Transform the JSON file into a map of processed tokens
             std::map<std::string, int> tokens = TRANSFORMER::json_to_map(ENV_HPP::buffer_json_path);
@@ -407,11 +407,14 @@ namespace FEATURE {
                 return std::get<2>(a) > std::get<2>(b);
             });
 
+            // Guard the top_n value between 0 and the size of the RESULT vector
+            uint16_t top_n_value = std::min(static_cast<uint16_t>(RESULT.size()), static_cast<uint16_t>(top_n));
+            
             // Print the first top results
             std::ofstream output_file(ENV_HPP::outputPrompt);
-            output_file << "Top "<< top_n <<" Results:" << std::endl
+            output_file << "Top "<< top_n_value <<" Results:" << std::endl
                 << "-----------------------------------------------------------------" << std::endl;
-            for (uint16_t i = 0; i < top_n && i < RESULT.size(); i++) {
+            for (uint16_t i = 0; i < top_n_value && i < RESULT.size(); i++) {
                 output_file << "ID: " << std::get<0>(RESULT[i]) << std::endl
                 << "Distance: " << std::get<2>(RESULT[i]) << std::endl
                 << "Name: " << std::get<1>(RESULT[i]) << std::endl
