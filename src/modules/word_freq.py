@@ -374,11 +374,26 @@ def update_logging():
     conn = sqlite3.connect(chunk_database_path)
     cursor = conn.cursor()
 
-    # Check if the table exists, else exit the function
-    if cursor.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='logging'").fetchone() is None:
-        print("Table 'logging' does not exist in the database.")
+    # Check if the log file exists, else exit the function
+    if not os.path.exists(log_file_path):
+        print("Log file does not exist.")
         conn.close()  # Ensure the connection is closed
         return
+
+    # # Check if the table exists, else exit the function
+    # if cursor.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='logging'").fetchone() is None:
+    #     print("Table 'logging' does not exist in the database.")
+    #     conn.close()  # Ensure the connection is closed
+    #     return
+
+    # Create the table if it doesn't exist
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS logging (
+            time_stamp TEXT,
+            info_type TEXT,
+            message TEXT
+        )
+    """)
 
     with open(log_file_path, "r", encoding="utf-8") as f:
         reader = csv.reader(f, delimiter=";")
