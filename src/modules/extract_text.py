@@ -129,27 +129,6 @@ def execute_db_operation(db_name, operation, *args):
     finally:
         conn.close()
 
-# Function to store text chunks in the SQLite database
-def store_chunks_in_db(file_name, chunks, db_name):
-    """Store text chunks in the SQLite database.
-
-    Args:
-        file_name (str): The file name to associate with the chunks.
-        chunks (list): A list of strings, where each string is a chunk of the input text.
-        db_name (str): The name of the database to connect to.
-
-    Returns:
-        None
-    """
-    def _store_chunks(cursor, file_name, chunks):
-        for index, chunk in enumerate(chunks):
-            cursor.execute('''
-                INSERT INTO pdf_chunks (file_name, chunk_index, chunk_text) VALUES (?, ?, ?)
-            ''', (basename(file_name), index, chunk))
-    
-    execute_db_operation(db_name, _store_chunks, file_name, chunks)
-    logging.info(f"Stored {len(chunks)} chunks for {file_name} in the database.")
-
 def ultra_clean_token(text):
     """Perform ultra cleaning on a given string by removing leading/trailing spaces, 
     newlines, special characters, and extra spaces. This is a more aggressive 
