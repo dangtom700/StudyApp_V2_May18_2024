@@ -15,7 +15,6 @@ importlib-metadata @ file:///C:/b/abs_c1egths604/croot/importlib_metadata-suite_
 joblib==1.4.2
 jsonpatch==1.33
 jsonpointer==3.0.0
-langchain==0.2.12
 langchain-core==0.2.29
 langchain-text-splitters==0.2.2
 langsmith==0.1.98
@@ -28,7 +27,6 @@ packaging==24.1
 pandas==2.2.2
 pydantic==2.8.2
 pydantic_core==2.20.1
-PyMuPDF==1.24.9
 PyMuPDFb==1.24.9
 python-dateutil==2.9.0.post0
 pytz==2024.1

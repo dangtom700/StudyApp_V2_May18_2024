@@ -2,8 +2,10 @@ import os
 import re
 import sqlite3
 import logging
+import signal
+import sys
 from datetime import datetime
-from multiprocessing import Pool, Manager, Queue, Event, Lock, Process
+from multiprocessing import Pool, Manager, Queue, Event, Process
 from queue import Empty
 from pdfminer.pdfparser import PDFParser
 from pdfminer.pdfdocument import PDFDocument
@@ -13,19 +15,30 @@ from pdfminer.layout import LAParams, LTTextBox, LTTextLine
 from pdfminer.converter import PDFPageAggregator
 from pdfminer.pdfpage import PDFTextExtractionNotAllowed
 
-# --- Logging setup (File only, suppress noisy logs) ---
-log_dir = "logs"
-os.makedirs(log_dir, exist_ok=True)
-log_file = os.path.join(log_dir, f"extract_text_{datetime.now().strftime('%Y%m%d_%H%M%S')}.log")
-logging.basicConfig(level=logging.INFO, format='%(asctime)s [%(levelname)s] %(message)s', handlers=[logging.FileHandler(log_file)])
+# --- Constants ---
+CHUNK_SIZE_DEFAULT = 512
+DB_NAME_DEFAULT = "pdf_text.db"
+BATCH_SIZE_DB = 1000
+LOG_DIR = "logs"
+ERROR_FILE = "data\\error_files.txt"
+
+# --- Logging Setup ---
+os.makedirs(LOG_DIR, exist_ok=True)
+log_file = os.path.join(LOG_DIR, f"extract_text_{datetime.now().strftime('%Y%m%d_%H%M%S')}.log")
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s [%(levelname)s] %(message)s',
+    handlers=[logging.FileHandler(log_file)]
+)
 logger = logging.getLogger(__name__)
 for noisy in ["pdfminer", "pdfminer.layout", "pdfminer.converter", "pdfminer.pdfinterp"]:
     logging.getLogger(noisy).setLevel(logging.WARNING)
 
+# --- Utility Functions ---
 def clean_text(text):
     return re.sub(r'\s+', ' ', re.sub(r'\W+', ' ', text)).strip()
 
-def text_to_chunks(text, chunk_size=512):
+def text_to_chunks(text, chunk_size):
     words = text.split()
     return [' '.join(words[i:i+chunk_size]) for i in range(0, len(words), chunk_size)]
 
@@ -46,6 +59,7 @@ def pdf_to_text(pdf_path, password=""):
                     text += obj.get_text()
     return clean_text(text)
 
+# --- Worker & DB Writer ---
 def extract_and_stream(file_info, queue: Queue, chunk_size):
     file_path, file_name = file_info
     try:
@@ -56,18 +70,13 @@ def extract_and_stream(file_info, queue: Queue, chunk_size):
         logger.info(f"[{file_name}] Extracted {len(chunks)} chunks")
     except Exception as e:
         logger.error(f"[{file_name}] Extraction failed: {e}")
-        """
-        # TODO: Add error file to elimate the files to extract in the next run
-        # 
-        # with open("data\\error_files.txt", "a") as f:
-        #     f.write(f"{file_name}\n")
-        """
+        with open(ERROR_FILE, "a") as f:
+            f.write(f"{file_name}\n")
 
-def db_writer(queue: Queue, event: Event, db_path: str, batch_size=1000):
+def db_writer(queue: Queue, event, db_path: str, batch_size=BATCH_SIZE_DB):
     buffer = []
     conn = sqlite3.connect(db_path)
     cursor = conn.cursor()
-
     while not event.is_set() or not queue.empty():
         try:
             item = queue.get(timeout=1)
@@ -82,8 +91,6 @@ def db_writer(queue: Queue, event: Event, db_path: str, batch_size=1000):
                 buffer.clear()
         except Empty:
             continue
-
-    # Final flush
     if buffer:
         cursor.executemany(
             "INSERT OR IGNORE INTO pdf_text (file_name, chunk_id, chunk_text) VALUES (?, ?, ?)",
@@ -93,14 +100,29 @@ def db_writer(queue: Queue, event: Event, db_path: str, batch_size=1000):
         logger.info(f"Final flush: {len(buffer)} chunks to DB")
     conn.close()
 
-def extract_text(pdf_folder, chunk_size=512, reset_table=False, db_path="pdf_text.db"):
+# --- Main Extraction Function ---
+def extract_text(pdf_folder, chunk_size=CHUNK_SIZE_DEFAULT, reset_table=False, db_path=DB_NAME_DEFAULT, num_workers=None):
     logger.info(f"Extracting from: {pdf_folder}")
     manager = Manager()
     queue = manager.Queue()
     stop_event = manager.Event()
 
+    # Setup graceful shutdown
+    def graceful_shutdown(signum, frame):
+        logger.warning("Received shutdown signal, stopping processes...")
+        stop_event.set()
+        sys.exit(0)
+
+    signal.signal(signal.SIGINT, graceful_shutdown)
+    signal.signal(signal.SIGTERM, graceful_shutdown)
+
     files = [f for f in os.listdir(pdf_folder) if f.lower().endswith(".pdf")]
     file_set = set(files)
+
+    error_files = set()
+    if os.path.exists(ERROR_FILE):
+        with open(ERROR_FILE, "r") as f:
+            error_files = set(f.read().splitlines())
 
     with sqlite3.connect(db_path) as conn:
         cursor = conn.cursor()
@@ -116,27 +138,22 @@ def extract_text(pdf_folder, chunk_size=512, reset_table=False, db_path="pdf_tex
         """)
         cursor.execute("SELECT DISTINCT file_name FROM pdf_text")
         existing_files = set(row[0] for row in cursor.fetchall())
-        """
-        # TODO: Extract data from error_files.txt 
-        # to extract non extracted files and except non-extractable files
-        # with open("data\\error_files.txt", "r") as f:
-        #     error_files = set(f.read().splitlines())
-        # new_files = file_set - existing_files - error_files
-        """
-        new_files = file_set - existing_files
 
-    file_tuples = sorted([(os.path.join(pdf_folder, f), f) for f in new_files])
+    new_files = file_set - existing_files - error_files
     logger.info(f"Found {len(new_files)} new PDFs")
 
-    # Start DB writer process
+    file_tuples = sorted([(os.path.join(pdf_folder, f), f) for f in new_files])
+
     writer = Process(target=db_writer, args=(queue, stop_event, db_path))
     writer.start()
 
-    # Start PDF processors
-    with Pool() as pool:
+    with Pool(processes=num_workers) as pool:
         pool.starmap(extract_and_stream, [(file_info, queue, chunk_size) for file_info in file_tuples])
 
     stop_event.set()
     writer.join()
 
+    logger.info(f"Processed {len(new_files)} PDFs")
+    logger.info(f"Skipped {len(existing_files)} already in DB")
+    logger.info(f"Errored: {len(error_files)} previously known failures")
     logger.info("All done.")
