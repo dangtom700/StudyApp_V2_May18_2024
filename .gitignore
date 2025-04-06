@@ -13,3 +13,4 @@ test_file.exe
 outputPrompt.txt
 PROMPT.txt
 models/
+logs/

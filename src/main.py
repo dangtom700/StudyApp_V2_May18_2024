@@ -40,16 +40,16 @@ def app():
         descriptions. They are more challenging to search but provide deeper 
         understanding.
         """
-        chunk_size = 2000
+        chunk_size = 512
         # extract_text
         print("Extracting text from PDF files...")
-        extract_text.extract_text(CHUNK_SIZE=chunk_size, FOLDER_PATH=path.pdf_path, chunk_database_path=path.chunk_database_path, reset_db=False)
+        extract_text.extract_text(chunk_size=chunk_size, pdf_folder=path.pdf_path, db_path=path.chunk_database_path)
         print("Finished extracting text from PDF files.")
     
     if args.processWordFreq:
 
         print("Processing word frequencies...")
-        word_freq.process_word_frequencies_in_batches(reset_state = False)
+        word_freq.process_word_frequencies_in_batches(reset_state = True)
         print("Finished processing word frequencies.")
 
     if args.tokenizePrompt: # function is functioning properly
