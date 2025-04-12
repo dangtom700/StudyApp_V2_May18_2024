@@ -196,107 +196,96 @@ namespace FEATURE {
                          const bool& show_progress = true,
                          const bool& reset_table = true,
                          const bool& is_dumped = true) {
-        try {
-            // Connect to the database
-            sqlite3* db;
-            int exit = sqlite3_open(ENV_HPP::database_path.string().c_str(), &db);
-            if (exit != SQLITE_OK) {
-                std::cerr << "Error opening database: " << sqlite3_errmsg(db) << std::endl;
-                sqlite3_close(db);
-                return;
-            }
-
-            // Disable synchronous mode for faster inserts
-            execute_sql(db, "PRAGMA synchronous = OFF;");
-
-            // Create or reset the table if required
-            if (reset_table) {
-                std::string create_table_sql = R"(
-                    DROP TABLE IF EXISTS file_info;
-                    CREATE TABLE IF NOT EXISTS file_info (
-                        id TEXT PRIMARY KEY,
-                        file_name TEXT NOT NULL,
-                        file_path TEXT NOT NULL,
-                        epoch_time INTEGER NOT NULL,
-                        chunk_count INTEGER NOT NULL,
-                        starting_id INTEGER NOT NULL,
-                        ending_id INTEGER NOT NULL
-                    );
-                )";
-                execute_sql(db, create_table_sql);
-            }
-
-            // Start a transaction for batch processing
-            execute_sql(db, "BEGIN TRANSACTION;");
-
-            // Prepare the insert statement (using "INSERT OR REPLACE" to handle both insert/update)
-            std::string insert_sql = R"(
-                INSERT OR REPLACE INTO file_info (id, file_name, file_path, epoch_time, chunk_count, starting_id, ending_id)
-                VALUES (?, ?, ?, ?, ?, ?, ?);
-            )";
-            sqlite3_stmt* stmt;
-            sqlite3_prepare_v2(db, insert_sql.c_str(), -1, &stmt, nullptr);
-
-            bool trigger_once = true;
-            for (const std::filesystem::path& file : filtered_files) {
-                if (trigger_once && is_dumped) {
-                    UTILITIES_HPP::Basic::reset_file_info_dumper(ENV_HPP::data_info_path);
-                    trigger_once = false;
-                }
-
-                // Process the file
-                DataInfo entry = {
-                    .file_name = file.stem().generic_string(),
-                    .file_path = UTILITIES_HPP::Basic::convertToBackslash(file.generic_string()),
-                    .epoch_time = UPDATE_INFO::get_epoch_time(file),
-                    .chunk_count = UPDATE_INFO::count_chunk_for_each_title(db, entry.file_path),
-                    .starting_id = UPDATE_INFO::get_starting_id(db, entry.file_path),
-                    .ending_id = UPDATE_INFO::get_ending_id(db, entry.file_path),
-                };
-
-                entry.id = UPDATE_INFO::create_unique_id(entry.file_path, entry.epoch_time, entry.chunk_count, entry.starting_id);
-
-                // Export data info if needed
-                if (is_dumped) UTILITIES_HPP::Basic::data_info_dump(entry);
-
-                // Bind the values to the statement
-                sqlite3_bind_text(stmt, 1, entry.id.c_str(), -1, SQLITE_STATIC);
-                sqlite3_bind_text(stmt, 2, entry.file_name.c_str(), -1, SQLITE_STATIC);
-                sqlite3_bind_text(stmt, 3, entry.file_path.c_str(), -1, SQLITE_STATIC);
-                sqlite3_bind_int(stmt, 4, entry.epoch_time);
-                sqlite3_bind_int(stmt, 5, entry.chunk_count);
-                sqlite3_bind_int(stmt, 6, entry.starting_id);
-                sqlite3_bind_int(stmt, 7, entry.ending_id);
-
-                // Execute the statement
-                if (sqlite3_step(stmt) != SQLITE_DONE) {
-                    std::cerr << "Error inserting into file_info: " << sqlite3_errmsg(db) << std::endl;
-                }
-
-                // Reset the statement to use it again
-                sqlite3_reset(stmt);
-
-                if (show_progress) {
-                    std::cout << "Processed: " << file << std::endl;
-                }
-            }
-
-            // Finalize the prepared statement
-            sqlite3_finalize(stmt);
-
-            // Commit the transaction to apply all inserts
-            execute_sql(db, "COMMIT TRANSACTION;");
-
-            // Re-enable synchronous mode (optional, depending on use case)
-            execute_sql(db, "PRAGMA synchronous = FULL;");
-
-            // Close the database connection
+        // Connect to the database
+        sqlite3* db;
+        int exit = sqlite3_open(ENV_HPP::database_path.string().c_str(), &db);
+        if (exit != SQLITE_OK) {
+            std::cerr << "Error opening database: " << sqlite3_errmsg(db) << std::endl;
             sqlite3_close(db);
-            std::cout << "Computing resource data finished" << std::endl;
-
-        } catch (const std::exception& e) {
-            std::cerr << "Error: " << e.what() << std::endl;
+            return;
         }
+
+        // Disable synchronous mode for faster inserts
+        execute_sql(db, "PRAGMA synchronous = OFF;");
+
+        // Create or reset the table if required
+        if (reset_table) {
+            std::string create_table_sql = R"(
+                DROP TABLE IF EXISTS file_info;
+                CREATE TABLE IF NOT EXISTS file_info (
+                    id TEXT PRIMARY KEY,
+                    file_name TEXT NOT NULL,
+                    file_path TEXT NOT NULL,
+                    epoch_time INTEGER NOT NULL,
+                    chunk_count INTEGER NOT NULL
+                );
+            )";
+            execute_sql(db, create_table_sql);
+        }
+
+        // Start a transaction for batch processing
+        execute_sql(db, "BEGIN TRANSACTION;");
+
+        // Prepare the insert statement (using "INSERT OR REPLACE" to handle both insert/update)
+        std::string insert_sql = R"(
+            INSERT OR REPLACE INTO file_info (id, file_name, file_path, epoch_time, chunk_count)
+            VALUES (?, ?, ?, ?, ?);
+        )";
+        sqlite3_stmt* stmt;
+        sqlite3_prepare_v2(db, insert_sql.c_str(), -1, &stmt, nullptr);
+
+        bool trigger_once = true;
+        for (const std::filesystem::path& file : filtered_files) {
+            if (trigger_once && is_dumped) {
+                UTILITIES_HPP::Basic::reset_file_info_dumper(ENV_HPP::data_info_path);
+                trigger_once = false;
+            }
+
+            // Process the file
+            DataInfo entry = {
+                .file_name = file.stem().generic_string(),
+                .file_path = UTILITIES_HPP::Basic::convertToBackslash(file.generic_string()),
+                .epoch_time = UPDATE_INFO::get_epoch_time(file),
+                .chunk_count = UPDATE_INFO::count_chunk_for_each_title(db, entry.file_path)
+            };
+
+            entry.id = UPDATE_INFO::create_unique_id(entry.file_path, entry.epoch_time, entry.chunk_count);
+
+            // Export data info if needed
+            if (is_dumped) UTILITIES_HPP::Basic::data_info_dump(entry);
+
+            // Bind the values to the statement
+            sqlite3_bind_text(stmt, 1, entry.id.c_str(), -1, SQLITE_STATIC);
+            sqlite3_bind_text(stmt, 2, entry.file_name.c_str(), -1, SQLITE_STATIC);
+            sqlite3_bind_text(stmt, 3, entry.file_path.c_str(), -1, SQLITE_STATIC);
+            sqlite3_bind_int(stmt, 4, entry.epoch_time);
+            sqlite3_bind_int(stmt, 5, entry.chunk_count);
+
+            // Execute the statement
+            if (sqlite3_step(stmt) != SQLITE_DONE) {
+                std::cerr << "Error inserting into file_info: " << sqlite3_errmsg(db) << std::endl;
+            }
+
+            // Reset the statement to use it again
+            sqlite3_reset(stmt);
+
+            if (show_progress) {
+                std::cout << "Processed: " << file << std::endl;
+            }
+        }
+
+        // Finalize the prepared statement
+        sqlite3_finalize(stmt);
+
+        // Commit the transaction to apply all inserts
+        execute_sql(db, "COMMIT TRANSACTION;");
+
+        // Re-enable synchronous mode (optional, depending on use case)
+        execute_sql(db, "PRAGMA synchronous = FULL;");
+
+        // Close the database connection
+        sqlite3_close(db);
+        std::cout << "Computing resource data finished" << std::endl;
     }
 
 
