@@ -1,0 +1,1902 @@
+﻿Get Complete Ebook order By email at palemonking@gmail.com
+Get Complete ebook order By email at palemonking@gmail.comTENTH EDITION
+Modern SySteMS
+AnAlySiS
+And deSign
+JOSEPH S. VALACICH
+University of Arizona
+JOEY F. GEORGE
+Iowa State University
+A01_VALA0072_10_SE_FM.indd 1 13/02/24 9:42 AM
+Get Complete Ebook order By email at palemonking@gmail.com
+Get Complete ebook order By email at palemonking@gmail.comContent Production: Rudrani Mukherjee
+Product Management: Jenifer Niles
+Product Marketing: Wayne Stevens
+Rights and Permissions: Jenell Forschler
+Please contact www.AskPearsonSupport.com with any queries on this content. 
+Please contact us with concerns about any potential bias at https://www.pearson.com/report-bias.html 
+You can learn more about Pearson’s commitment to accessibility at https://www.pearson.com/us/accessibility.html
+Cover Image by Sergey Nivens/Shutterstock
+Microsoft and/or its respective suppliers make no representations about the suitability of the information contained in 
+the documents and related graphics published as part of the services for any purpose. All such documents and related 
+graphics are provided “as is” without warranty of any kind. Microsoft and/or its respective suppliers hereby disclaim 
+all warranties and conditions with regard to this information, including all warranties and conditions of merchantability, 
+whether express, implied or statutory, fitness for a particular purpose, title and non-infringement. In no event shall 
+Microsoft and/or its respective suppliers be liable for any special, indirect or consequential damages or any damages 
+whatsoever resulting from loss of use, data or profits, whether in an action of contract, negligence or other tortious action, 
+arising out of or in connection with the use or performance of information available from the services.
+The documents and related graphics contained herein could include technical inaccuracies or typographical errors. 
+Changes are periodically added to the information herein. Microsoft and/or its respective suppliers may make 
+improvements and/or changes in the product(s) and/or the program(s) described herein at any time. Partial screen shots 
+may be viewed in full within the software version specified.
+Microsoft® and Windows® are registered trademarks of the Microsoft Corporation in the U.S.A. and other countries. This 
+book is not sponsored or endorsed by or affiliated with the Microsoft Corporation.
+Copyright © 2025, 2020, 2017 by Pearson Education, Inc. or its affiliates, 221 River Street, Hoboken, NJ 07030. All Rights 
+Reserved. Manufactured in the United States of America. This publication is protected by copyright, and permission 
+should be obtained from the publisher prior to any prohibited reproduction, storage in a retrieval system, or transmission 
+in any form or by any means, electronic, mechanical, photocopying, recording, or otherwise. For information regarding 
+permissions, request forms, and the appropriate contacts within the Pearson Education Global Rights and Permissions 
+department, please visit www.pearsoned.com/permissions/.
+Acknowledgments of third-party content appear on the appropriate page within the text.
+PEARSON is an exclusive trademarks owned by Pearson Education, Inc. or its affiliates in the U.S. and/or other countries.
+Unless otherwise indicated herein, any third-party trademarks, logos, or icons that may appear in this work are the 
+property of their respective owners, and any references to third-party trademarks, logos, icons, or other trade dress are 
+for demonstrative or descriptive purposes only. Such references are not intended to imply any sponsorship, endorsement, 
+authorization, or promotion of Pearson’s products by the owners of such marks, or any relationship between the owner and 
+Pearson Education, Inc., or its affiliates, authors, licensees, or distributors.
+Library of Congress Cataloging-in-Publication Data
+Names: Valacich, Joseph S., author. | George, Joey F., author.
+Title: Modern systems analysis and design / Joseph S. Valacich, University
+ of Arizona, Joey F. George, Iowa State University.
+Description: Tenth edition. | Hoboken, NJ : Pearson Education, Inc., [2024]
+ | Revised edition of : Modern systems analysis and design / Jeffrey A.
+ Hoffer, Joey F. George, Joseph S. Valacich, 6th ed. Upper Saddle River,
+ N.J. : Pearson Prentice Hall, [2011].
+Identifiers: LCCN 2023044568 (print) | LCCN 2023044569 (ebook) | ISBN
+ 9780138180072 (hardcover) | ISBN 9780138180447 (ebook other) | ISBN
+ 9780138179892 (ebook) | ISBN 9780138179946 (ebook) | ISBN 9780138180294
+ (ebook)
+Subjects: LCSH: System design. | System analysis.
+Classification: LCC QA76.9.S88 H6197 2024 (print) | LCC QA76.9.S88
+ (ebook) | DDC 003—dc23/eng/20231012
+LC record available at https://lccn.loc.gov/2023044568
+LC ebook record available at https://lccn.loc.gov/2023044569
+$PrintCode
+ISBN-10: 0-13-818007-5
+ISBN-13: 978-0-13-818007-2
+A01_VALA0072_10_SE_FM.indd 2 13/02/24 9:42 AM
+Get Complete Ebook order By email at palemonking@gmail.com
+Get Complete ebook order By email at palemonking@gmail.comTo my family. Thanks for the love and support.
+—Joe
+To my parents, John and Loree George.
+—Joey
+A01_VALA0072_10_SE_FM.indd 3 13/02/24 9:42 AM
+Get Complete Ebook order By email at palemonking@gmail.com
+Get Complete ebook order By email at palemonking@gmail.comA01_VALA0072_10_SE_FM.indd 4 13/02/24 9:42 AM
+This page intentionally left blank 
+Get Complete Ebook order By email at palemonking@gmail.com
+Get Complete ebook order By email at palemonking@gmail.comv
+Preface xvii
+PART ONE Foundations for Systems Development 1
+ 1 The Systems Development Environment 3
+ 2 The Origins of Software 22
+ 3 Managing the Information Systems Project 36
+PART TWO Planning 73
+ 4 Identifying and Selecting Systems Development Projects 75
+ 5 Initiating and Planning Systems Development Projects 99
+PART THREE Analysis 133
+ 6 Determining System Requirements 135
+ 7 Structuring System Process Requirements 165
+ 8 Structuring System Data Requirements 208
+PART FOUR System Design, Implementation, 
+and Maintenance 247
+ 9 Designing Databases 251
+ 10 Designing Forms and Reports 292
+ 11 Designing Interfaces and Dialogues 318
+ 12 System Implementation and Maintenance 354
+Glossary 401
+Glossary of Acronyms 406
+Index 407
+Brief Contents
+A01_VALA0072_10_SE_FM.indd 5 13/02/24 9:42 AM
+Get Complete Ebook order By email at palemonking@gmail.com
+Get Complete ebook order By email at palemonking@gmail.comA01_VALA0072_10_SE_FM.indd 6 13/02/24 9:42 AM
+This page intentionally left blank 
+Get Complete Ebook order By email at palemonking@gmail.com
+Get Complete ebook order By email at palemonking@gmail.comvii
+Preface xvii
+PART ONE Foundations for Systems Development 1
+OVERVIEW PART ONE 2
+ 1 The Systems Development Environment 3
+Learning Objectives 3
+Introduction 3
+A Modern Approach to Systems Analysis and Design 5
+Developing Information Systems and the Systems 
+Development Life Cycle 6
+The Heart of the Systems Development Process 11
+The Traditional Waterfall SDLC 12
+Agile Methodologies 13
+eXtreme Programming 15
+Scrum 16
+Agile in Practice 17
+Our Approach to Systems Development 18
+Summary 19
+Key Terms 19
+Multiple Choice Questions 19
+Questions, Problems, and Exercises 20
+Problems and Exercises 20
+Field Exercises 21
+References 21
+ 2 The Origins of Software 22
+Learning Objectives 22
+Introduction 22
+Systems Acquisition 22
+Outsourcing 23
+Sources of Software 24
+Choosing Off-the-Shelf Software 31
+Validating Purchased Software Information 33
+Summary 33
+Key Terms 34
+Multiple Choice Questions 34
+Questions, Problems, and Exercises 34
+Contents
+A01_VALA0072_10_SE_FM.indd 7 13/02/24 9:42 AM
+Get Complete Ebook order By email at palemonking@gmail.com
+Get Complete ebook order By email at palemonking@gmail.comviii Contents
+Problems and Exercises 34
+Field Exercises 35
+References 35
+ 3 Managing the Information Systems Project 36
+ Learning Objectives 36
+Introduction 36
+Pine Valley Furniture Company Background 37
+Managing the Information Systems Project 38
+Initiating a Project 42
+Planning the Project 46
+Executing the Project 53
+Closing Down the Project 55
+Representing and Scheduling Project Plans 57
+Representing Project Plans 58
+Calculating Expected Time Durations Using PERT 59
+Constructing a Gantt Chart and Network Diagram at Pine Valley 
+Furniture 60
+Using Project Management Software 63
+Establishing a Project Start Date 64
+Entering Tasks and Assigning Task Relationships 64
+Selecting a Scheduling Method to Review Project Reports 65
+Summary 66
+Key Terms 67
+Multiple Choice Questions 67
+Questions, Problems, and Exercises 68
+Problems and Exercises 69
+Field Exercises 71
+References 71
+PART TWO Planning 73
+OVERVIEW PART TWO 74
+ 4 Identifying and Selecting Systems Development Projects 75
+ Learning Objectives 75
+Introduction 75
+Identifying and Selecting Systems Development Projects 76
+ The Process of Identifying and Selecting IS 
+Development Projects 77
+Deliverables and Outcomes 81
+Corporate and Information Systems Planning 82
+Pine Valley 
+Furniture
+Pine Valley 
+Furniture
+Pine Valley 
+Furniture
+Pine Valley 
+Furniture
+Pine Valley 
+Furniture
+Pine Valley 
+Furniture
+A01_VALA0072_10_SE_FM.indd 8 13/02/24 9:42 AM
+Get Complete Ebook order By email at palemonking@gmail.com
+Get Complete ebook order By email at palemonking@gmail.comContents ix
+Corporate Strategic Planning 83
+Information Systems Planning 85
+Electronic Commerce Applications: Identifying and 
+Selecting Systems Development Projects 92
+Internet Basics 92
+Pine Valley Furniture WebStore 94
+Summary 94
+Key Terms 95
+Multiple Choice Questions 95
+Questions, Problems, and Exercises 96
+Problems and Exercises 96
+Field Exercises 97
+References 98
+ 5 Initiating and Planning Systems Development Projects 99
+ Learning Objectives 99
+Introduction 99
+Initiating and Planning Systems Development Projects 99
+The Process of Initiating and Planning Is Development 
+Projects 100
+Deliverables and Outcomes 102
+Assessing Project Feasibility 103
+Assessing Economic Feasibility 103
+Assessing Technical Feasibility 112
+Assessing Other Feasibility Concerns 114
+Building and Reviewing the Baseline Project Plan 116
+ Building the Baseline Project Plan 116
+Reviewing the Baseline Project Plan 121
+Electronic Commerce Applications: Initiating and 
+Planning Systems Development Projects 125
+Initiating and Planning Systems Development Projects for Pine 
+Valley Furniture’s WebStore 125
+Initiating and Planning PVF’s E-Commerce System 125
+WebStore Project Walk-Through 125
+Summary 127
+Key Terms 127
+Multiple Choice Questions 127
+Questions, Problems, and Exercises 129
+Problems and Exercises 129
+Field Exercises 130
+References 131
+Pine Valley 
+Furniture
+Pine Valley 
+Furniture
+Pine Valley 
+Furniture
+Pine Valley 
+Furniture
+Pine Valley 
+Furniture
+Pine Valley 
+Furniture
+A01_VALA0072_10_SE_FM.indd 9 13/02/24 9:42 AM
+Get Complete Ebook order By email at palemonking@gmail.com
+Get Complete ebook order By email at palemonking@gmail.comx Contents
+PART THREE Analysis 133
+OVERVIEW PART THREE 134
+ 6 Determining System Requirements 135
+ Learning Objectives 135
+Introduction 135
+Performing Requirements Determination 135
+The Process of Determining Requirements 135
+Deliverables and Outcomes 137
+Traditional Methods for Determining Requirements 138
+Interviewing and Listening 138
+Interviewing Groups 142
+Directly Observing Users 143
+Analyzing Procedures and Other Documents 145
+Determining System Requirements with Prototyping 150
+Radical Methods for Determining System Requirements 152
+Identifying Processes to Reengineer 153
+Disruptive Technologies 154
+Requirements Determination Using Agile Methodologies 154
+Continual User Involvement 155
+Agile Usage-Centered Design 156
+ The Planning Game from eXtreme Programming 156
+Electronic Commerce Applications: Determining System 
+Requirements 158
+Determining System Requirements for Pine Valley Furniture’s 
+WebStore 158
+System Layout and Navigation Characteristics 159
+WebStore and Site Management System Capabilities 159
+Customer and Inventory Information 160
+System Prototype Evolution 160
+Summary 161
+Key Terms 161
+Multiple Choice Questions 162
+Questions, Problems, and Exercises 162
+Problems and Exercises 163
+Field Exercises 163
+References 164
+ 7 Structuring System Process Requirements 165
+Learning Objectives 165
+Introduction 165
+Process Modeling with Data Flow Diagrams 166
+Modeling a System’s Process for Structured Analysis 166
+Pine Valley 
+Furniture
+A01_VALA0072_10_SE_FM.indd 10 13/02/24 9:42 AM
+Get Complete Ebook order By email at palemonking@gmail.com
+Get Complete ebook order By email at palemonking@gmail.comContents xi
+Deliverables and Outcomes 167
+Data Flow Diagramming Mechanics 167
+ Definitions and Symbols 168
+Developing DFDs: An Example 170
+Data Flow Diagramming Rules 173
+Decomposition of DFDs 175
+Balancing DFDs 177
+An Example DFD 179
+Using Data Flow Diagramming in the Analysis Process 182
+Guidelines for Drawing DFDs 182
+Using DFDs as Analysis Tools 184
+Using DFDs in Business Process Reengineering 185
+Business Process Modeling 186
+Introduction 186
+Basic Notation 187
+Business Process Example 190
+Modeling Logic with Decision Tables 191
+Electronic Commerce Application: Process 
+Modeling with Data Flow Diagrams 195
+Process Modeling for Pine Valley Furniture’s WebStore 195
+Summary 197
+ Key Terms 197
+Multiple Choice Questions 198
+Questions, Problems, and Exercises 199
+Problems and Exercises 200
+Field Exercises 207
+References 207
+ 8 Structuring System Data Requirements 208
+ Learning Objectives 208
+Introduction 208
+Conceptual Data Modeling 209
+The Conceptual Data Modeling Process 210
+Deliverables and Outcomes 211
+Gathering Information for Conceptual Data Modeling 212
+Introduction to E-R Modeling 214
+Entities 215
+Attributes 216
+Candidate Keys and Identifiers 217
+Other Attribute Types 218
+Relationships 219
+Conceptual Data Modeling and the E-R Model 220
+Degree of a Relationship 221
+Hoosier 
+Burger
+Hoosier 
+Burger
+Hoosier 
+Burger
+Hoosier 
+Burger
+Pine Valley 
+Furniture
+Pine Valley 
+Furniture
+A01_VALA0072_10_SE_FM.indd 11 13/02/24 9:42 AM
+Get Complete Ebook order By email at palemonking@gmail.com
+Get Complete ebook order By email at palemonking@gmail.comxii Contents
+Cardinalities in Relationships 223
+Naming and Defining Relationships 225
+Associative Entities 225
+Summary of Conceptual Data Modeling with E-R Diagrams 228
+Representing Supertypes and Subtypes 228
+Business Rules 230
+Domains 231
+ Triggering Operations 231
+Role of Packaged Conceptual Data Models: Database Patterns 232
+Universal Data Models 233
+Industry-Specific Data Models 233
+Benefits of Database Patterns and Packaged Data Models 233
+Electronic Commerce Application: Conceptual Data Modeling 234
+Conceptual Data Modeling for Pine Valley Furniture’s 
+WebStore 234
+Summary 238
+ Key Terms 239
+Multiple Choice Questions 239
+Questions, Problems, and Exercises 241
+Problems and Exercises 241
+Field Exercises 244
+References 245
+PART FOUR System Design, Implementation, 
+and Maintenance 247
+OVERVIEW PART FOUR 248
+ 9 Designing Databases 251
+ Learning Objectives 251
+ Introduction 251
+Database Design 251
+The Process of Database Design 252
+Deliverables and Outcomes 254
+The Relational Database Model 257
+Well-Structured Relations 258
+Normalization 259
+ Rules of Normalization 259
+Functional Dependence and Primary Keys 259
+Second Normal Form 260
+Third Normal Form 260
+Transforming E-R Diagrams into Relations 262
+Represent Entities 262
+Pine Valley 
+Furniture
+A01_VALA0072_10_SE_FM.indd 12 13/02/24 9:42 AM
+Get Complete Ebook order By email at palemonking@gmail.com
+Get Complete ebook order By email at palemonking@gmail.comContents xiii
+Represent Relationships 263
+Summary of Transforming E-R Diagrams to Relations 266
+Merging Relations 267
+ An Example of Merging Relations 267
+View Integration Problems 267
+Logical Database Design for Hoosier Burger 269
+Physical File and Database Design 271
+Designing Fields 271
+ Choosing Data Types 272
+Controlling Data Integrity 273
+Designing Physical Tables 274
+Arranging Table Rows 276
+Designing Controls for Files 281
+Physical Database Design for Hoosier Burger 282
+Electronic Commerce Application: Designing Databases 283
+Designing Databases for Pine Valley Furniture’s WebStore 283
+Summary 286
+Key Terms 286
+Multiple Choice Questions 287
+Questions, Problems, and Exercises 288
+Problems and Exercises 289
+Field Exercises 290
+References 291
+ 10 Designing Forms and Reports 292
+ Learning Objectives 292
+ Introduction 292
+Designing Forms and Reports 292
+The Process of Designing Forms and Reports 294
+Deliverables and Outcomes 295
+Formatting Forms and Reports 299
+General Formatting Guidelines 299
+Highlighting Information 301
+Color versus No Color 303
+Displaying Text 303
+Designing Tables and Lists 305
+Paper versus Electronic Reports 309
+Assessing Usability 310
+Usability Success Factors 310
+Measures of Usability 311
+Electronic Commerce Applications: Designing Forms and Reports for 
+Pine Valley Furniture’s WebStore 311
+Hoosier 
+Burger
+Hoosier 
+Burger
+Pine Valley 
+Furniture
+Pine Valley 
+Furniture
+A01_VALA0072_10_SE_FM.indd 13 13/02/24 9:42 AM
+Get Complete Ebook order By email at palemonking@gmail.com
+Get Complete ebook order By email at palemonking@gmail.comxiv Contents
+General Guidelines 312
+Designing Forms and Reports at Pine Valley Furniture 312
+Lightweight Graphics 313
+Forms and Data Integrity Rules 313
+Stylesheet-Based HTML 313
+ Summary 313
+Key Terms 314
+ Multiple Choice Questions 314
+Questions, Problems, and Exercises 315
+Problems and Exercises 316
+Field Exercises 316
+References 317
+ 11 Designing Interfaces and Dialogues 318
+ Learning Objectives 318
+ Introduction 318
+Designing Interfaces and Dialogues 318
+The Process of Designing Interfaces and Dialogues 318
+Deliverables and Outcomes 319
+Interaction Methods and Devices 320
+Methods of Interacting 320
+Hardware Options for System Interaction 327
+Designing Interfaces 329
+Designing Layouts 329
+Structuring Data Entry 333
+Controlling Data Input 334
+ Providing Feedback 336
+Providing Help 337
+Designing Dialogues 340
+Designing the Dialogue Sequence 341
+Building Prototypes and Assessing Usability 342
+Designing Interfaces and Dialogues in Graphical Environments 344
+Graphical Interface Design Issues 344
+Dialogue Design Issues in a Graphical Environment 346
+Electronic Commerce Application: Designing Interfaces and 
+Dialogues for Pine Valley Furniture’s WebStore 347
+General Guidelines 347
+Designing Interfaces and Dialogues at Pine Valley Furniture 348
+Menu-Driven Navigation with Cookie Crumbs 348
+Summary 349
+Key Terms 350
+Multiple Choice Questions 350
+Pine Valley 
+Furniture
+A01_VALA0072_10_SE_FM.indd 14 13/02/24 9:42 AM
+Get Complete Ebook order By email at palemonking@gmail.com
+Get Complete ebook order By email at palemonking@gmail.comContents xv
+Questions, Problems, and Exercises 351
+Problems and Exercises 351
+Field Exercises 352
+References 352
+ 12 System Implementation and Maintenance 354
+ Learning Objectives 354
+ Introduction 354
+System Implementation 356
+Coding, Testing, and Installation Processes 356
+Deliverables and Outcomes from Coding, Testing, 
+and Installation 357
+The Processes of Documenting the System, Training Users, and 
+Supporting Users 358
+Deliverables and Outcomes from Documenting the System, 
+Training Users, and Supporting Users 358
+Software Application Testing 359
+Seven Different Types of Tests 360
+The Testing Process 362
+Combining Coding and Testing 364
+Acceptance Testing by Users 365
+Installation 366
+Direct Installation 367
+ Parallel Installation 367
+Single-Location Installation 367
+Phased Installation 368
+Planning Installation 368
+Documenting the System 369
+User Documentation 370
+Training and Supporting Users 371
+Training Information Systems Users 371
+Supporting Information Systems Users 373
+Organizational Issues in Systems Implementation 374
+Why Implementation Sometimes Fails 374
+Cybersecurity Issues 377
+Electronic Commerce Application: System Implementation and 
+Operation for Pine Valley Furniture’s WebStore 379
+Developing Test Cases for the WebStore 379
+Bug Tracking and System Evolution 380
+Alpha and Beta Testing the WebStore 380
+WebStore Installation 381
+Project Closedown 381
+Maintaining Information Systems 382
+Pine Valley 
+Furniture
+A01_VALA0072_10_SE_FM.indd 15 13/02/24 9:42 AM
+Get Complete Ebook order By email at palemonking@gmail.com
+Get Complete ebook order By email at palemonking@gmail.comxvi Contents
+The Process of Maintaining Information Systems 382
+Deliverables and Outcomes 384
+Conducting Systems Maintenance 385
+Types of Maintenance 385
+The Cost of Maintenance 386
+Managing Maintenance 388
+Electronic Commerce Application: Maintaining an Information 
+System for Pine Valley Furniture’s WebStore 392
+Maintaining Pine Valley Furniture’s WebStore 392
+Cannot Find Server 393
+Summary 394
+Key Terms 395
+Multiple Choice Questions 395
+Questions, Problems, and Exercises 398
+Problems and Exercises 398
+Field Exercises 399
+References 400
+GLOSSARY 401
+GLOSSARY OF ACRONYMS 406
+INDEX 407
+Pine Valley 
+Furniture
+A01_VALA0072_10_SE_FM.indd 16 13/02/24 9:42 AM
+Get Complete Ebook order By email at palemonking@gmail.com
+Get Complete ebook order By email at palemonking@gmail.comxvii
+Preface
+Description
+Modern Systems Analysis and Design, Tenth Edition, covers the concepts, skills, 
+methodologies, techniques, tools, and perspectives essential for systems analysts 
+to successfully develop information systems. The primary target audience is upper￾division undergraduates in a management information systems (MIS) or computer 
+information systems curriculum; a secondary target audience is MIS majors in MBA and 
+MS programs. Although not explicitly written for the junior college and professional 
+development markets, this book can also be used by these programs.
+We have over 65 years of combined teaching experience in systems analysis and 
+design and have used that experience to create this newest edition of Modern Systems 
+Analysis and Design. We provide a clear presentation of the concepts, skills, and tech￾niques that students need to become effective systems analysts who work with others 
+to create information systems for businesses. We use the systems development life 
+cycle (SDLC) model as an organizing tool throughout the book to provide students 
+with a strong conceptual and systematic framework. The SDLC in this edition has 
+five phases and a circular design.
+With this text, we assume that students have taken an introductory course on 
+computer systems and have experience designing programs in at least one program￾ming language. We review basic system principles for those students who have not 
+been exposed to the material on which systems development methods are based. We 
+also assume that students have a solid background in computing literacy and a gen￾eral understanding of the core elements of a business, including basic terms associ￾ated with the production, marketing, finance, and accounting functions.
+New to the Tenth Edition
+Students now have the option to purchase the Pearson + eTextbook—an affordable, 
+interactive learning experience. Students can highlight, take notes, and review key 
+terminology all in one place. And using the interactive end-of-chapter questions, stu￾dents can check their understanding of the material and get instant feedback.
+New Features
+• Organization. We have reduced the number of chapters from 14 to 12 by drop￾ping the old Chapter 12, “Designing Distributed and Internet Systems,” and 
+by combining Chapters 13 and 14 on implementation and maintenance into 
+a single chapter. We no longer include the appendices on object-oriented 
+systems analysis and design (OOSAD) and the Unified Modeling Language 
+(UML). However, the contents of what had been Appendix 7C on Business 
+Process Modeling Notation have been moved into the body of Chapter 7 and 
+the other four appendices are available at the instructor resource center. The 
+goals in the reorganization were to eliminate dated content and to streamline 
+the book to better fit the reading habits of today’s undergraduate students 
+without sacrificing essential content.
+• Dropped material. In our efforts to keep the book current and to streamline it, the 
+coverage of some things was dropped from this edition. The following sections 
+have been dropped from individual chapters: OOSAD in Chapter 1, reuse in 
+Chapter 2, Joint Application Design (JAD) in Chapter 6, and website maintenance 
+and the section on the role of automated development tools in maintenance from 
+what is now Chapter 12 (they had been in Chapter 14 on maintenance). Based on 
+feedback we received from current users of the ninth edition, we also dropped 
+the end-of-chapter case featuring Petrie Electronics.
+A01_VALA0072_10_SE_FM.indd 17 13/02/24 9:42 AM
+Get Complete Ebook order By email at palemonking@gmail.com
+Get Complete ebook order By email at palemonking@gmail.comxviii Preface
+• Updated content. Throughout the book, the content in each chapter has been 
+updated where appropriate. For example, we have updated the section “Agile 
+in Practice” in Chapter 1 and expanded our coverage of multiple topics in 
+Chapter 2. Chapter 12 includes an updated section on data breaches and an 
+enhanced example of systems implementation failure. All screenshots come 
+from current versions of leading software products. We have also made a 
+special effort to update our reference lists, purging out-of-date material and 
+including current references. Throughout the book, figures, tables, and related 
+content have been updated and refreshed.
+• Updated illustrations of technology. Screen captures have been updated through￾out the text to show examples using the latest versions of programming and 
+Internet development environments (including the latest versions of Visual 
+Studio, Visio, and Microsoft Office) and user interface designs. Many refer￾ences to Websites are provided for students to stay current with technology 
+trends that affect the analysis and design of information systems.
+Themes of Modern Systems Analysis and Design
+1. Systems development is firmly rooted in an organizational context. The suc￾cessful systems analyst requires a broad understanding of organizations, orga￾nizational culture, and organizational operations.
+2. Systems development is a practical field. Coverage of current practices as well 
+as accepted concepts and principles is essential in a textbook.
+3. Systems development is a profession. Standards of practice, a sense of con￾tinuing personal development, ethics, and a respect for and collaboration with 
+the work of others are general themes in the textbook.
+4. Systems development has significantly changed with the explosive growth in 
+databases, data-driven systems architectures, the Internet, and agile methodol￾ogies. Systems development and database management can be and should be 
+taught in a highly coordinated fashion. The text is compatible with the Hoffer, 
+Ramesh, and Topi database text Modern Database Management, Thirteenth 
+Edition, also published by Pearson. The proper linking of these two textbooks 
+is a strategic opportunity to meet the needs of the IS academic field.
+5. Success in systems analysis and design requires not only skills in methodologies 
+and techniques, but also project management skills for managing time, resources, 
+and risks. Thus, learning systems analysis and design requires a thorough under￾standing of the process as well as the techniques and deliverables of the profession.
+Given these themes, this textbook emphasizes the following:
+• A business rather than a technology perspective;
+• the role, responsibilities, and mindset of the systems analyst as well as the sys￾tems project manager rather than those of the programmer or business man￾ager; and
+• the methods and principles of systems development rather than the specific 
+tools or tool-related skills of the field.
+Distinctive Features
+The following are some of the distinctive features of Modern Systems Analysis and 
+Design:
+1. This book is organized in parallel to the Hoffer, Ramesh, and Topi database 
+text, Modern Database Management, Thirteenth Edition (2021), which will facili￾tate consistency of frameworks, definitions, methods, examples, and notations 
+to better support systems analysis and design and database courses adopt￾ing both texts. Even with the strategic compatibilities between this text and 
+Modern Database Management, each of these books is designed to stand alone 
+as a market leader.
+A01_VALA0072_10_SE_FM.indd 18 13/02/24 9:42 AM
+Get Complete Ebook order By email at palemonking@gmail.com
+Get Complete ebook order By email at palemonking@gmail.comPreface xix
+2. The grounding of systems development in the typical architecture for systems 
+in modern organizations, including database management and Web-based 
+systems.
+3. A clear linkage of all dimensions of systems description and modeling—
+process, decision, and data modeling—into a comprehensive and compatible 
+set of systems analysis and design approaches. Such a broad coverage is nec￾essary so that students understand the advanced capabilities of the many sys￾tems development methodologies and tools that are automatically generating 
+a large percentage of code from design specifications.
+4. Extensive coverage of oral and written communication skills, including sys￾tems documentation, project management, team management, and a variety 
+of systems development and acquisition strategies (e.g., life cycle, proto￾typing, object orientation, process management, reengineering, and agile 
+methodologies).
+5. Consideration of standards for the methodologies of systems analysis and the 
+platforms on which systems are designed.
+6. Discussion of systems development and implementation within the context 
+of change management, conversion strategies, and organizational factors in 
+systems acceptance.
+7. Careful attention to human factors in systems design that emphasize usability 
+in both traditional and mobile user interface contexts.
+Pedagogical Features
+The pedagogical features of Modern Systems Analysis and Design reinforce and apply 
+the key content of the book.
+Two Illustrative Fictional Cases
+The text features two fictional cases, described in the following text.
+Pine Valley Furniture (PVF): In addition to demonstrating an electronic business￾to-consumer shopping Website, several other systems development activities from 
+PVF are used to illustrate key points. PVF is introduced in Chapter 3 and revisited 
+throughout the book. As key systems development life cycle concepts are presented, 
+they are applied and illustrated with this descriptive case. For example, in Chapter 5 
+we explore how PVF plans a development project for a customer tracking system. A 
+margin icon identifies the location of the case segments.
+Hoosier Burger (HB): This second illustrative case is introduced in Chapter 7 and 
+revisited throughout the book. HB is a fictional fast-food restaurant in Bloomington, 
+Indiana. We use this case to illustrate how analysts would develop and implement 
+an automated food-ordering system. A margin icon identifies the location of the case 
+segments.
+End-of-Chapter Material
+We developed an extensive selection of end-of-chapter materials that are designed to 
+accommodate various learning and teaching styles.
+• Chapter Summary. Reviews the major topics of the chapter and previews the 
+connection of the current chapter with future ones.
+• Key Terms. In the eTextbook, the key terms pop out with the definitions and in 
+the print book they appear as glossary at the end of the book.
+• Match the Following. Designed as a self-test feature, students can attempt the 
+matching activities at the end of each objective and at the end of the chapter.
+• Review Questions. Test students’ understanding of key concepts.
+Pine Valley 
+Furniture
+Hoosier 
+Burger
+A01_VALA0072_10_SE_FM.indd 19 13/02/24 9:42 AM
+Get Complete Ebook order By email at palemonking@gmail.com
+Get Complete ebook order By email at palemonking@gmail.comxx Preface
+• Problems and Exercises. Test students’ analytical skills and require them to 
+apply key concepts.
+• Field Exercises. Give students the opportunity to explore the practice of sys￾tems analysis and design in organizations.
+• References. References are located at the end of each chapter. The total 
+number of references in this text amounts to over 100 books, journals, and 
+Websites that can provide students and faculty with additional coverage 
+of topics.
+Using This Text
+As stated earlier, this book is intended for mainstream systems analysis and design 
+courses. It may be used in a one-semester course on systems analysis and design or 
+over two quarters (first in a systems analysis and then in a systems design course). 
+Because this book text parallels Modern Database Management, chapters from this book 
+and from Modern Database Management can be used in various sequences suitable for 
+your curriculum. The book will be adopted typically in business schools or depart￾ments, not in computer science programs. Applied computer science or computer 
+technology programs may also adopt the book.
+The typical faculty member who will find this book most interesting is 
+someone who
+• has a practical rather than technical or theoretical orientation;
+• has an understanding of databases and the systems that use databases; and
+• uses practical projects and exercises in their courses.
+More specifically, academic programs that are trying to better relate their sys￾tems analysis and design and database courses as part of a comprehensive under￾standing of systems development will be especially attracted to this book.
+The outline of the book generally follows the systems development life 
+cycle, which allows for a logical progression of topics; however, it emphasizes 
+that various approaches are used in practice, so what appears to be a logical 
+progression often is a more cyclic process. Part One provides an overview of 
+systems development and previews the remainder of the book. Part One also 
+introduces students to the many sources of software that they can draw on to 
+build their systems and to manage projects. The remaining three parts provide 
+thorough coverage of the five phases of a generic systems development life cycle, 
+interspersing coverage of alternatives to the SDLC as appropriate. Some chap￾ters may be skipped depending on the orientation of the instructor or the stu￾dents’ background. For example, Chapter 3 (“Managing the Information Systems 
+Project”) can be skipped or quickly reviewed if students have completed a 
+course on project management. Chapter 4 (“Identifying and Selecting Systems 
+Development Projects”) can be skipped if the instructor wants to emphasize sys￾tems development once projects are identified or if there are fewer than 15 weeks 
+available for the course. Chapters 8 (“Structuring System Data Requirements”) 
+and 9 (“Designing Databases”) can be skipped or quickly scanned (as a refresher) 
+if students have already had a thorough coverage of these topics in a previous 
+database or data structures course. Finally, the maintenance aspects of Chapter 
+12 (“System Implementation and Maintenance”) can be skipped if the topic is 
+beyond the scope of your course.
+Because the material is presented within the flow of a systems development proj￾ect, it is not recommended that you attempt to use the chapters out of sequence, with 
+a few exceptions: Chapter 9 (“Designing Databases”) can be taught after Chapters 10 
+(“Designing Forms and Reports”) and 11 (“Designing Interfaces and Dialogues”), but 
+Chapters 10 and 11 should be taught in sequence.
+A01_VALA0072_10_SE_FM.indd 20 13/02/24 9:42 AM
+Get Complete Ebook order By email at palemonking@gmail.com
+Get Complete ebook order By email at palemonking@gmail.comPreface xxi
+The Supplement Package: 
+http://www.pearsonhighered.com/Valacich
+A comprehensive and flexible technology support package is available to enhance 
+the teaching and learning experience. All instructor supplements are available on the 
+text Website: http://www.pearsonhighered.com/valacich.
+Instructor Resources
+At the Instructor Resource Center, www.pearsonhighered.com/irc, instructors can 
+easily register to gain access to a variety of instructor resources available with this 
+text in downloadable format. If assistance is needed, our dedicated technical support 
+team is ready to help with the media supplements that accompany this text. Visit 
+http://support.pearson.com/getsupport for answers to frequently asked questions 
+and toll-free user support phone numbers.
+The following supplements are available with this text:
+• Instructor’s Manual
+• Test Bank
+• TestGen® Computerized Test Bank
+• PowerPoint Presentation
+Acknowledgments
+The authors have been blessed by considerable assistance from many people on all 
+aspects of preparation of this text and its supplements. We are, of course, responsible 
+for what eventually appears between the covers, but the insights, corrections, con￾tributions, and prodding of others have greatly improved our manuscript. Over the 
+years, dozens of people have reviewed the various editions of this textbook. Their 
+contributions have stimulated us, frequently prompting us to include new topics and 
+innovative pedagogy. We greatly appreciate the efforts of the many faculty and prac￾ticing systems analysts who have reviewed this text.
+We extend a special note of thanks to Jeremy Alexander, who was instrumental 
+in conceptualizing and writing the PVF WebStore feature that appears in Chapters 4 
+through 12. The addition of this feature has helped improve those chapters.
+We are also indebted to our undergraduate and Masters students, who have 
+given us many helpful comments as they worked with drafts of this text, and our 
+thanks go to Fred McFadden (University of Colorado, Colorado Springs), Mary 
+Prescott (University of South Florida), Ramesh Venkataraman (Indiana University), 
+and Heikki Topi (Bentley University) for their assistance in coordinating this text 
+with its companion book, Modern Database Management, also by Pearson Education.
+Finally, we have been fortunate to work with a large number of creative and in￾sightful people at Pearson, who have added much to the development, format, and 
+production of this text. We have been thoroughly impressed with their commitment to 
+this text and to the IS education market. These people include: Jenifer Niles (Manager, 
+Commercial Product Management), Rudrani Mukherjee (Senior Content Producer) at 
+Pearson, and Harish Srinivas at Integra. The writing of this text has involved thousands 
+of hours of time from the authors and from all of the people who have contributed over 
+the years. Although our names will be visibly associated with this book, we know that 
+much of the credit goes to dozens of individuals and organizations for any success it 
+might achieve. It is important for the reader to recognize all the individuals and organi￾zations that have been committed to the preparation and production of this book.
+Joseph S. Valacich, Tucson, Arizona
+Joey F. George, Morgan Hill, California
+A01_VALA0072_10_SE_FM.indd 21 13/02/24 9:42 AM
+Get Complete Ebook order By email at palemonking@gmail.com
+Get Complete ebook order By email at palemonking@gmail.comA01_VALA0072_10_SE_FM.indd 22 13/02/24 9:42 AM
+This page intentionally left blank 
+Get Complete Ebook order By email at palemonking@gmail.com
+Get Complete ebook order By email at palemonking@gmail.com1
+Part One
+Foundations for Systems 
+Development
+Chapter 1
+The Systems Development Environment
+Chapter 2
+The Origins of Software
+Chapter 3
+Managing the Information Systems Project
+M01A_VALA0072_10_SE_P01.indd 1 24/01/24 6:39 AM
+Get Complete Ebook order By email at palemonking@gmail.com
+Get Complete ebook order By email at palemonking@gmail.com2 Part One
+Overview Part One: Foundations 
+for Systems Development
+ You are beginning a journey that will enable you to build on every aspect of your educa￾tion and experience. Becoming a systems analyst is not a goal; it is a path to a rich and 
+diverse career that will allow you to exercise and continue to develop a wide range of 
+talents. We hope that this introductory part of the text helps open your mind to the oppor￾tunities of the systems analysis and design field and to the engaging nature of systems 
+work.
+Chapter 1 shows you what systems analysis and design is all about and how it has 
+evolved over the past several decades. As businesses and systems have become more 
+sophisticated and more complex, there has been an increasing emphasis on speed in sys￾tems analysis and design. Systems development began as an art, but most businesspeople 
+soon realized this was not a tenable long-term solution to developing systems to support 
+business processes. Systems development became more structured and more like engi￾neering, and managers stressed the importance of planning, project management, and 
+documentation. The focus of systems analysis and design then shifted to agile develop￾ment. The evolution of systems analysis and design and the current focus on agility are 
+explained in Chapter 1. It is also important, however, that you remember that systems 
+analysis and design exists within a multifaceted organizational context that involves 
+other organizational members and external parties. Understanding systems development 
+requires an understanding not only of each technique, tool, and method but also of how 
+these elements complement and support each other within an organizational setting.
+As you read this book, you’ll also discover that the systems analysis and design field 
+is constantly adapting to new situations due to a strong commitment to constant improve￾ment. Our goal in this book is to provide you with a mosaic of the skills needed to work 
+effectively in any environment where you may find yourself, armed with the knowledge 
+to determine the best practices for that situation and argue for them effectively.
+Chapter 2 presents an introduction to the many sources from which software and 
+software components can be obtained. Back when systems analysis and design was an art, 
+all systems were written from scratch by in-house experts. Businesses had little choice. 
+Now in-house development is rare, so it becomes crucial that systems analysts under￾stand the software industry and the many different sources of software. Chapter 2 pro￾vides an initial map of the software industry landscape and explains most of the many 
+choices available to systems analysts.
+Chapter 3 addresses a fundamental characteristic of life as a systems analyst: working 
+within the framework of projects with constrained resources. All systems-related work 
+demands attention to deadlines, working within budgets, and coordinating the work of 
+various people. The very nature of the systems development life cycle (SDLC) implies a 
+systematic approach to a project, which is a group of related activities leading to a final 
+deliverable. Projects must be planned, started, executed, and completed. The planned 
+work of the project must be represented so that all interested parties can review and 
+understand it. In your job as a systems analyst, you will have to work within the schedule 
+and other project plans, and thus it is important to understand the management process 
+controlling your work.
+M01A_VALA0072_10_SE_P01.indd 2 24/01/24 6:39 AM
+Get Complete Ebook order By email at palemonking@gmail.com
+Get Complete ebook order By email at palemonking@gmail.com3
+Chapter 1
+The Systems 
+Development Environment
+ Learning Objectives
+After studying this chapter, you should be able to
+ 1.1 define information systems analysis and design;
+ 1.2 describe the information systems development 
+life cycle (SDLC); and
+ 1.3 describe the agile methodologies, eXtreme 
+Programming, and Scrum.
+Introduction
+The world runs on information systems. Information sys￾tems form the foundation for every major organizational 
+activity and industry, from retail to healthcare to manufac￾turing to logistics. Systems consist of computer hardware, 
+software, networks, and the people who oversee their 
+operation and the people who use them. Information sys￾tems analysis and design is the complex, challenging, and 
+ stimulating organizational process that a team of business 
+and systems professionals uses to develop and maintain 
+information systems. Although advances in information 
+technology continually give us new capabilities, the analysis 
+and design of information systems is driven from an orga￾nizational perspective. An organization might consist of a 
+whole enterprise, specific departments, or individual work 
+groups. Organizations can respond to and anticipate prob￾lems and opportunities through innovative use of informa￾tion technology. Information systems analysis and design is 
+therefore an organizational improvement process. Systems 
+are built and rebuilt for organizational benefits. Benefits 
+result from adding value during the process of creating, pro￾ducing, and supporting the organization’s products and ser￾vices. Thus, the analysis and design of information systems 
+is based on your understanding of the organization’s objec￾tives, structure, and processes as well as your knowledge of 
+how to exploit information technology for advantage.
+Information systems support almost everything organiza￾tions do, whether the systems are developed for internal use, for 
+exchanges with business partners, or for interactions with cus￾tomers. Networks, especially the Internet and the World Wide 
+Web, are crucial for connecting organizations with their partners 
+and their customers. The overwhelming majority of business 
+use of the Web is business-to-business applications. These appli￾cations run the gamut of everything businesses do, including 
+transmitting orders and payments to suppliers, fulfilling orders 
+and collecting payments from customers, maintaining business 
+relationships, and establishing electronic marketplaces where 
+businesses can shop online for the best deals on resources they 
+need for assembling their products and services. Regardless of 
+the technology involved, understanding the business and how 
+it functions is the key to successful systems analysis and design, 
+even in the fast-paced, technology-driven environment that 
+organizations find themselves in today.
+With the challenges and opportunities of dealing with 
+rapid advances in technology, it is difficult to imagine a 
+more exciting career choice than information technology 
+(IT), and systems analysis and design is a big part of the IT 
+landscape. Furthermore, analyzing and designing informa￾tion systems will give you the chance to understand organi￾zations at a depth and breadth that might take many more 
+years to accomplish in other careers.
+An important (but not the only) result of systems analy￾sis and design is application software, software designed to 
+support a specific organizational function or process, such as 
+inventory management, payroll, or market analysis. In addi￾tion to application software, the total information system 
+includes the hardware and systems software on which the 
+application software runs, documentation and training mate￾rials, the specific job roles associated with the overall system, 
+M01B_VALA0072_10_SE_C01.indd 3 24/01/24 6:47 AM
+Get Complete Ebook order By email at palemonking@gmail.com
+Get Complete ebook order By email at palemonking@gmail.com4 Chapter 1
+controls, and the people who use the software along with their work methods. Although we 
+will address all of these various dimensions of the overall system, we will emphasize appli￾cation software development—your primary responsibility as a systems analyst. 
+ In the early years of computing, analysis and design was considered an art or a craft. Rapid 
+growth in the need for systems in the 1970s resulted in a highly structured approach to systems 
+analysis and design. While the structured approach is still in use, current approaches focus on 
+rapid and constant software delivery, managed by small teams of talented developers. This 
+approach, called agile development, has become standard for most organizations that develop 
+systems. In fact, 94% of companies report that they practice agile in their systems development 
+efforts (Digital.ai, 2021). Our goal is to help you develop the knowledge and skills needed to 
+understand and follow structured and agile processes. Central to analysis and design (and to 
+this book) are various methodologies, techniques, and tools that have been developed, tested, 
+and widely used over the years to assist people like you during systems analysis and design. 
+ Methodologies are comprehensive, multiple-step approaches to systems develop￾ment that will guide your work and influence the quality of your final product—the infor￾mation system. A methodology adopted by an organization will be consistent with its 
+general management style (e.g., an organization’s orientation toward consensus manage￾ment will influence its choice of systems development methodology). Most methodolo￾gies incorporate several development techniques. 
+Techniques are particular processes that you, as an analyst, will follow to help ensure 
+that your work is well thought out, complete, and comprehensible to others on your proj￾ect team. Techniques provide support for a wide range of tasks, including gathering infor￾mation to determine what your system should do, planning and managing the activities 
+in a systems development project, diagramming the system’s logic, and designing the 
+system’s interface and outputs. 
+Tools are typically computer programs that make it easy to use and benefit from 
+techniques and to faithfully follow the guidelines of the overall development meth￾odology. To be effective, techniques and tools must both be consistent with an organi￾zation’s systems development methodology. Techniques and tools must make it easy 
+for systems developers to conduct the steps called for in the methodology. These three 
+elements—methodologies, techniques, and tools—work together to form an organiza￾tional approach to systems analysis and design (see Figure 1-1). 
+ Information systems analysis 
+and design 
+ The complex organizational 
+process whereby computer-based 
+information systems are developed 
+and maintained. 
+ Application software 
+ Computer software designed to 
+support organizational functions or 
+processes. 
+Methodologies Tools
+Techniques
+­Figure­1-1 An organizational approach to systems analysis and design is driven 
+by methodologies, techniques, and tools. 
+( SOURCES: Top: Shutterstock; Left: Benchart/Shutterstock; Right: Lifestyle Graphic/Shutterstock) 
+M01B_VALA0072_10_SE_C01.indd 4 24/01/24 6:47 AM
+Get Complete Ebook order By email at palemonking@gmail.com
+Get Complete ebook order By email at palemonking@gmail.comThe Systems Development Environment 5
+Although many people in organizations are responsible for systems analysis and 
+design, in most organizations the systems analyst has the primary responsibility. When 
+you begin your career in systems development, you will most likely begin as a systems 
+analyst or as a business analyst. The primary role of a systems analyst is to study the 
+problems and needs of an organization in order to determine how people, methods, and 
+information technology can best be combined to bring about improvements in the orga￾nization. A systems analyst helps system users and other business managers define their 
+requirements for new or enhanced information services. As such, a systems analyst is an 
+agent of change and innovation.
+In the rest of this chapter, we will examine the systems approach to analysis and 
+design. You will learn how systems analysis and design has changed over the decades 
+as computing has become more central to business. You will learn about the systems 
+development life cycle, which provides the basic overall structure of the systems 
+development process and of this book. This chapter ends with a discussion of some of 
+the methodologies, techniques, and tools created to support the systems development 
+process. We consider both the structured and the agile approaches to systems analysis 
+and design.
+A Modern Approach to Systems 
+Analysis and Design
+The analysis and design of computer-based information systems began in the 1950s. Since 
+then, the development environment has changed dramatically, driven by organizational 
+needs as well as by rapid changes in the technological capabilities of computers. In the 
+1950s, development focused on the processes the software performed. Because computer 
+power was a critical resource, efficiency of processing became the main goal. Computers 
+were large, expensive, and not very reliable. Emphasis was placed on automating existing 
+processes, such as purchasing or payroll, often within single departments. All applica￾tions had to be developed in machine language or assembly language, and they had to be 
+developed from scratch because there was no software industry. Because computers were 
+so expensive, computer memory was also at a premium, so system developers conserved 
+as much memory as possible for data storage.
+The first procedural, or third-generation, computer programming languages did not 
+become available until the beginning of the 1960s. Computers were still large and expen￾sive, but the 1960s saw important breakthroughs in technology that enabled the develop￾ment of smaller, faster, less expensive computers—minicomputers—and the beginnings 
+of the software industry. Most organizations still developed their applications from 
+scratch using their in-house development staff. Systems development was more an art 
+than a science. This view of systems development began to change in the 1970s, however, 
+as organizations started to realize how expensive it was to develop customized informa￾tion systems for every application. Systems development came to be more disciplined 
+as many people worked to make it more like engineering. Early database management 
+systems, using hierarchical and network models, helped bring discipline to the storage 
+and retrieval of data. The development of database management systems helped shift the 
+focus of systems development from processes first to data first.
+ The 1980s were marked by major breakthroughs in computing in organizations, 
+as microcomputers became key organizational tools. The software industry expanded 
+greatly as more and more people began to write off-the-shelf software for microcomput￾ers. Developers began to write more and more applications in fourth-generation lan￾guages, which, unlike procedural languages, instructed a computer on what to do instead 
+of how to do it. Computer-aided software engineering (CASE) tools were developed to 
+make systems developers’ work easier and more consistent. As computers continued to 
+Systems analyst
+The organizational role most 
+responsible for the analysis and 
+design of information systems.
+M01B_VALA0072_10_SE_C01.indd 5 24/01/24 6:47 AM
+Get Complete Ebook order By email at palemonking@gmail.com
+Get Complete ebook order By email at palemonking@gmail.com6 Chapter 1
+get smaller, faster, and cheaper and as the operating systems for computers moved away 
+from line prompt interfaces to windows- and icon-based interfaces, organizations moved 
+to applications with more graphics. Organizations developed less software in-house and 
+bought relatively more from software vendors. The systems developer’s job went through 
+a transition from builder to integrator.
+The systems development environment of the late 1990s focused on systems inte￾gration. Developers used visual programming environments, such as Visual Basic, to 
+design the user interfaces for systems that run on client/server platforms. The database, 
+which may be relational or object-oriented, and which may have been developed using 
+software from firms such as Oracle, resided on the server. In many cases, the application 
+logic resided on the same server. Alternatively, an organization may have decided to 
+purchase its entire enterprise-wide system from companies such as SAP AG or Oracle. 
+ Enterprise-wide systems are large, complex systems that consist of a series of indepen￾dent system modules. Developers assemble systems by choosing and implementing 
+specific modules. Starting in the middle years of the 1990s, more and more systems 
+development efforts focused on the Internet, especially the Web.
+Today there is continued focus on developing systems for the Internet and for 
+firms’ intranets and extranets. More and more, systems implementation involves a 
+three-tier design, with the database on one server, the application on a second server, 
+and client logic located on user machines. Another important development is the move 
+to wireless system components. Wireless devices can access Web-based applications 
+from almost anywhere. Finally, the trend continues toward assembling systems from 
+programs and components purchased off the shelf. In many cases, organizations do not 
+develop the application in-house. They don’t even run the application in-house, choos￾ing instead to use the application on a per-use basis by accessing it through the cloud.
+Developing Information Systems 
+and the Systems Development 
+Life Cycle
+Whether they rely on structured or agile approaches, or on a hybrid, most organi￾zations find it beneficial to use a standard set of steps, called a systems development 
+methodology, to develop and support their information systems. Like many processes, 
+the development of information systems often follows a life cycle. For example, a com￾mercial product follows a life cycle in that it is created, tested, and introduced to the mar￾ket. Its sales increase, peak, and decline. Finally, the product is removed from the market 
+and replaced by something else. The systems development life cycle (SDLC) is a com￾mon methodology for systems development in many organizations; it features several 
+phases that mark the progress of the systems analysis and design effort. Every textbook 
+author and information systems development organization uses a slightly different life￾cycle model, with anywhere from 3 to almost 20 identifiable phases.
+The life cycle can be thought of as a circular process in which the end of the useful 
+life of one system leads to the beginning of another project that will develop a new ver￾sion or replace an existing system altogether (see Figure 1-2). At first glance, the life cycle 
+appears to be a sequentially ordered set of phases, but it is not. The specific steps and their 
+sequence are meant to be adapted as required for a project, consistent with management 
+approaches. For example, in any given SDLC phase, the project can return to an earlier 
+phase if necessary. Similarly, if a commercial product does not perform well just after its 
+introduction, it may be temporarily removed from the market and improved before being 
+reintroduced. In the SDLC, it is also possible to complete some activities in one phase 
+in parallel with some activities of another phase. Sometimes the life cycle is iterative; 
+that is, phases are repeated as required until an acceptable system is found. Some people 
+Systems development 
+methodology
+A standard process followed in 
+an organization to conduct all 
+the steps necessary to analyze, 
+design, implement, and maintain 
+information systems.
+Systems development life 
+cycle
+(SDLC) The traditional 
+methodology used to develop, 
+maintain, and replace information 
+systems.
+M01B_VALA0072_10_SE_C01.indd 6 24/01/24 6:47 AM
+Get Complete Ebook order By email at palemonking@gmail.com
+Get Complete ebook order By email at palemonking@gmail.comThe Systems Development Environment 7
+consider the life cycle to be a spiral, in which we constantly cycle through the phases at 
+different levels of detail (see Figure 1-3). However conceived, the systems development 
+life cycle used in an organization is an orderly set of activities conducted and planned for 
+each development project. The skills required of a systems analyst apply to all life-cycle 
+models. Software is the most obvious end product of the life cycle; other essential outputs 
+include documentation about the system and how it was developed, as well as training 
+for users.
+Implementation Design
+Planning
+Maintenance Analysis
+Figure 1-2 Systems development life cycle
+Design Implementation
+Planning
+Maintenance
+Go/No Go Axis
+Analysis
+Figure 1-3 Evolutionary model
+Every medium-to-large corporation and every custom software producer will have 
+its own specific life cycle or systems development methodology in place. Even if a par￾ticular methodology does not look like a cycle, you will probably discover that many of 
+the SDLC steps are performed and SDLC techniques and tools are used. Learning about 
+systems analysis and design from the life-cycle approach will serve you well no matter 
+which systems development methodology you use.
+When you begin your first job, you will likely spend several weeks or months 
+learning your organization’s SDLC and its associated methodologies, techniques, and 
+tools. In order to make this book as general as possible, we follow a generic life-cycle 
+model, as described in more detail in Figure  1-4. Notice that our model is circular. 
+We use this SDLC as one example of a methodology but, more important, as a way to 
+arrange the topics of systems analysis and design. Thus, what you learn in this book 
+M01B_VALA0072_10_SE_C01.indd 7 24/01/24 6:47 AM
+Get Complete Ebook order By email at palemonking@gmail.com
+Get Complete ebook order By email at palemonking@gmail.com8 Chapter 1
+Implementation Design
+Chapters 9–11
+Planning
+Chapters 4–5
+Chapter 12 Maintenance Analysis Chapters 6–8
+Chapter 12
+Figure 1-4 SDLC-based guide to this book
+The first phase in the SDLC is planning. In this phase, someone identifies the need for 
+a new or enhanced system. In larger organizations, this recognition may be part of a cor￾porate and systems planning process. Information needs of the organization as a whole are 
+examined, and projects to meet these needs are proactively identified. The organization’s 
+information system needs may result from requests to deal with problems in current proce￾dures, from the desire to perform additional tasks, or from the realization that information 
+technology could be used to capitalize on an existing opportunity. These needs can then be 
+prioritized and translated into a plan for the information systems department, including a 
+schedule for developing new major systems. In smaller organizations (as well as in large 
+ones), determination of which systems to develop may be affected by ad hoc user requests 
+submitted as the need for new or enhanced systems arises as well as from a formalized 
+information planning process. In either case, during project identification and selection, 
+an organization determines whether resources should be devoted to the development or 
+enhancement of each information system under consideration. The outcome of the project 
+identification and selection process is a determination of which systems development proj￾ects should be undertaken by the organization, at least in terms of an initial study.
+Two additional major activities are also performed during the planning phase: the for￾mal, yet still preliminary, investigation of the system problem or opportunity at hand and 
+the presentation of reasons why the system should or should not be developed by the 
+organization. A critical step at this point is determining the scope of the proposed system. 
+The project leader and initial team of systems analysts also produce a specific plan for the 
+proposed project the team will follow using the remaining SDLC steps. This baseline proj￾ect plan customizes the standardized SDLC and specifies the time and resources needed 
+for its execution. The formal definition of a project is based on the likelihood that the orga￾nization’s information systems department is able to develop a system that will solve the 
+problem or exploit the opportunity and determine whether the costs of developing the sys￾tem outweigh the benefits it could provide. The final presentation of the business case for 
+Planning
+The first phase of the SDLC, in 
+which an organization’s total 
+information system needs are 
+identified, analyzed, prioritized, 
+and arranged.
+you can apply to almost any life cycle you might follow, regardless of the approach 
+it is based on. As we describe this SDLC throughout the book, you will see that each 
+phase has specific outcomes and deliverables that feed important information to other 
+phases. At the end of each phase, a systems development project reaches a milestone, 
+and as deliverables are produced, they are often reviewed by parties outside the proj￾ect team. In the rest of this section, we provide a brief overview of each SDLC phase. 
+At the end of the section, we summarize this discussion in a table that lists the main 
+deliverables or outputs from each SDLC phase.
+M01B_VALA0072_10_SE_C01.indd 8 24/01/24 6:47 AM
+Get Complete Ebook order By email at palemonking@gmail.com
+Get Complete ebook order By email at palemonking@gmail.comThe Systems Development Environment 9
+proceeding with the subsequent project phases is usually made by the project leader and 
+other team members to someone in management or to a special management committee 
+with the job of deciding which projects the organization will undertake.
+The second phase in the SDLC is analysis. During this phase, the analyst thoroughly 
+studies the organization’s current procedures and the information systems used to perform 
+organizational tasks. Analysis has two subphases. The first is requirements determination. 
+In this subphase, analysts work with users to determine what the users want from a pro￾posed system. The requirements determination process usually involves a careful study 
+of any current systems, manual and computerized, that might be replaced or enhanced 
+as part of the project. In the second part of analysis, analysts study the requirements and 
+structure them according to their interrelationships and eliminate any redundancies. The 
+output of the analysis phase is a description of (but not a detailed design for) the alterna￾tive solution recommended by the analysis team. Once the recommendation is accepted 
+by those with funding authority, the analysts can begin to make plans to acquire any hard￾ware and system software necessary to build or operate the system as proposed.
+The third phase in the SDLC is design. During design, analysts convert the descrip￾tion of the recommended alternative solution into logical and then physical system speci￾fications. Analysts aid in the design of all aspects of the system, from input and output 
+screens to reports, databases, and computer processes. That part of the design process 
+that is independent of any specific hardware or software platform is referred to as logical 
+design. Theoretically, the system could be implemented on any hardware and systems 
+software. The idea is to make sure that the system functions as intended. Logical design 
+concentrates on the business aspects of the system and tends to be oriented to a high level 
+of specificity.
+In a traditional structured approach, once the overall high-level design of the system 
+is worked out, the analysts begin turning logical specifications into physical ones. This 
+process is referred to as physical design. As part of physical design, analysts design the 
+various parts of the system to perform the physical operations necessary to facilitate data 
+capture, processing, and information output. This can be done in many ways, from creat￾ing a working model of the system to be implemented to writing detailed specifications 
+describing all the different parts of the system and how they should be built. In many 
+cases, the working model becomes the basis for the actual system to be used. During 
+physical design, the analyst team must determine many of the physical details necessary 
+to build the final system, from the programming language the system will be written in, 
+to the database system that will store the data, to the hardware platform on which the 
+system will run. Often the choices of language, database, and platform are already made 
+by the organization or by the client, and at this point these information technologies must 
+be taken into account in the physical design of the system. In a structured approach, the 
+final product of the design phase is the physical system specifications in a form ready to 
+be turned over to programmers and other system builders for construction. In an agile 
+approach, which you will read more about in the following sections, logical and physical 
+design become part of the same iterative process, and detailed specifications are replaced 
+with multiple working releases of the software.
+The fourth phase in the SDLC is implementation. In a structured process, the physi￾cal system specifications, whether in the form of a detailed model or as detailed written 
+specifications, are turned over to programmers as the first part of the implementation 
+phase. During implementation, analysts turn system specifications into a working sys￾tem that is tested and then put into use. Implementation includes coding, testing, and 
+installation. During coding, programmers write the programs that make up the system. 
+During testing, programmers and analysts test individual programs and the entire system 
+in order to find and correct errors. Following an agile approach, programs are tested as 
+soon as they are written, leading to functional software in a short period of time. During 
+installation, the new system becomes part of the daily activities of the organization. 
+Application software is installed, or loaded, on existing or new hardware, and users are 
+introduced to the new system and trained. Testing and installation should be planned for 
+Analysis
+The second phase of the SDLC, in 
+which system requirements are 
+studied and structured.
+Design
+The third phase of the SDLC, 
+in which the description of the 
+recommended solution is converted 
+into logical and then physical 
+system specifications.
+Logical design
+The part of the design phase of 
+the SDLC in which all functional 
+features of the system chosen 
+for development in analysis are 
+described independently of any 
+computer platform.
+Physical design
+The part of the design phase of 
+the SDLC in which the logical 
+specifications of the system from 
+logical design are transformed into 
+technology-specific details from 
+which all programming and system 
+construction can be accomplished.
+Implementation
+The fourth phase of the SDLC, 
+in which the information system 
+is coded, tested, installed, and 
+supported in the organization.
+M01B_VALA0072_10_SE_C01.indd 9 24/01/24 6:47 AM
+Get Complete Ebook order By email at palemonking@gmail.com
+Get Complete ebook order By email at palemonking@gmail.com10 Chapter 1
+as early as the project initiation and planning phase; both testing and installation require 
+extensive analysis in order to develop exactly the right approach.
+Implementation activities also include initial user support such as the finalization of 
+documentation, training programs, and ongoing user assistance. Note that documentation 
+and training programs are finalized during implementation; documentation is produced 
+throughout the life cycle, and training (and education) occurs from the inception of a proj￾ect. Implementation can continue for as long as the system exists because ongoing user 
+support is also part of implementation. Despite the best efforts of analysts, managers, and 
+programmers, however, installation is not always a simple process. Many well-designed 
+systems have failed because the installation process was faulty. Even a well-designed 
+system can fail if implementation is not well managed. Because the project team usually 
+manages implementation, we stress implementation issues throughout this book.
+The fifth and final phase in the SDLC is maintenance. When a system (including its 
+training, documentation, and support) is operating in an organization, users sometimes 
+find problems with how it works and often think of better ways to perform its functions. 
+Also, the organization’s needs with respect to the system change over time. In mainte￾nance, programmers make the changes that users ask for and modify the system to reflect 
+evolving business conditions. These changes are necessary to keep the system running 
+and useful. In a sense, maintenance is not a separate phase but a repetition of the other 
+life-cycle phases required to study and implement the needed changes. One might think 
+of maintenance as an overlay on the life cycle rather than as a separate phase. The amount 
+of time and effort devoted to maintenance depends a great deal on the performance of 
+the previous phases of the life cycle. There inevitably comes a time, however, when an 
+information system is no longer performing as desired, when maintenance costs become 
+prohibitive, or when an organization’s needs have changed substantially. Such problems 
+indicate that it is time to begin designing the system’s replacement, thereby completing 
+the loop and starting the life cycle over again. Often the distinction between major main￾tenance and new development is not clear, which is another reason maintenance often 
+resembles the life cycle itself.
+The SDLC is a highly linked set of phases whose products feed the activities in sub￾sequent phases. Table 1-1 summarizes the outputs or products of each phase based on the 
+in-text descriptions. The chapters on the SDLC phases will elaborate on the products of 
+each phase as well as on how the products are developed.
+Maintenance
+The final phase of the SDLC, in 
+which an information system 
+is systematically repaired and 
+improved.
+­Table 1-1­ Products of SDLC Phases
+Phase Products, Outputs, or Deliverables
+Planning Priorities for systems and projects; an architecture for data, networks, and selection 
+hardware, and information systems management are the result of associated systems
+Detailed steps, or work plan, for project
+Specification of system scope and planning and high-level system requirements or features
+Assignment of team members and other resources
+System justification or business case
+Analysis Description of current system and where problems or opportunities exist, with a general 
+recommendation on how to fix, enhance, or replace current system
+Explanation of alternative systems and justification for chosen alternative
+Design Functional, detailed specifications of all system elements (data, processes, inputs, and 
+outputs)
+Technical, detailed specifications of all system elements (programs, files, network, system 
+software, etc.)
+Acquisition plan for new technology
+Implementation Code, documentation, training procedures, and support capabilities
+Maintenance New versions or releases of software with associated updates to documentation, training, 
+and support
+M01B_VALA0072_10_SE_C01.indd 10 24/01/24 6:47 AM
+Get Complete Ebook order By email at palemonking@gmail.com
+Get Complete ebook order By email at palemonking@gmail.comThe Systems Development Environment 11
+Throughout the SDLC, the systems development project itself must be carefully 
+planned and managed. The larger the systems project, the greater the need for project 
+management. Several project management techniques have been developed over the past 
+decades, and many have been made more useful through automation. Chapter 3 contains 
+a more detailed treatment of project planning and management techniques. Next, we will 
+discuss some of the criticisms of the SDLC and present alternatives developed to address 
+those criticisms.
+The Heart of the Systems 
+Development Process
+The SDLC provides a convenient way to think about the processes involved in systems 
+development and the organization of this book. The different phases are clearly defined, 
+their relationships to one another are well specified, and the sequencing of phases from 
+one to the next, from beginning to end, has a compelling logic. In many ways, though, the 
+SDLC is fiction. Although almost all systems development projects adhere to some type 
+of life cycle, the exact location of activities and the specific sequencing of steps can vary 
+greatly from one project to the next. Current practice combines the activities traditionally 
+thought of as belonging to analysis, design, and implementation into a single process. 
+Instead of systems requirements being produced in analysis, systems specifications being 
+created in design, and coding and testing being done at the beginning of implementation, 
+current practice combines all of these activities into a single analysis–design–code–test 
+process (Figure 1-5). These activities are the heart of systems development, as we suggest 
+in Figure 1-6. This combination of activities is typical of current practices in agile meth￾odologies. Two well-known instances of agile methodologies are eXtreme Programming 
+and Scrum, although there are other variations. We will introduce you to agile, eXtreme 
+Programming, and Scrum, but first it is important that you learn about the problems with 
+the traditional SDLC. You will read about these problems next. Then you will read about 
+the agile approach, eXtreme Programming, and Scrum.
+Code
+Analysis
+Test Design
+Figure 1-5 Analysis–design–code–test loop
+M01B_VALA0072_10_SE_C01.indd 11 24/01/24 6:47 AM
+Get Complete Ebook order By email at palemonking@gmail.com
+Get Complete ebook order By email at palemonking@gmail.com12 Chapter 1
+Implementation Design
+Planning
+Maintenance Analysis
+Figure 1-6 Heart of systems development
+The Traditional Waterfall SDLC
+There are several criticisms of the traditional life-cycle approach to systems develop￾ment; one relates to the way the life cycle is organized. To better understand these 
+criticisms, it is best to see the form in which the life cycle has traditionally been por￾trayed, the so-called waterfall (Figure 1-7). Note how the flow of the project begins 
+in the planning phase and from there runs “downhill” to each subsequent phase, just 
+like a stream that runs off a cliff. Although the original developer of the waterfall 
+Maintenance
+Planning
+Analysis
+Physical
+Design
+Implementation
+Logical
+Design
+Figure 1-7 Traditional waterfall SDLC
+M01B_VALA0072_10_SE_C01.indd 12 24/01/24 6:47 AM
+Get Complete Ebook order By email at palemonking@gmail.com
+Get Complete ebook order By email at palemonking@gmail.comThe Systems Development Environment 13
+model, W. W. Royce, called for feedback between phases in the waterfall, this feed￾back came to be ignored in implementation (Martin, 1999). It became too tempting to 
+ignore the need for feedback and to treat each phase as complete unto itself, never to 
+be revisited once finished.
+Traditionally, one phase ended and another began once a milestone had been reached. 
+The milestone usually took the form of some deliverable or prespecified output from the 
+phase. For example, the design deliverable is the set of detailed physical design speci￾fications. Once the milestone had been reached and the new phase initiated, it became 
+difficult to go back. Even though business conditions continued to change during the 
+development process and analysts were pressured by users and others to alter the design 
+to match changing conditions, it was necessary for the analysts to freeze the design at a 
+particular point and go forward. The enormous amount of effort and time necessary to 
+implement a specific design meant that it would be very expensive to make changes in a 
+system once it was developed. The traditional waterfall life cycle, then, had the property 
+of locking users into requirements that had been previously determined, even though 
+those requirements might have changed.
+Yet another criticism of the traditional waterfall SDLC is that the role of system users 
+or customers was narrowly defined (Kay, 2002). User roles were often relegated to the 
+requirements determination or analysis phases of the project, where it was assumed 
+that all of the requirements could be specified in advance. Such an assumption, coupled 
+with limited user involvement, reinforced the tendency of the waterfall model to lock in 
+requirements too early, even after business conditions had changed.
+In addition, under the traditional waterfall approach, nebulous and intangible 
+processes such as analysis and design are given hard-and-fast dates for completion, 
+and success is overwhelmingly measured by whether those dates are met. The focus 
+on milestone deadlines, instead of on obtaining and interpreting feedback from the 
+development process, leads to too little focus on doing good analysis and design. The 
+focus on deadlines leads to systems that do not match users’ needs and that require 
+extensive maintenance, unnecessarily increasing development costs. Finding and fix￾ing a software problem after the delivery of the system is often far more expensive than 
+finding and fixing it during analysis and design (Griss, 2003). The result of focusing on 
+deadlines rather than on good practice is unnecessary rework and maintenance effort, 
+both of which are expensive. According to some estimates, maintenance costs account 
+for 40% to 70% of systems development costs (Dorfman and Thayer, 1997). Given these 
+problems, people working in systems development began to look for better ways to 
+conduct systems analysis and design.
+Agile Methodologies
+Many approaches to systems analysis and design have been developed over the years. In 
+February 2001, many of the proponents of these alternative approaches met in Utah (U.S.) 
+and reached a consensus on several of the underlying principles their various approaches 
+contained. This consensus turned into a document they called “The Agile Manifesto” 
+(Table 1-2). According to Fowler (2003), the agile methodologies share three key princi￾ples: (1) a focus on adaptive, rather than predictive, methodologies, (2) a focus on people 
+rather than roles, and (3) a focus on self-adaptive processes.
+The agile methodologies group argues that software development methodologies 
+adapted from engineering generally do not fit with real-world software development 
+(Fowler, 2003). In engineering disciplines, such as civil engineering, requirements tend 
+to be well understood. Once the creative and difficult work of design is completed, con￾struction becomes very predictable. In addition, construction may account for as much 
+as 90% of the total project effort. For software, on the other hand, requirements are 
+rarely well understood, and they change continually during the lifetime of the project. 
+M01B_VALA0072_10_SE_C01.indd 13 24/01/24 6:47 AM
+Get Complete Ebook order By email at palemonking@gmail.com
+Get Complete ebook order By email at palemonking@gmail.com14 Chapter 1
+Table 1-2­ The Agile Manifesto
+The Manifesto for Agile Software Development
+Seventeen anarchists agree:
+We are uncovering better ways of developing software by doing it and helping others do it. Through this work we 
+have come to value:
+• Individuals and interactions over processes and tools.
+• Working software over comprehensive documentation.
+• Customer collaboration over contract negotiation.
+• Responding to change over following a plan.
+That is, while we value the items on the right, we value the items on the left more. We follow the following 
+principles:
+• Our highest priority is to satisfy the customer through early and continuous delivery of valuable software.
+• Welcome changing requirements, even late in development. Agile processes harness change for the 
+customer’s competitive advantage.
+• Deliver working software frequently, from a couple of weeks to a couple of months, with a preference to the 
+shorter timescale.
+• Businesspeople and developers work together daily throughout the project.
+• Build projects around motivated individuals. Give them the environment and support they need, and trust 
+them to get the job done.
+• The most efficient and effective method of conveying information to and within a development team is face￾to-face conversation.
+• Working software is the primary measure of progress.
+• Continuous attention to technical excellence and good design enhances agility.
+• Agile processes promote sustainable development. The sponsors, developers, and users should be able to 
+maintain a constant pace indefinitely.
+• Simplicity—the art of maximizing the amount of work not done—is essential.
+• The best architectures, requirements, and designs emerge from self-organizing teams.
+• At regular intervals, the team reflects on how to become more effective, then tunes and adjusts its behavior 
+accordingly.
+—Kent Beck, Mike Beedle, Arie van Bennekum, Alistair Cockburn, Ward Cunningham, Martin Fowler, James 
+Grenning, Jim Highsmith, Andrew Hunt, Ron Jeffries, Jon Kern, Brian Marick, Robert C. Martin, Steve Mellor, 
+Ken Schwaber, Jeff Sutherland, Dave Thomas (www.agileAlliance.org)
+(SOURCE: http://agilemanifesto.org/ © 2001, the above authors. This declaration may be freely copied in any form, but 
+only in its entirety through this notice.)
+Construction may account for as little as 15% of the total project effort, with design 
+constituting as much as 50%. Applying techniques that work well for predictable, stable 
+projects, such as bridge building, tend not to work well for fluid, design-heavy projects 
+such as writing software, say the agile methodology proponents. What is needed are 
+methodologies that embrace change and that are able to deal with a lack of predict￾ability. One mechanism for dealing with a lack of predictability, which all agile meth￾odologies share, is iterative development (Martin, 1999). Iterative development focuses 
+on the frequent production of working versions of a system that have a subset of the 
+total number of required features. Iterative development provides feedback to custom￾ers and developers alike.
+The agile methodologies’ focus on people is an emphasis on individuals rather 
+than on the roles that people perform (Fowler, 2003). The roles that people fill, of 
+systems analyst or tester or manager, are not as important as the individuals who fill 
+those roles. Fowler argues that the application of engineering principles to systems 
+development has resulted in a view of people as interchangeable units instead of a 
+view of people as talented individuals, each bringing something unique to the devel￾opment team.
+The agile methodologies promote a self-adaptive software development process. As 
+software is developed, the process used to develop it should be refined and improved. 
+Development teams can do this through a review process, often associated with the com￾pletion of iterations. The implication is that, as processes are adapted, one would not 
+expect to find a single monolithic methodology within a given corporation or enterprise. 
+Instead, one would find many variations of the methodology, each of which reflects the 
+particular talents and experience of the team using it.
+M01B_VALA0072_10_SE_C01.indd 14 24/01/24 6:47 AM
+Get Complete Ebook order By email at palemonking@gmail.com
+Get Complete ebook order By email at palemonking@gmail.comThe Systems Development Environment 15
+Agile methodologies are not for every project. Fowler (2003) recommends an agile or 
+adaptive process if your project involves
+• unpredictable or dynamic requirements,
+• responsible and motivated developers, and
+• customers who understand the process and will get involved.
+A more engineering-oriented, predictable process may be called for if the development 
+team exceeds 100 people or if the project is operating under a fixed-price or fixed-scope con￾tract. In fact, whether a systems development project is organized in terms of agile or more 
+traditional methodologies depends on many different considerations. If a project is consid￾ered to be high-risk and highly complex and has a development team made up of hundreds 
+of people, then more traditional methods will apply. Less risky, smaller, and simpler devel￾opment efforts lend themselves more to agile methods. Other determining factors include 
+organizational practice and standards and the extent to which different parts of the system 
+will be contracted out to others for development. Obviously, the larger the proportion of 
+the system that will be outsourced, the more detailed the design specifications will need to 
+be so that subcontractors can understand what is needed. Although not universally agreed 
+upon, the key differences between these development approaches are listed in Table 1-3, 
+which is based on work by Boehm and Turner (2004). These differences can be used to help 
+determine which development approach would work best for a particular project.
+Table 1-3­ Five Critical Factors That Distinguish Agile and Traditional Approaches to 
+Systems Development
+Factor Agile Methods Traditional Methods
+Size Well matched to small products and teams. 
+Reliance on tacit knowledge limits scalability.
+Methods evolved to handle large products and 
+teams. Hard to tailor down to small projects.
+Criticality Untested on safety-critical products. Potential 
+difficulties with simple design and lack of 
+documentation.
+Methods evolved to handle highly critical 
+products. Hard to tailor down to products that 
+are not critical.
+Dynamism Simple design and continuous refactoring are 
+excellent for highly dynamic environments but 
+a source of potentially expensive rework for 
+highly stable environments.
+Detailed plans and Big Design Up Front, 
+excellent for highly stable environment but a 
+source of expensive rework for highly dynamic 
+environments.
+Personnel Requires continuous presence of a critical 
+mass of scarce experts. Risky to use non-agile 
+people.
+Needs a critical mass of scarce experts during 
+project definition but can work with fewer later 
+in the project, unless the environment is highly 
+dynamic.
+Culture Thrives in a culture where people feel 
+comfortable and empowered by having many 
+degrees of freedom (thriving on chaos).
+Thrives in a culture where people feel 
+comfortable and empowered by having 
+their roles defined by clear practices and 
+procedures (thriving on order).
+(SOURCE: Boehm, Barry; Turner, Richard, Balancing Agility and Discipline: A Guide for the Perplexed, 1st Ed., © 2004. 
+Reprinted and electronically reproduced by permission of Pearson Education, Inc. New York, NY.)
+Many different individual methodologies come under the umbrella of agile meth￾odologies. Fowler (2003) lists the Crystal family of methodologies, Adaptive Software 
+Development, Scrum, Feature Driven Development, and others as agile methodologies. 
+eXtreme Programming is discussed next, followed by a discussion of Scrum.
+eXtreme Programming
+ eXtreme Programming is an approach to software development put together by Beck and 
+Andres (2004). The eXtreme Programming approach is used by 7% of companies (Digital.
+ai, 2022). It is distinguished by its short cycles, incremental planning approach, focus on 
+automated tests written by programmers and customers to monitor the development pro￾cess, and reliance on an evolutionary approach to development that lasts throughout the 
+M01B_VALA0072_10_SE_C01.indd 15 24/01/24 6:47 AM
+Get Complete Ebook order By email at palemonking@gmail.com
+Get Complete ebook order By email at palemonking@gmail.com16 Chapter 1
+lifetime of the system. Key emphases of eXtreme Programming are its use of two-person 
+programming teams, described later, and having a customer on-site during the develop￾ment process. The relevant parts of eXtreme Programming that relate to design specifica￾tions are (1) how planning, analysis, design, and construction are all fused into a single 
+phase of activity and (2) its unique way of capturing and presenting system requirements 
+and design specifications. With eXtreme Programming, all phases of the life cycle con￾verge into a series of activities based on the basic processes of coding, testing, listening, 
+and designing.
+Under this approach, coding and testing are intimately related parts of the same 
+process. The programmers who write the code also develop the tests. The empha￾sis is on testing those things that can break or go wrong, not on testing everything. 
+Code is tested very soon after it is written. The overall philosophy behind eXtreme 
+Programming is that the code will be integrated into the system it is being developed 
+for and tested within a few hours after it has been written. If all the tests run suc￾cessfully, then development proceeds. If not, the code is reworked until the tests are 
+successful.
+Another part of eXtreme Programming that makes the code-and-test process work 
+more smoothly is the practice of pair programming. All coding and testing is done by two 
+people working together to write code and develop tests. Beck says that pair program￾ming is not one person typing while the other one watches; rather, the two program￾mers work together on the problem they are trying to solve, exchanging information and 
+insight and sharing skills. Compared to traditional coding practices, the advantages of 
+pair programming include (1) more (and better) communication among developers, (2) 
+higher levels of productivity, (3) higher-quality code, and (4) reinforcement of the other 
+practices in eXtreme Programming, such as the code-and-test discipline (Beck & Andres, 
+2004). Although the eXtreme Programming process has its advantages, just as with any 
+other approach to systems development, it is not for everyone and is not applicable to 
+every project.
+Scrum
+Scrum originated in 1995 and was developed by Jeff Sutherland and Ken Schwaber 
+(Schwaber & Sutherland, 2011). It has become the most popular methodology for 
+agile, with 87% of companies reporting using it (Digital.ai, 2022). The second most 
+popular methodology is Kanban, used by 56% of companies. The total is greater 
+than 100%, as many companies rely on more than one type of agile methodol￾ogy. Scrum represents a framework that includes Scrum teams and their associated 
+roles, events, artifacts, and rules. Each team consists of three roles: the product 
+owner, the development team, and the Scrum master. The owner is essentially 
+accountable for the product and the work that produces it. The development team 
+is small, within the preferred range of three to nine. The Scrum master is there to 
+teach and enforce the rules.
+Scrum is designed for speed and for multiple functional product releases. The pri￾mary unit is the sprint, which typically runs for two weeks to a month. Each sprint is 
+a complete project in and of itself. It starts with an eight-hour sprint planning meet￾ing, which focuses on two questions: What will need to be delivered by the end of the 
+sprint, and how will the team accomplish that work? The sprint goal provides guidance 
+for the team for the duration of the sprint. During the sprint, there is a daily standup, a 
+15-minute meeting held to essentially evaluate what progress has been made within the 
+last 24 hours and what still needs to be done. At the end of the sprint, there are two other 
+meetings: the sprint review (four hours) and the sprint retrospective (three hours). While 
+the review focuses on the product, what has been accomplished, and what needs to be 
+M01B_VALA0072_10_SE_C01.indd 16 24/01/24 6:47 AM
+Get Complete Ebook order By email at palemonking@gmail.com
+Get Complete ebook order By email at palemonking@gmail.comThe Systems Development Environment 17
+done in the next sprint, the retrospective is broader. It also focuses on the performance 
+of the team and how it can improve in the next sprint. There are three primary artifacts 
+in the Scrum process. The first is the product backlog. This is an ordered list of every￾thing that might be included in the product, in other words, a list of potential require￾ments. The list includes “all features, functions, requirements, enhancements and fixes” 
+(Schwaber & Sutherland, 2011, p.  12) that make up all the changes to be made to the 
+product. The sprint backlog is a subset of the product backlog, consisting of only those 
+items to be addressed in a particular sprint. Finally, the increment is the sum of all the 
+product backlog items completed during a sprint. Each increment must be in complete 
+enough form to be usable, whether or not the product owner decides to release it. It is 
+called an increment because it represents an increment of total functionality for the prod￾uct. Each increment is thoroughly tested, not only as a stand-alone but in conjunction 
+with all prior increments.
+Agile in Practice
+Digital.ai conducts a survey every year, measuring the state of agile in industry 
+(stateofagile.com). Its 2022 survey, the 16th, had several interesting findings about 
+how agile works in practice. For example, 47% of its respondents said that agile teams 
+were measured by on-time delivery, which is not surprising, considering that the pri￾mary basis for agile is speed. Also, 44% of agile teams are measured by the extent to 
+which they achieved business objectives. The 2021 survey found that 64% of companies 
+adopted agile to accelerate software delivery. However, only 23% of the companies said 
+they had adopted agile to reduce project cost (Digital.ai, 2021).
+Implementing the agile approach can be challenging. The biggest obstacles are related 
+to a lack of top management support (reported by 39% of respondents in the 2022 state 
+of agile survey), not enough knowledge about agile throughout the organization (40%), 
+and organizational resistance to change (40%). In fact, due to a resistance to change, 42% 
+of the companies surveyed in 2022 reported they were using a combination of agile and 
+waterfall approaches in their systems development efforts. A recent study of how com￾panies put agile into action had similar findings: obstacles to faithful adoption of agile 
+included a lack of organizational experience with agile, whether the company was in a 
+regulated industry, and the extent to which developers and customers were geographi￾cally dispersed (George et al., 2018).
+Many organizations tailor their approach to agile by combining practices from vari￾ous different agile approaches (Tripp & Armstrong, 2018). Recent research suggests that 
+companies should choose agile methods and specific practices that address their big￾gest problem first. They should identify the metrics they will use to measure agile suc￾cess for each practice adopted. The organization should also be clear about its motives 
+for adopting each practice. Finally, agile teams should be able to choose whichever 
+practices they need, but they should be aware that sometimes practices from different 
+approaches can work at cross purposes with each other. A typically successful practice 
+may be less effective if combined with a practice from another agile approach (Tripp & 
+Armstrong, 2018; Cram, 2019).
+Many companies have gained a great deal of experience with agile methods since 
+the manifesto was published over 20 years ago. Among the lessons learned from 
+everyday use are the following (Cram, 2019): (1) training for employees continues to 
+be important; (2) although the original vision of agile stressed that it worked best with 
+small teams who were co-located, agile can also work with larger teams (or teams of 
+teams) and when team members are geographically distributed; and (3) managers 
+should balance the enthusiasm of agile developers with measurable organizational 
+outcomes.
+M01B_VALA0072_10_SE_C01.indd 17 24/01/24 6:47 AM
+Get Complete Ebook order By email at palemonking@gmail.com
+Get Complete ebook order By email at palemonking@gmail.com18 Chapter 1
+Our Approach to Systems 
+Development
+Much of the criticism of the SDLC has been based on abuses of the life-cycle perspec￾tive, both real and imagined. One of the criticisms based in reality is that reliance on the 
+ life-cycle approach forced intangible and dynamic processes, such as analysis and design, 
+into timed phases that were doomed to fail (Martin, 1999). Developing software is not like 
+building a bridge, and the same types of engineering processes cannot always be applied 
+(Fowler, 2003), even though viewing software development as a science rather than an 
+art has no doubt resulted in vast improvements in the process and the resulting products. 
+Another criticism with its basis in fact is that life-cycle reliance has resulted in massive 
+amounts of process and documentation, much of which seems to exist for its own sake. 
+Too much process and documentation does slow down development, hence the stream￾lining that underlies the agile methodologies and the admonition from agile developers 
+that source code is enough documentation. A criticism of the SDLC that is based more 
+on fiction is that all versions of the SDLC are waterfall-like, with no feedback between 
+steps. Another false criticism is that a life-cycle approach necessarily limits the involve￾ment of users in the earliest stages of the process. Yet agile methodologies advocate an 
+analysis–design–code–test sequence that is a cycle (Figure 1-6), and users can be and are 
+involved in every step of this cycle; thus, cycles in and of themselves do not necessarily 
+limit user involvement.
+Despite the criticisms of a life-cycle approach to systems analysis and design, the 
+view of systems analysis and design taking place in a cycle continues to be pervasive 
+and, we think, true as well. There are many types of cycles, from the waterfall to the 
+analysis–design–code–test cycle, and they all capture the iterative nature of systems 
+development. The waterfall approach may be losing its relevance, but the cycle in 
+Figure 1-6 is gaining in popularity, and the analysis–design–code–test cycle is embed￾ded in a larger organizational cycle. Although we typically use the terms systems anal￾ysis and design and systems development interchangeably, perhaps it is better to think 
+about systems analysis and design as being the cycle in Figure 1-6 and systems devel￾opment as being the larger cycle in Figure  1-2. The analysis–design–code–test cycle 
+largely ignores the organizational planning that precedes it and the organizational 
+installation and systems maintenance that follow, yet they are all important aspects of 
+the larger systems development effort. And to us, the best, clearest way to think about 
+both efforts is in terms of cycles.
+Therefore, in this book you will see Figure 1-2 at the beginning of almost every 
+chapter. We will use our SDLC as an organizing principle in this book, with activities 
+and processes arranged according to whether they fit under the category of plan￾ning, analysis, design, implementation, or maintenance. To some extent, we will arti￾ficially separate activities and processes so that each one can be individually studied 
+and understood. Once individual components are clearly understood, it is easier to 
+see how they fit with other components, and eventually it becomes easy to see the 
+whole. Just as we may artificially separate activities and processes, we may also con￾struct artificial boundaries between phases of the SDLC. Our imposition of boundar￾ies should never be interpreted as hard-and-fast divisions. In practice, as we have 
+seen with the agile methodologies, phases and parts of phases may be combined for 
+speed, understanding, and efficiency. Our intent is to introduce the pieces in a logi￾cal manner, so that you can understand all the pieces and how to assemble them in 
+the best way for your systems development purposes. Yet the overall structure of the 
+cycle, of iteration, remains throughout. Think of the cycle as an organizing and guid￾ing principle.
+M01B_VALA0072_10_SE_C01.indd 18 24/01/24 6:47 AM
+Get Complete Ebook order By email at palemonking@gmail.com
+Get Complete ebook order By email at palemonking@gmail.comThe Systems Development Environment 19
+Summary
+ This chapter introduced you to information systems anal￾ysis and design, the complex organizational process 
+whereby computer-based information systems are devel￾oped and maintained. You read about how systems analy￾sis and design in organizations has changed over the past 
+several decades. You also learned about the basic frame￾work that guides systems analysis and design—the sys￾tems development life cycle (SDLC), with its five major 
+phases: planning, analysis, design, implementation, and 
+maintenance. The SDLC life cycle has had its share of crit￾icism, which you read about. Agile methodologies have 
+been developed to address those criticisms. Two of the 
+most well-known methodologies that follow the agile 
+perspective are eXtreme Programming and Scrum. All 
+these approaches share the underlying idea of iteration, 
+as manifested in the systems development life cycle and 
+the analysis–design–code–test cycle of the agile 
+methodologies.
+Key Terms
+Agile
+Analysis
+Application software
+Design
+Implementation
+Information systems analysis and 
+design
+Logical design
+Maintenance
+Physical design
+Planning
+Scrum
+Systems analyst
+Systems development life cycle (SDLC)
+Systems development methodology
+Multiple Choice Questions
+1. The complex organizational process whereby 
+ computer-based information systems are developed 
+and maintained.
+a. Information systems analysis and design
+b. Agile
+c. eXtreme programming
+d. Analysis–design–code–test
+2. Computer software designed to support organizational 
+functions or processes.
+a. Operation software
+b. Organization software
+c. Application software
+d. Logical design
+3. The organizational role most responsible for the analysis 
+and design of information systems.
+a. Programmer
+b. Project manager
+c. Chief technology officer
+d. Systems analyst
+4. A standard process followed in an organization to 
+conduct all the steps necessary to analyze, design, 
+implement, and maintain information systems.
+a. Systems development life cycle (SDLC)
+b. Analysis–design–code–test (ADCT)
+c. eXtreme programming
+d. Scrum
+5. The traditional methodology used to develop, 
+maintain, and replace information systems.
+a. Scrum
+b. Systems development methodology
+c. Agile
+d. eXtreme Programming
+6. The first phase of the SDLC, in which an organization’s 
+total information system needs are identified, analyzed, 
+prioritized, and arranged.
+a. Planning
+b. Analysis
+c. Design
+d. Implementation
+7. The second phase of the SDLC, in which system 
+requirements are studied and structured.
+a. Planning
+b. Analysis
+c. Design
+d. Implementation
+8. The third phase of the SDLC, in which the description 
+of the recommended solution is converted into logical 
+and then physical system specifications.
+a. Planning
+b. Analysis
+c. Design
+d. Implementation
+M01B_VALA0072_10_SE_C01.indd 19 24/01/24 6:47 AM
+Get Complete Ebook order By email at palemonking@gmail.com
+Get Complete ebook order By email at palemonking@gmail.com20 Chapter 1
+9. The part of the design phase of the SDLC in which all 
+functional features of the system chosen for development 
+are described independently of any computer platform.
+a. Physical design
+b. Planning design
+c. Agile design
+d. Logical design
+10. The part of the design phase of the SDLC in which the 
+logical specifications of the system from logical design 
+are transformed into technology-specific details from 
+which all programming and system construction can be 
+accomplished.
+a. Logical design
+b. Physical design
+c. Planning design
+d. Agile design
+11. The fourth phase of the SDLC, in which the information 
+system is coded, tested, installed, and supported in the 
+organization.
+a. Planning
+b. Analysis
+c. Design
+d. Implementation
+12. The final phase of the SDLC, in which an information 
+system is systematically repaired and improved.
+a. Planning
+b. Analysis
+c. Design
+d. Maintenance
+13. Software development methodologies that promote a 
+self-adaptive software development process.
+a. Systems development life cycle (SDLC)
+b. Outsourcing
+c. Agile
+d. Nearsourcing
+14. The software development methodology that is 
+ designed for speed and for multiple functional prod￾uct releases.
+a. Logical design
+b. Physical design
+c. Systems development life cycle (SDLC)
+d. Scrum
+Questions, Problems, and Exercises
+Review Questions
+1.1 What is information systems analysis and design?
+1.2 How has systems analysis and design changed over 
+time?
+1.3 List and explain the different phases in the SDLC.
+1.4 List and explain some of the problems with the 
+traditional waterfall SDLC.
+1.5 Explain what is meant by agile methodologies.
+1.6 What is eXtreme Programming?
+1.7 What is Scrum?
+1.8 Describe what we have learned about agile 
+methodologies in practice.
+1.9 When would you use agile methodologies versus an 
+engineering-based approach to development?
+Problems and Exercises
+1.10 Why is it important to use systems analysis and de￾sign methodologies when building a system? Why 
+not just build the system in whatever way appears 
+to be “quick and easy”? What value is provided by 
+using an “engineering” approach?
+1.11 Compare Figures 1-2 and 1-3. What similarities and 
+differences do you see?
+1.12 Compare Figures 1-2 and 1-7. How does Figure 1-7 
+illustrate some of the problems of the traditional wa￾terfall approach that are not illustrated in Figure 1-2? 
+How does converting Figure  1-7 into a circle (like 
+Figure 1-2) fix these problems?
+M01B_VALA0072_10_SE_C01.indd 20 24/01/24 6:47 AM
+Get Complete Ebook order By email at palemonking@gmail.com
+Get Complete ebook order By email at palemonking@gmail.comThe Systems Development Environment 21
+Field Exercises
+1.13 Choose an organization that you interact with 
+regularly and list as many different “systems” 
+(computer-based or not) as you can that are used 
+to process transactions, provide information to 
+managers and executives, help managers and exec￾utives make decisions, aid group decision making, 
+capture knowledge and provide expertise, help 
+design products and/or facilities, and assist peo￾ple in communicating with one another. Draw a 
+diagram that shows how these systems interact (or 
+should interact) with one another. Are these sys￾tems well integrated?
+1.14 Imagine an information system built without using a 
+systems analysis and design methodology and with￾out any thinking about the SDLC. Use your imagi￾nation and describe any and all problems that might 
+occur, even if they seem a bit extreme or absurd. (The 
+problems you will describe have probably occurred 
+in one setting or another.)
+1.15 Choose a relatively small organization that is just 
+beginning to use information systems. What types of 
+systems are being used? For what purposes? To what 
+extent are these systems integrated with one another? 
+How are these systems developed and controlled? 
+Who is involved in systems development, use, and 
+control?
+1.16 Use the Web to find out more about the agile meth￾odologies. Write a report on what the movement 
+toward agility means for the future of systems analy￾sis and design.
+1.17 You may want to keep a personal journal of ideas 
+and observations about systems analysis and design 
+while you are studying this book. Use this journal to 
+record comments you hear, summaries of news sto￾ries or professional articles you read, original ideas 
+or hypotheses you create, and questions that require 
+further analysis. Keep your eyes and ears open for 
+anything related to systems analysis and design. Your 
+instructor may ask you to turn in a copy of your jour￾nal from time to time in order to provide feedback 
+and reactions. The journal is an unstructured set of 
+personal notes that will supplement your class notes 
+and can stimulate you to think beyond the topics cov￾ered within the time limitations of most courses.
+References
+Beck, K., & Andres, C. (2004). eXtreme Programming eXplained. Upper 
+Saddle River, NJ: Addison-Wesley.
+Boehm, B., & Turner, R. (2004). Balancing agility and discipline. Boston: 
+Addison-Wesley.
+Cram, W. A. (2019). Agile development in practice: Lessons from the 
+trenches. Information Systems Management 36(1), 2–14. https://doi.org/
+10.1080/10580530.2018.1553645
+Digital.ai. (2021). 15th annual state of agile report. https://digital.ai/
+resource-center/analyst-reports/state-of-agile-report/
+Digital.ai. (2022). 16th annual state of agile report. https://digital.ai/
+resource-center/analyst-reports/state-of-agile-report/
+Dorfman, M., & Thayer, R. M. (eds.). (1997). Software engineering. Los 
+Alamitos, CA: IEEE Computer Society Press.
+Fowler, M. (2003, December). The new methodologies. https://
+martinfowler.com/articles/newMethodology.html
+George, J. F., Scheibe, K., Townsend, A. M., & Mennecke, B. (2018). 
+The amorphous nature of agile: No one size fits all. Journal of Systems 
+and Information Technology 20(2), 241–260. https://doi.org/10.1108/
+JSIT-11-2017-0118
+Griss, M. (2003). Ranking IT productivity improvement strategies. Accessed 
+February 3, 2009 from https://martin.griss.com/pubs/WPGRISS01.pdf.
+Kay, R. (2002, May 14). QuickStudy: System development life cycle. 
+Computerworld. https://www.computerworld.com
+Martin, R. C. (1999). Iterative and incremental development I. https://
+www.objectmentor.com/resources/articles/IIDI.pdf
+Schwaber, K., & Sutherland, J. (2011). The Scrum guide. https://www.
+scrum.org/scrumguides
+Tripp, J. F., & Armstrong, D. J. (2018). Agile methodologies: 
+organizational adoption motives, tailoring, and performance. Journal 
+of Computer Information Systems 58(2), 170–179, https://doi.org/ 
+10.1080/08874417.2016.1220240
+M01B_VALA0072_10_SE_C01.indd 21 24/01/24 6:47 AM
+Get Complete Ebook order By email at palemonking@gmail.com
+Get Complete ebook order By email at palemonking@gmail.com22
+Chapter 2
+The Origins of Software
+Learning Objectives
+ After studying this chapter, you should be able to
+ 2.1 explain outsourcing;
+ 2.2 describe six different sources for software; and
+ 2.3 discuss how to evaluate off-the-shelf software.
+Introduction
+ As you learned in Chapter 1, there was a time, not too long 
+ago, when no systems analysts and no symbolic computer 
+programming languages existed. Yet people still wrote and 
+programmed applications for computers. Even though 
+today’s systems analyst has dozens of programming lan￾guages and development tools to work with, you could 
+easily argue that systems development is even more diffi￾cult now than it was years ago. Then, as well as even more 
+recently, certain issues were decided for you: If you wanted 
+to write application software, you did it in-house, and you 
+wrote the software from scratch. Today there are many dif￾ferent sources of software, and many of you reading this 
+book will end up working for firms that produce software 
+rather than in the information systems department of a cor￾poration. But for those of you who do go on to work in a 
+corporate information systems department, the focus is no 
+longer exclusively on in-house development. Instead, the 
+focus will be on where to obtain the many pieces and com￾ponents that you will combine into the application system 
+you have been asked to create. You and your peers will still 
+write code, mainly to make all the different pieces work 
+together, but more and more of your application software 
+will be written by someone else. Even though you will not 
+write the code, you will still use the basic structure and pro￾cesses of the systems analysis and design life cycle to build 
+the application systems your organization demands. The 
+organizational process of systems development remains the 
+focus for the rest of the book, but first you need to know 
+more about where software originates in today’s develop￾ment environment.
+In this chapter, you will learn about the various sources 
+of software for organizations. The first source considered is 
+outsourcing, in which all or part of an organization’s infor￾mation systems, their development, and their maintenance is 
+given over to another organization. You will then read about 
+six different sources of software: (1) information technology 
+services firms, (2) packaged software providers, (3) vendors 
+of enterprise-wide solution software, (4) cloud computing, 
+(5) open-source software, and (6) the organization itself 
+when it develops software in-house. You will learn about cri￾teria to evaluate software from these different sources.
+Systems Acquisition
+Although there will always be some debate about when and 
+where the first administrative information system was devel￾oped, there is general agreement that the first such system in 
+the United Kingdom was developed at J. Lyons & Sons. In 
+the United States, the first administrative information sys￾tem was General Electric’s (GE) payroll system, which was 
+developed in 1954 (Computer History Museum, 2003). At 
+that time, and for many years afterward, obtaining an infor￾mation system meant one thing only: in-house development. 
+The software industry did not even come into existence until 
+a decade after GE’s payroll system was implemented.
+Since GE’s payroll system was built, in-house devel￾opment has become a progressively smaller piece of all 
+the systems development work that takes place in and 
+for organizations. Internal corporate information systems 
+departments now spend a smaller and smaller propor￾tion of their time and effort on developing systems from 
+scratch. Companies continue to spend relatively little 
+time and money on traditional software development and 
+M02_VALA0072_10_SE_C02.indd 22 24/01/24 6:48 AM
+Get Complete Ebook order By email at palemonking@gmail.com
+Get Complete ebook order By email at palemonking@gmail.com
