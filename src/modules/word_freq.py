@@ -365,53 +365,51 @@ def get_dataset():
         start = end + 1
     conn.close()
 
-def update_logging():
+def extract_text(SOURCE_FOLDER, CHUNK_SIZE=512, DB_PATH=chunk_database_path):
     """
-    Updates the log table in the database with the contents of the log file.
+    Instruction: Using Power Automate to extract text and store in a SOURCE_FOLDER
 
-    :return: None
+    Args:
+        SOURCE_FOLDER (str): Path to the folder containing the extracted txt files.
+        CHUNK_SIZE (int, optional): The size of each chunk in words. Defaults to 512.
+        DB_PATH (str, optional): The path to the database file. Defaults to chunk_database_path.
     """
-    conn = sqlite3.connect(chunk_database_path)
+    def text_to_chunks(text, chunk_size):
+        words = text.split()
+        return [' '.join(words[i:i+chunk_size]) for i in range(0, len(words), chunk_size)]
+
+    os.makedirs("dataset", exist_ok=True)
+
+    conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
-
-    # Check if the log file exists, else exit the function
-    if not os.path.exists(log_file_path):
-        print("Log file does not exist.")
-        conn.close()  # Ensure the connection is closed
-        return
-
-    # # Check if the table exists, else exit the function
-    # if cursor.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='logging'").fetchone() is None:
-    #     print("Table 'logging' does not exist in the database.")
-    #     conn.close()  # Ensure the connection is closed
-    #     return
-
-    # Create the table if it doesn't exist
-    cursor.execute("""
-        CREATE TABLE IF NOT EXISTS logging (
-            time_stamp TEXT,
-            info_type TEXT,
-            message TEXT
-        )
-    """)
-
-    with open(log_file_path, "r", encoding="utf-8") as f:
-        reader = csv.reader(f, delimiter=";")
-        log_data = [tuple(row) for row in reader]
-
-    if not log_data:
-        print("No log data found.")
-        conn.close()
-        return
-
-    # Insert data into the table
-    cursor.executemany("INSERT INTO logging (time_stamp, info_type, message) VALUES (?, ?, ?)", log_data)
-
+    cursor.execute("""CREATE TABLE IF NOT EXISTS pdf_chunks (
+        file_name TEXT,
+        chunk_id INTEGER,
+        chunk_text TEXT,
+        PRIMARY KEY (file_name, chunk_id)
+    )""")
     conn.commit()
     conn.close()
 
-    # Clear the log file
-    with open(log_file_path, "w", encoding="utf-8") as f:
-        f.write("")
+    for file in os.listdir(SOURCE_FOLDER):
+        if not file.endswith(".txt"):
+            continue
+        
+        with open(os.path.join(SOURCE_FOLDER, file), "r", encoding="utf-8") as f:
+            text = f.readlines()
+        
+        text = " ".join(text)
+        text = clean_text(text)
 
-    print("Log table updated successfully.")
+        chunks = text_to_chunks(text, CHUNK_SIZE)
+        # Text dump
+        with open(os.path.join("dataset", file), "w", encoding="utf-8") as f:
+            for chunk in chunks:
+                f.write(chunk)
+
+        for i, chunk in enumerate(chunks):
+            conn = sqlite3.connect(DB_PATH)
+            cursor = conn.cursor()
+            cursor.execute("INSERT INTO pdf_chunks (file_name, chunk_id, chunk_text) VALUES (?, ?, ?)", (file, i, chunk))
+            conn.commit()
+            conn.close()        
