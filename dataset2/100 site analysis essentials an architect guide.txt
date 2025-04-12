@@ -1,0 +1,4106 @@
+﻿ © RIBA Publishing, 2024
+Published by RIBA Publishing, 66 Portland Place, London, W1B 1AD
+ISBN 9781915722058
+The rights of Peter Farrall and Iain Jackson to be identified as the 
+Authors of this Work have been asserted in accordance with the 
+Copyright, Designs and Patents Act 1988 sections 77 and 78.
+All rights reserved. No part of this publication may be reproduced, 
+stored in a retrieval system, or transmitted, in any form or by any means, 
+electronic, mechanical, photocopying, recording or otherwise, without 
+prior permission of the copyright owner.
+British Library Cataloguing-in-Publication Data
+A catalogue record for this book is available from the British Library.
+Commissioning Editor: Alex White
+Assistant Editor: Flo Armitage-Hookes
+Production: Jane Rogers
+Designed by CHK Design
+Typeset by Fakenham Prepress Solutions, Fakenham, Norfolk
+Printed and bound by Pureprint Group Ltd
+Cover image: Illustration of canal running through central Manchester. 
+Produced by the Authors with all rights reserved to Peter 
+Farrall and Iain Jackson.
+While every effort has been made to check the accuracy and quality 
+of the information given in this publication, neither the Author nor the 
+Publisher accept any responsibility for the subsequent use of this 
+information, for any errors or omissions that it may contain, or for any 
+misunderstandings arising from it.
+www.ribapublishing.com
+DOI: 10.4324/9781003485988TABLE OF CONTENTS
+CONTENTS
+Acknowledgements ix
+About the authors x
+Introduction xi
+Chapter 1: 
+Focus of the study 1
+Case study 1
+Chapter 2: 
+Context 9
+Tips 1–42
+Case study 2
+Chapter 3: 
+Routes 100
+Tips 43–52
+Case study 3100 SITE ANALYSIS ESSENTIALS: AN ARCHITECT’S GUIDE 
+Chapter 4: 
+Environment 124
+Tips 53–78
+Case study 4
+Chapter 5: 
+Groupings and usage 182
+Tips 79–86
+Case study 5
+Chapter 6: 
+Interface 202
+Tips 87–100
+Case study 6
+Case study 7
+Afterword 238
+Appendix 240
+Worked example A
+Worked example BGlossary 251
+Bibliography 254
+Index 256
+CONTENTSCONTEXT TIP Key issues to consider
+Historical 1 Investigate the layers of history.
+2 Consider the stylistic diversity.
+3 Explore the historical development with maps.
+4 Study the pace of change.
+5 Create your own Nolli Map.
+Social and cultural 6 Research the social and economic landscape.
+7 Investigate the type of people who live and work in the area.
+8 Investigate the cultural influences and assets.
+9 Use census data to produce your own diagrams.
+10 Use census information to understand about local residents and housing 
+ownership.
+11 Identify the local social hubs.
+Economic 12 Consider the significance of land values.
+13 Review the socio-economic demographics of an area.
+14 Consider the influence of ownership and landlords.
+Density and development 15 Review the density and plot size.
+16 Consider the human density and household composition.
+17 Consider competing future visions and other stakeholders.
+18 Consider sustainability when exploring communities.
+19 Explore if recent interventions can also provide opportunities.
+Materiality and style 20 Consider the availability of locally sourced materials.
+21 Research local styles and forms of construction.
+22 Consider why the city looks the way it does.
+Political 23 Who are the political influencers?
+24 Review the Local Authority planning policies.
+25 Is your site part of a conservation area?
+Physical infrastructure 26 Explore types of places and spaces around the site.
+27 Investigate why the city looks the way it does.
+28 Identify monuments and nodes.
+29 Review the scale of the street.
+30 Review the physical infrastructure.
+31 Identify neighbourhoods and districts in and around your site.
+32 Identify the scale of the district.
+33 Consider how historical backstory impacts on the urban grain.
+34 Consider the district as part of the overall city.
+35 How might the public realm influence your proposal?
+36 Think vertically as well as horizontally; consider different programmes 
+at different levels.
+37 Explore underlying city plans and structures.
+Invisible city 38 Track movement to provide data on how people interact with the city.
+39 Consider the impact of any underground services.
+40 Consider traffic data and restrictions.
+41 Download or build your own 3D model of the site.
+42 Are there any literary references relating to your site?
+ROUTES
+Vehicular 43 Establish the hierarchy of routes affecting your site.
+44 Identify bus and cycle routes.
+Pedestrian 45 Experience the city by walking.
+46 Explore the alternative routes.
+47 Explore pathways based on desire lines.
+Transport 48 Consider the bigger picture of transport infrastructure and accessibility.
+49 Explore how well your site is served by transport terminals and bus stops.
+50 How well is the site connected nationally?
+Timeframe 51 Consider how special events impact the city.
+52 Review how intensity of use varies over time.
+CONTEXT ROUTESENVIRONMENT TIP Key issues to consider
+Climate 53 Assess sun paths, shading and daylight.
+54 Establish the local wind paths and prevailing winds.
+55 Consider how the microclimate affects the site.
+56 Consider if tidal patterns or rising sea levels have an impact on your site.
+Topographical 57 Survey site levels and features.
+58 Determine the site boundary – it is not always clearly defined.
+59 Investigate the ground conditions.
+Natural features 60 Celebrate the natural features.
+61 Consider the roots and crown of all trees within the site.
+62 Conduct an environmental assessment of natural habitats.
+63 Check flood risk data, especially in low-lying locations.
+64 Explore the backstory of any formal landscapes.
+Man-made features 65 Consider the existing streetscape.
+66 How does street furniture impact on the site?
+67 Consider the impact of telecommunications, masts and satellite dishes on 
+your site.
+68 Consider the impact of artificial lighting.
+69 Is your site impacted by noise?
+Timeframe 70 Investigate how the site use varies over 24 hours.
+71 Explore how site use changes over the course of a year.
+Street hierarchies 72 Consider the proportion of pavement to road.
+73 Consider the street’s height to width ratio.
+Sustainability 74 Explore opportunities to utilise the site’s resources.
+75 Consider opportunities to deploy local materials.
+Phenomenology 76 Explore opportunities to create the sense of a journey
+77 Consider the potential for an architectural promenade and mystery.
+78 Be aware of historical connotations.
+GROUPINGS AND USAGE
+Site usage 79 Map out the various functional uses around your site.
+80 How has the function of your site changed over time?
+Around the site 81 Be aware of activities or functions associated with your site or brief.
+82 Consider the proximity of key facilities.
+83 Investigate the previous uses of the site.
+84 Establish current usage categories locally.
+Relationship to the wider 
+area 85 Investigate emerging types and planned developments.
+86 Map repeating services, forms and types.
+INTERFACE
+Site boundary 87 Establish the extent and nature of the site boundary.
+88 Assess the permeability of the site boundaries.
+89 Undertake an accurate site survey to assess the site’s potential.
+90 Consider thresholds where boundaries are poorly defined .
+91 Research any legal restrictions impacting the site.
+Views into the site 92 Make a sketch looking into the site.
+93 How will your proposal impact the townscape?
+94 Survey the adjacent properties.
+Views out from the site 95 Make a sketch of the skyline.
+96 Identify key axes and monuments.
+Neighbours 97 Establish interface distances to adjacent properties.
+98 How will rights of light impact your proposal?
+Access 99 Consider the implications of any legal restrictions.
+100 Consider legal restrictions on routes and rights of access.
+ENVIRONMENT GROUPINGS INTERFACEIain Jackson: to Jo, Pippa and Dylan
+Peter Farrall: to NoraACKNOWLEDGEMENTS ix
+ACKNOWLEDGEMENTS
+We’d like to thank our colleagues and students at the University 
+of Liverpool School of Architecture, for their help and 
+encouragement, especially Alex Dusterloh, Lucretia Ray, Anna 
+Gidman and Nick Wilde. We would also like to acknowledge the 
+input from the architects who provided the case studies and 
+gave valuable insight into their design process. Specifically, we 
+would like to thank Jo Day, Alan Dunlop, Jim Eyre, Ian Ritchie, 
+Hans van der Heijden, Steven Hodder and Gurmeet Sian.
+The overall structure of the book: Context, Routes, 
+Environment, Groupings and Interface (CREGI) was actually 
+discovered left on a blackboard at the University of Bristol 
+School of Architecture in the 1970s, but we have been unable to 
+find out who gave the lecture! The Head of School and professor 
+at that time was Ivor Smith and he invited some of the most 
+talented designers of the day to teach at the school, mostly from 
+London, and affectionally referred to as ‘Ivor’s flying circus’. This 
+approach to site analysis has been extremely useful over 40 
+years of practice and has also been developed over 20 years of 
+teaching, including the later addition of phenomenology.
+Thank you too to our commissioning editor, Alex White, for his 
+support and encouragement.x 100 SITE ANALYSIS ESSENTIALS: AN ARCHITECT’S GUIDE 
+ABOUT THE AUTHORS
+Peter Farrall is Senior Lecturer in Architecture at the 
+University of Liverpool, teaching in both the MArch and BA 
+programmes, as well as Professional Studies. Prior to this, 
+he was partner for 25 years in a multidisciplinary practice in 
+Chester, specialising in the education sector. He is a former 
+president of the Liverpool Architectural Society and served on 
+the National Council and Conduct Committee of the RIBA. Peter 
+is a lecturer and examiner on the RIBA Part 3 course and has 
+delivered lectures and webinars for RIBA CPD programmes. He 
+co-authored the RIBA Good Practice Guide: Fees with Professor 
+Stephen Brookhouse and is author of Feasibility Studies: An 
+Architect’s Guide.
+Iain Jackson is an architect and professor at University of 
+Liverpool. Iain worked in practice on educational projects and 
+completed his PhD on the Rock Garden of Chandigarh in India. 
+He is the Research Lead for Architecture at the University of 
+Liverpool and Co-director of the Architecture Heritage and 
+Urbanism in Western Africa (AHUWA) research group. He is 
+currently researching the architecture of the United Africa 
+Company. Iain teaches architectural studio, architectural history 
+and supervises PhD students. He has co-authored several 
+biographies including Herbert Rowse and The Architecture of 
+Edwin Maxwell Fry and Jane Drew.INTRODUCTION xi
+INTRODUCTION
+Conducting a site analysis is an essential part of the 
+architectural design process. By carefully examining, recording, 
+observing and documenting, you can cultivate a deeper 
+understanding of the place you are designing for. This will result 
+in a more considered and appropriate solution, crafted and 
+calibrated for that spot.
+Site analysis is sometimes seen as the starting point that 
+leads to a design solution, but it is also an ongoing and integral 
+part of the design process. Site analysis can help with initial 
+feasibility studies, but it can also help refine the design intent 
+and brief, contribute to the design options and justification and 
+form part of a post-design review.
+Architecture should respond and relate to the place where it 
+is built. It is a fixture and works best when calibrated to suit local 
+materials, skills, cultures and communities. Site analysis is an 
+investigation into these qualities. It must also consider climatic 
+data – such as sun and shadow paths, temperature and humidity 
+ranges – as well as society – with its complexity, competing 
+demands, contradictions and ongoing changes.
+Architecture is often expected to (and should) last a long 
+time. It has a public face and impacts the town, neighbourhood 
+and street in much more profound ways than most other creative 
+endeavours and professional activities. Architecture forms part 
+of our habitat and our environment.
+Architects have a duty to design buildings that serve their 
+clients and communities, and that enrich the lives of future 
+generations too. By considering the context of the design – 
+both what has been built in the immediate vicinity as well as 
+the wider cityscape – you can develop designs that respond 
+with sensitivity. This should allow you to produce designs of the 
+appropriate scale and materials, which both optimise the client’s 
+investment and ensure societal enjoyment of the work.xii 100 SITE ANALYSIS ESSENTIALS: AN ARCHITECT’S GUIDE 
+Contextual design does not necessarily mean that everything 
+‘fits in’ or is deferential to what has gone before. It may be that a 
+contrast or reaction to what is already there becomes necessary 
+and appropriate.
+Structure of the book
+This book provides a series of lenses, strategies and ideas that 
+you can deploy to increase your understanding and knowledge 
+of a place. There are many other approaches, but in following 
+this method and producing your own ‘library’ of findings, you will 
+pick up the right tools to explore, rationalise and convince others 
+that your solution is valid, considered and appropriate.
+At the end of each chapter is a series of case studies using 
+projects undertaken by prominent architects to demonstrate 
+their approach to site analysis and its impact on their design 
+proposals. These are followed by two examples that show 
+an incremental approach to site analysis leading to a set of 
+strategic design proposals.
+Site analysis can be broken down into five main headings and 
+there is a chapter devoted to each of these. You can consider 
+these as a checklist to work through when conducting your 
+own site analysis but note that not every item will be relevant to 
+every project.
+Context
+This is concerned with the wider area around the site in 
+question. Consider the density of the neighbourhood, the size 
+of the city blocks and the historical development of the site. 
+This should take in a wide geographical range where possible. 
+Identifying key landmarks, cultural references and other 
+significant buildings in the area (such as schools, hospitals, 
+transport hubs, etc.) should also be done at this stage.
+Beyond the physical context, this part of the analysis should 
+also consider the wider sociological and economic conditions 
+of the site. This data should be represented graphically to help 
+build a comprehensive picture of the site and any opportunities 
+for development.INTRODUCTION xiii
+Routes
+How is the site connected to other places? What is the scale 
+and nature of these routes? What transport infrastructure 
+and facilities are available? Proximity to rail and mass-transit 
+infrastructure may have a major impact on the land value, 
+usage patterns and desirability of a site. Pedestrian links, the 
+streetscape and a well-connected urban form can all affect your 
+design solutions and the nature of the architectural proposal.
+Environment
+Responding to the climatic conditions of a site can enhance 
+most design proposals and have a significant impact on 
+the ongoing energy costs and interior comfort of a building. 
+A well-sited and properly orientated design can capture 
+sunlight whilst minimising solar gain, and create spaces that 
+are pleasurable to be in. Temperature, humidity and seasonal 
+change should also be considered. Wind, particularly around 
+tall structures and in coastal settings, needs special analysis. 
+Noise pollution can be problematic, but it can be mitigated with 
+a sensitive design proposal. Beyond climate conditions, consider 
+topography and natural features, such as animal habitats, trees, 
+rivers and sea levels.
+Consider how the site ‘feels’ and the responses it may 
+provoke in the visitor. Perhaps the site holds a particular history, 
+myth or association that resonates with the population. Places 
+can become infamous or gain associations linked to a particular 
+event or memory. A plot that was once a religious site will have 
+a different feel and meaning to a place next to a famous sports 
+stadium, for example.
+Not everything important can be measured and a 
+phenomenological approach can help to reconcile contradictory 
+or less tangible site attributes. Consider moving beyond what 
+you can see and begin to notice the noises, smells, textures 
+and feelings you can detect around the site. Do they have any 
+implications for your design choices?xiv 100 SITE ANALYSIS ESSENTIALS: AN ARCHITECT’S GUIDE 
+Groupings and usage
+What takes place in the vicinity of and within the site? Is it 
+devoted to a particular activity, for example, is it a residential site 
+or mixed-use office, a restaurant or apartments? Try to find out 
+how the wider district or neighbourhood is currently used and 
+how your site fits in with a wider planning agenda.
+Interface
+This is all about the immediate context and how the site abuts 
+its neighbours. As well as the physical boundaries around the 
+perimeter of the site, you need to consider the views in and 
+out. Consider how the site is accessed and how much of the 
+site will be built on. What affect will your proposal have on the 
+surrounding buildings and their occupants?2
+appropriate to the task. It is therefore important to focus on the 
+key issues affecting the project and ensure that the analysis is 
+communicated in a clear way.
+Students sometimes carry out excellent analysis, but the 
+impact and findings of these studies are not evident in the 
+design proposition. Alternatively, the analysis goes into too much 
+detail and fails to focus on the key issues unique to the site.
+Level of detail
+After considering the brief it is important to decide how far to 
+progress with the site analysis. For example, a brief for a new 
+museum with national significance will require an understanding 
+of how the proposed site relates to other similar facilities around 
+the country and how accessible the site is by car and public 
+transport. Being able to respond to large visitor groups will also 
+be important. If the proposal is for a new village hall within a 
+conservation area, then understanding the needs of the local 
+community, the impact of the proposal on the local townscape 
+and how the hall might relate to other community facilities 
+nearby will be valuable.
+You need to consider what is special or unique about the site. 
+If it’s in an exposed coastal location, then details of extreme 
+weather will be important, whereas a new visitor centre set in the 
+grounds of a heritage site will require an in-depth understanding 
+of the history, landscape and architecture of the site. The point is 
+to recognise and respond to the unique and specific attributes, 
+rather than attempting to cover everything in your site analysis.
+Analysis and synthesis
+Having gathered the data and recorded information about the 
+site, it is then necessary to analyse and consider which aspects 
+will impact the design. For example, you may have gathered 
+information about levels of employment, but what does this say 
+about an area and how does it compare with national averages? 
+Setting down the key findings of your investigations, and what 
+they mean to the project, provides a stepping stone towards 
+your design proposal.
+100 SITE ANALYSIS ESSENTIALS: AN ARCHITECT’S GUIDE 4
+in which case it may be necessary to revisit aspects of the site 
+analysis or modify the design proposals.
+Importance of on-site recording
+Throughout this book, we stress the importance of visiting 
+the site to gain a first-hand impression and feeling about the 
+area. The act of on-site sketching tends to achieve this in a 
+natural way. Whist sitting or standing to record a scene you 
+are inevitably absorbed; passers-by may chat to you and you 
+will take in the sounds and smells over a longer period. These 
+sketches may also trigger memories in a more significant way 
+than by simply taking a photograph on your phone. Often, these 
+recollections can be vivid, months or even years later. Even if you 
+do not consider yourself to be a great artist, the sketches you 
+produce tend to communicate something very personal about 
+the site and this can help when presenting proposals to a client 
+or in a design review.
+Key takeaway
+In summary, it is important to identify what is significant about 
+the site and how this complements the design brief.
+Do not try to incorporate everything into your analysis. 
+Be prepared to revisit the site to test your observations and 
+findings. This may require you to return several times, even after 
+you have begun to develop the design proposals.
+Draw and map your analysis so that you can communicate 
+your findings and ideas in a way that explains to others what 
+is important about the site. You also need to explain how your 
+site analysis informs your design proposal and ensure this is 
+communicated in an effective way using appropriate media.
+The ‘Quick Start Chart’ breaks down site analysis into five 
+parts: context, routes, environment, groupings and usage and 
+interface. These are the key things to consider when analysing 
+a site and the subheadings help you to explore what might be 
+relevant to your specific project. The tips that follow give some 
+examples from actual sites and how they might influence design 
+proposals. It is unlikely that all of these subheadings will be 
+100 SITE ANALYSIS ESSENTIALS: AN ARCHITECT’S GUIDE 6
+Cullen focuses on four ideas: serial vision, place, content 
+and functional tradition, and these ideas are explored using 
+sequential illustrations along a route.
+Kevin Lynch’s The Image of the City (1960) analyses a city that 
+allows the viewer to orientate themselves using five elements:
+• paths, such as streets, trails, canals and railways
+• edges, such as boundaries, walls and the edge of a district
+• districts, medium or large, identifiable by common 
+characteristics 
+• nodes, which are focal points in a city, junctions, crossing 
+or convergences in paths, breaks in transport routes, or key 
+areas people recognise
+• landmarks, such as churches, public buildings, monuments or 
+unique and memorable features.
+These are certainly great starting points, but also consider the 
+site beyond the physical characteristics – make sure you weave 
+in culture, history, politics and social conditions.
+All the maps and other images in this book were hand drawn, 
+requiring the authors to interpret information to communicate 
+key messages. A variety of styles and techniques have been 
+used. We encourage you to do the same. Experiment with 
+different ways of drawing, use colours, diagrams and urban 
+sketching to document and enhance your thinking. Photographs 
+are wonderful, but a sketch can convey far more often with 
+a lot less. Find your own style to communicate and get your 
+message across.
+100 SITE ANALYSIS ESSENTIALS: AN ARCHITECT’S GUIDE 8
+the north side with gardens to the south. Areas where noise is 
+less of a problem, such as the swimming pool and activity areas, 
+are also located on the south side. Apartments located on an 
+adjacent site look directly onto the site from an elevated position 
+and so the roof was important and becomes the fifth elevation. 
+The analysis, briefing and design process took over a year, 
+including extensive liaison with stakeholders.
+100 SITE ANALYSIS ESSENTIALS: AN ARCHITECT’S GUIDE CONTExT 9
+CHAPTER 2
+CONTEXT
+‘Context’ is the term given to the immediate area around 
+and abutting your site. It is the materials, styles and physical 
+infrastructure of our streets. But more than just the neighbouring 
+buildings, context is also about the wider area, the historical 
+background and the intangible aspects, such as the social and 
+economic influences on the area.
+Ideally you should first view your site in person to absorb its 
+qualities. Then search for information online in the form of data, 
+maps, historical photographs and policies. The ‘invisible city’ 
+and virtual environments are also becoming more important and 
+relevant as we enter the age of smart cities, data-driven design 
+and ever-increasing digital realms.
+Your site has a collective memory. Traces of the past bleed 
+through to inform the future. Our buildings and places serve as 
+a kind of archive, or repository, for and of the community and 
+its heritage.
+DOI: 10.4324/9781003485988-210
+Historical
+When considering a proposal, it is often the historical context 
+that is the most important influence on how the site looks today. 
+What is the background of the site and the surrounding area, 
+and what is known about the layers of its history?
+Social and cultural
+The social and cultural make up of an area can determine what 
+is architecturally viable and appropriate. Who lives and works 
+in the surrounding area of your site? What is the social mix 
+and ethnicity? Where has the population come from? Is it a 
+harmonious neighbourhood?
+There may be traditions, social norms or folk laws that impact 
+on the cultural identity and provide clues for future propositions. 
+A qualitative and quantitative review might involve interviewing 
+local people. An individual’s story can offer unique insights to 
+the broader perspective and offer a sounding board for future 
+interventions. Be wide-ranging in your community engagement. 
+Communicating effectively and sharing your ideas is essential.
+Census data can also be useful in giving an objective ‘big 
+data’ framework within which to work. Just as your design will 
+be drawn at different scales, consider the ‘contextual scales’ 
+moving from the wider district to the community and down to the 
+individual level.
+When exploring a particular community, it is sometimes 
+helpful to establish who are the key stakeholders and primary 
+users of the facilities. Landlords, politicians and community 
+leaders can all bring a unique perspective too and will have 
+different concerns to residents and participants. Identifying key 
+community organisations and pressure groups can be important, 
+and it is often wise to seek consultation when developing a 
+proposal to ensure voices and concerns are heard.
+Economic
+Economics will often drive the viability and appropriateness of a 
+design within a particular area. Although the client may be able 
+to fund a project, the extent to which the proposal is appropriate 
+100 SITE ANALYSIS ESSENTIALS: AN ARCHITECT’S GUIDE CONTExT 11
+will be affected by the demographics and the economic 
+buoyancy of an area.
+What are typical land values? Are they increasing? What 
+rental levels can be realised and what are the council tax rates?
+Levels of unemployment will affect the prosperity of an 
+area, as will typical income levels and the spread from richest 
+and poorest. These issues are very different from the physical 
+context, but they still play a major role in what gets built 
+and where.
+Density and development
+The existing density – that is, the dwellings/buildings per hectare 
+and occupancy levels per dwelling – will provide important clues 
+as to what may be appropriate with a new development and will 
+also influence the ratio of open space to buildings. A high land 
+value tends to drive an increased density level to capitalise on 
+the value and to recoup the expense of building on that land. Of 
+course, the human density may change at different times of the 
+day/week/year depending on the type of population and activity 
+within the area, so it’s worth thinking about how this impacts 
+your design solution.
+Materiality and style
+As architects we are aware of the materials and styles used in 
+the buildings around the site, and it is often this aspect of the 
+urban grain that makes a place so distinctive. Analysing these 
+characteristics and what makes the area different to other 
+places will provide an important clue for your own proposal. 
+The aim is not to replicate or mimic; a contrast can be more 
+convincing than an attempt to fit in.
+Don’t just think in terms of two dimensional plans; consider 
+the impact of volumetric scale and different massing in various 
+parts of the site.
+Looking at street elevations, consider the scale and rhythm of 
+the architecture and what this might mean for your proposal. The 
+rhythm of the architecture might be expressed through window 
+patterns, material changes or through decorative patterns.12
+Political
+Considering the political context at both a local and national 
+level provides an insight into the area and may have a big impact 
+on what can be achieved. Local authority planning restrictions 
+and national guidelines often dictate what level of development 
+is possible and what is not. When dealing with projects in a 
+professional context, these can be critical considerations.
+Physical infrastructure
+Considering the spaces between the buildings allows the scale 
+of the street to be assessed, and it is important to think vertically 
+as well as horizontally. When exploring the qualities of the ‘public’ 
+or outside spaces, consider how successful they are used 
+along with any space left over after planning (SLOAP). When 
+investigating the physical infrastructure, consider the ‘solids’ and 
+‘voids’, the built-up and the spaces, the public and private. Finally, 
+how does the site fit within the existing street patterns? Is there 
+a rhythm or over-riding city layout, and how will this shape 
+your intervention?
+Invisible city
+The boundaries between the virtual and the real world are 
+increasingly blurred as online information becomes more 
+accessible and the virtual world more immersive. Street views, 
+models of entire cities and virtual reality are all changing how we 
+interact with, and think about, the built environment. We can use 
+these tools to test and share our ideas with a global audience.
+Our built environment is becoming ‘smart’ – it can respond 
+to changing conditions and events in real time. Cyber cities, 
+virtual environments and Google maps can all relay retail and 
+commercial data informing how we design and can test the 
+impact of our ideas on the existing cityscape.
+100 SITE ANALYSIS ESSENTIALS: AN ARCHITECT’S GUIDE Assessment of a site within Clifton conservation area14
+TIP 1
+CONTEXT
+HISTORICAL
+INVESTIGATE THE LAYERS OF HISTORY.
+What you can see
+The ‘cross’ or central crossroads at Chester is offset so that the 
+church forms the end of the vista from Bridge Street leading 
+south to the river.
+What does this mean?
+The reason for this is that the original Roman plan had a 
+principia at this location and the later Christian church was built 
+in the same place.
+How might it affect your proposal?
+Understanding the history of the city and the reasons behind 
+the planning allows you to work with what is already there and 
+to be sensitive to the underlying story. Unwrapping the layers of 
+history can sometimes give clues as to how to move forward.
+Tip links with 2, 3, 20, 21, 22, 27, 78, 83 and 90.
+100 SITE ANALYSIS ESSENTIALS: AN ARCHITECT’S GUIDE CONTExT 15
+ad 2000
+ad 10016
+TIP 2
+CONTEXT
+HISTORICAL
+CONSIDER THE STYLISTIC DIVERSITY.
+What you can see
+This street in Chester contains buildings constructed in many 
+different architectural styles and materials, built at different times 
+over a span of 500 years. Even so, the overall arrangement of 
+medieval ‘Rows’, or two-storey shops, is maintained.
+What does this mean?
+Each building says something about the period from which it 
+dates. They use materials and architectural styles considered 
+most appropriate at the time they were constructed.
+How might it affect your proposal?
+Cities are living things, not museums. In the case of Chester, 
+the variety of styles and eras of building might also give a clue 
+to what a modern intervention might consist of. Your design can 
+also be contemporary, using materials that are appropriate for 
+our times where sustainability is an important consideration. 
+Cities can be an amalgamation of many different eras 
+of development.
+Tip links with 1, 3, 18, 19, 20, 21 22, 25 and 73.
+100 SITE ANALYSIS ESSENTIALS: AN ARCHITECT’S GUIDE CONTExT 1718
+TIP 3
+CONTEXT
+HISTORICAL
+EXPLORE THE HISTORICAL DEVELOPMENT WITH 
+MAPS.
+What you can see
+The top map from the mid-nineteenth century shows the location 
+of a new park with surrounding cottages, agricultural land and 
+new brickyards in advance of the planned development that was 
+to follow. The second map shows the same park 50 years later, 
+now surrounded by housing development and urbanisation.
+What does this mean?
+The park was set out to aid the development and increase 
+land value. The housing plots around the park’s perimeter were 
+auctioned off for large housing development with the prices 
+elevated due to the close proximity and amenity of the park.
+How might it affect your proposal?
+Looking at historical maps of your site can help you to 
+understand how, why and when development took place. We can 
+gain a better understanding of a place when we can see how it 
+was made and how it has changed over time. The old roads from 
+the nineteenth century, field boundaries and so on continue to 
+influence and determine how the land is used today.
+Tip links with 1, 24 and 29.
+100 SITE ANALYSIS ESSENTIALS: AN ARCHITECT’S GUIDE CONTExT 1920
+TIP 4
+CONTEXT
+HISTORICAL
+STUDY THE PACE OF CHANGE.
+What you can see
+The older map shows a crossroads at a small settlement in 
+1910. The new map from the 1990s shows the development of 
+housing estates.
+Note how some things remain, whilst others change. Our built 
+environment may seem static, but it is in a constant state of 
+flux and renewal. Equally, some older features persist and bleed 
+through into the present. For example, on these plans note how 
+the small triangular woodland has remained.
+What does this mean?
+The places in which we design are not tabula rasa (clean slate). 
+There are always traces of past human activity that shape our 
+design options.
+How might it affect your proposal?
+The built environment is not fixed; it is constantly changing, 
+renewing and evolving. We may not notice these changes, 
+but over time they may radically alter a place. How has your 
+site changed during the last year, decade and century? What 
+features (such as trees, public footpaths and boundaries) have 
+been preserved or changed during this time?
+Tip links with 1, 3, 24 and 29.
+100 SITE ANALYSIS ESSENTIALS: AN ARCHITECT’S GUIDE CONTExT 2122
+TIP 5
+CONTEXT
+HISTORICAL
+CREATE YOUR OWN NOLLI MAP.
+What you can see
+A figure-ground plan of central Liverpool, also known as a Nolli 
+Map, after Giambattista Nolli’s drawing of Rome from 1748. 
+The aim here is to omit everything from the plan apart from 
+the buildings.
+What does this mean?
+The plan reveals the spatial configurations and relationships of 
+the built and unbuilt spaces. It reveals patterns, development 
+formations, typology and scale. By erasing everything and 
+removing data we are able to see certain aspects of the city 
+more clearly. You can also ‘invert’ the drawing and show the 
+buildings in white and the spaces in black.
+How might it affect your proposal?
+The Nolli Map reveals how your site fits into the wider city plan 
+– it shows the relationships between public spaces, transport 
+routes and the built environment. The density of the site can be 
+examined and the connectivity and permeability of the cityscape 
+explored. It is a simple technique, but surprisingly revealing, and 
+often brings about clarity as a result.
+Tip links with 3, 11 and 17.
+100 SITE ANALYSIS ESSENTIALS: AN ARCHITECT’S GUIDE CONTExT 2324
+TIP 6
+CONTEXT
+SOCIAL AND CULTURAL
+RESEARCH THE SOCIAL AND ECONOMIC 
+LANDSCAPE.
+What you can see
+The city of Chester comprises of several distinct districts each 
+with their own special character.
+What does this mean?
+Each district has its own character and a different social and 
+economic status.
+How might it affect your proposal?
+The economic backdrop can have a big influence on land 
+values and therefore the viability of what interventions and 
+developments might be feasible. The social and cultural 
+landscape can make a difference to the sorts of proposals that 
+would be attractive and that are likely to thrive in the area.
+Tip links with 9, 10, 12, 13, 15, 24, 33 and 79.
+100 SITE ANALYSIS ESSENTIALS: AN ARCHITECT’S GUIDE CONTExT 2526
+TIP 7
+CONTEXT
+SOCIAL AND CULTURAL
+INVESTIGATE THE TYPE OF PEOPLE WHO LIVE AND 
+WORK IN THE AREA.
+What you can see
+This is Barry ‘The Beekeeper’ Chang. He tends over 30 beehives 
+in Liverpool and collects the honey to sell. He is also a champion 
+for the UK’s oldest Caribbean Centre and campaigns to keep it 
+running for the good of the community.
+What does this mean?
+It’s a good idea to seek out people, like Barry, who can give you 
+valuable insights into the community. Talk to them and listen to 
+their stories.
+How might it affect your proposal?
+Local residents, shopkeepers and personalities can become 
+advocates for your ideas and proposals, or else provide crucial 
+feedback on how the proposal might be improved to resonate 
+more with the community.
+Tip links with 17, 23, 24 and 41.
+100 SITE ANALYSIS ESSENTIALS: AN ARCHITECT’S GUIDE CONTExT 2728
+TIP 8
+CONTEXT
+SOCIAL AND CULTURAL
+INVESTIGATE THE CULTURAL INFLUENCES AND 
+ASSETS.
+What you can see
+This is the Cathedral Quarter of Chester, which incorporates 
+a Georgian square with offices and living accommodation. 
+For most of the time it provides tranquil space away from the 
+main bustle of the city. Every four years the city hosts the 
+medieval mystery plays and the area is transformed into a 
+performance space.
+What does this mean?
+Many areas of the country have traditions and festivals that form 
+an important part of their heritage and calendar.
+How might it affect your proposal?
+Being aware of festivals and traditions may influence your design 
+proposals. There can be practical issues, such as occasional 
+access and legal rights, as is the case with open markets. 
+Sometimes, long-standing traditions and folk law can provide a 
+clue as to how to approach a design proposal, giving it additional 
+depth and meaning.
+Tip links with 1, 4, 19, 28, 52, 65 and 78.
+100 SITE ANALYSIS ESSENTIALS: AN ARCHITECT’S GUIDE CONTExT 2930
+TIP 9
+CONTEXT
+SOCIAL AND CULTURAL
+USE CENSUS DATA TO PRODUCE YOUR OWN 
+DIAGRAMS.
+What you can see
+This is a map of Litchfield showing the various parts of the 
+city categorised according to their features and attributes. It is 
+called Classification of Multidimension Open Data Morphology 
+(MODUM). Here you can see the city arranged according 
+to eight broad categories: ‘Suburban’, ‘Railway’, ‘Old Town’, 
+‘Victorian Terraces’, ‘Waterside’, ‘Countryside’, ‘High Street’ and 
+‘Central Business District’.
+What does this mean?
+To understand a place, try describing its dominant features and 
+categorising its different parts. This will allow for broad analysis 
+and it will help you to understand the constituent parts. It can 
+also help to inform the identity of particular districts.
+How might it affect your proposal?
+These tools can help build up a picture of how a neighbourhood 
+is organised and fits into a larger settlement pattern. Using 
+eight categories is a crude, but surprisingly useful, mode of 
+beginning to describe a place. It will help you to communicate 
+quickly with others and provide a system for comparison and 
+further investigation.
+Tip links with 5, 16, 17, 25 and 34.
+100 SITE ANALYSIS ESSENTIALS: AN ARCHITECT’S GUIDE CONTExT 31
+ Suburban
+ Railway
+ Old Town
+ Victorian Terraces
+ Waterside
+ Countryside
+ High Street
+ Central Business District32
+TIP 10
+CONTEXT
+SOCIAL AND CULTURAL
+USE CENSUS INFORMATION TO UNDERSTAND 
+MORE ABOUT LOCAL RESIDENTS AND HOUSING 
+OWNERSHIP.
+What you can see
+This is a map of Litchfield showing the percentage of social 
+rented properties in each area. The higher percentages of social 
+housing are located in the northern parts of the city and within 
+the old town area. South of the railway track there is only a very 
+small amount of social housing.
+What does this mean?
+This may impact how a place is perceived, the land valuations 
+and the scale and scope of ongoing development. Affordable 
+housing is a major issue for many today.
+How might it affect your proposal?
+Who are the stakeholders and people with an interest/concern 
+with your site? How are the communities formed and arranged? 
+What kinds of needs and services might they require? How 
+is social provision arranged and distributed? How might 
+this impact on perceptions of your site? Make use of freely 
+available information and census data to form new maps and 
+interpretations of your site.
+Tip links with 9, 11, 13, 16, 24 and 32.
+100 SITE ANALYSIS ESSENTIALS: AN ARCHITECT’S GUIDE CONTExT 33
+ 90% or more social rented housing
+ 60%–90% social rented housing
+ 20–30% social rented housing
+ 0–10% social rented housing34
+TIP 11
+CONTEXT
+SOCIAL AND CULTURAL
+IDENTIFY THE LOCAL SOCIAL HUBS.
+What you can see
+This city map shows the location of primary schools in the city 
+of York.
+What does this mean?
+Primary schools tend to serve a very local population. They often 
+form the hub of the community, not only for the families of the 
+children who attend the school, but also for other people who 
+use the facilities for after-school clubs and activities.
+How might it affect your proposal?
+Where major developments create more dwellings, it can 
+sometimes mean that local schools have insufficient capacity to 
+accommodate the new children coming into the area. Sometimes 
+local authorities require a financial contribution to help with the 
+provision of new or extended schools. Where populations are 
+reducing, the opposite is the case and difficult decisions must be 
+made regarding which schools might close. Understanding the 
+location of the schools and their proximity to populations and 
+influence is important.
+Tip links with 6, 14, 23, 24, 35, 82 and 84.
+100 SITE ANALYSIS ESSENTIALS: AN ARCHITECT’S GUIDE CONTExT 3536
+TIP 12
+CONTEXT
+ECONOMIC
+CONSIDER THE SIGNIFICANCE OF LAND VALUES.
+What you can see
+This map of Liverpool shows property values across the city, 
+which also give a good indication of land values.
+What does this mean?
+Land and property prices affect what might be economically 
+viable in an area. In the case of Liverpool, some previously 
+predominantly industrial zones are becoming used for offices, 
+entertainment and gallery spaces. This change of use pattern 
+can be beneficial for investors as it increases the value. 
+However, it may present a problem for established businesses 
+and community users as they may no longer be able to afford 
+increased rents.
+How might it affect your proposal?
+Being aware of land and property values gives an indication of 
+what types of proposal might be economically viable. Looking 
+at future trends can sometimes provide an opportunity for 
+innovation. Taking risks tends to be what developers do, but of 
+course, these ventures do not always pay off. Predicting the 
+future can be tricky.
+Tip links with 12 and 24.
+100 SITE ANALYSIS ESSENTIALS: AN ARCHITECT’S GUIDE CONTExT 37
+ £100,000
+ £150,000
+ £250,000
+ £400,00038
+TIP 13
+CONTEXT
+ECONOMIC
+REVIEW THE SOCIO-ECONOMIC DEMOGRAPHICS 
+OF AN AREA.
+What you can see
+This map of Liverpool shows areas of deprivation using multiple 
+deprivation ratings provided by the City Council in 2013.
+What does this mean?
+The map shows that a significant part of Liverpool’s population 
+experiences multiple deprivation and social exclusion. In terms 
+of social disadvantage, around 50% of Liverpool’s lower-level 
+output areas are classified as being in the bottom 10% nationally 
+for multiple deprivation.
+How might it affect your proposal?
+Depending upon your brief, these statistics can either 
+demonstrate a need to add a specific type of facility to support 
+the community, or they might be an indication that a particular 
+type of development or outlet would be inappropriate within the 
+local area because the local population might not be able to 
+afford to use it.
+Tip links with 6, 9, 10, 12, 16, 31 and 79.
+100 SITE ANALYSIS ESSENTIALS: AN ARCHITECT’S GUIDE CONTExT 39
+ 1% most deprived
+ 2–5% most deprived
+ 6–10% most deprived40
+TIP 14
+CONTEXT
+ECONOMIC
+CONSIDER THE INFLUENCE OF OWNERSHIP AND 
+LANDLORDS.
+What you can see
+This map shows a large portion of the city under the ownership 
+of a single landlord (highlighted in blue).
+What does this mean?
+This major landowner will have a significant affect on how the 
+shops and other types of accommodation are let and may 
+restrict the types of businesses that can operate within the city.
+How might it affect your proposal?
+Being aware of restrictions on ownership and control allows 
+you to understand the potential viability of different uses. 
+Opportunities for independent traders may be restricted, either 
+because rental levels are too high, or because the landlords 
+want to restrict the types of shops and businesses operating 
+in the town. In some instances, whole streets may be in private 
+ownership and what appears to be in the public realm is within 
+the control of the landowner.
+Tip links with 12 and 19.
+100 SITE ANALYSIS ESSENTIALS: AN ARCHITECT’S GUIDE CONTExT 4142
+TIP 15
+CONTEXT
+DENSITY AND DEVELOPMENT
+REVIEW THE DENSITY AND PLOT SIZE.
+What you can see
+A map of Manchester showing different scales of plot size and 
+street patterns. On the left is the Cathedral (in red), alongside 
+large-scale museums and shopping centres, which occupy vast 
+plots. On the right-hand side is the Northern Quarter containing 
+a series of former smaller warehouses and showrooms.
+What does this mean?
+Density can be measured in many different ways (e.g. population 
+per hectare; building height to street width ratio; ratio of building 
+area to street area). The height of construction is often the 
+greatest determinant of density, but the scale of the building’s 
+footprint relative to the site area and surrounding open space is 
+equally important.
+How might it affect your proposal?
+Consider how your site fits within the wider urban context and 
+examine how the scale of the plot aligns with the surrounding 
+streets, neighbouring sites and wider district. A large building 
+set within a vast site and surrounded by large roads will have a 
+completely different feel (and lower density) compared to a small 
+plot with a narrow street.
+Tip links with 9, 12, 15 and 17.
+100 SITE ANALYSIS ESSENTIALS: AN ARCHITECT’S GUIDE CONTExT 43
+ The medieval cathedral
+ New large-scale shopping centres, museums and galleries
+ Victorian commercial retail district
+ Showrooms, warehouses and workshops44
+TIP 16
+CONTEXT
+DENSITY AND DEVELOPMENT
+CONSIDER THE HUMAN DENSITY AND HOUSEHOLD 
+COMPOSITION.
+What you can see
+A map of Birkenhead showing the average quantities of single￾person households. More people are living alone, resulting 
+in a major impact on housing provision, development and 
+associated services.
+What does this mean?
+In which areas are people likely to be living in single￾occupancy households and why? As demographic trends move 
+towards smaller household sizes there is an impact on our 
+housing provision.
+How might it affect your proposal?
+Changing demographics might mean a different design 
+approach, especially in terms of housing layouts and design. 
+What kind of homes should we be making to adequately serve 
+the next generation and society’s changing requirements? 
+It is also useful to overlay this with other maps to look for 
+correlations with healthcare, schools, social housing and access 
+to transportation. There isn’t one map that can ever give a 
+full picture.
+Tip links with 10, 13 and 15.
+100 SITE ANALYSIS ESSENTIALS: AN ARCHITECT’S GUIDE CONTExT 45
+ Average of 60% single occupancy households
+ Average of 40% single occupancy households
+ Average of 20% single occupancy households46
+TIP 17
+CONTEXT
+DENSITY AND DEVELOPMENT
+CONSIDER COMPETING FUTURE VISIONS AND 
+OTHER STAKEHOLDERS.
+What you can see
+A map of old docklands and a former industrial area. The 
+site sits between major road and rail links and forms a key 
+regeneration site. The entire site is owned by a single developer 
+– Peel Holdings.
+What does this mean?
+The developer will have a strategy and vision for its future use. 
+Any proposals adjacent to the site, and even in the wider region, 
+will need to be mindful of what is taking place here. Often large 
+projects like this will have multiple architectural and design 
+teams working on distinct portions of the site, requiring careful 
+communication and coordination between the various projects.
+How might it affect your proposal?
+The site you’re allocated to work on might be part of a much 
+larger project and vision funded by a major developer over many 
+years. The context in which your building sits may not exist yet. 
+Effective communication and clear masterplanning objectives 
+are essential for larger scale development and working on this 
+urban scale.
+Tip links with 9 and 14.
+100 SITE ANALYSIS ESSENTIALS: AN ARCHITECT’S GUIDE CONTExT 47
+ Parkland
+ Former industrial site owned by one developer
+ Sites impacted by the regeneration
+ River and docklands
+ Railway and stations
+ Ferry48
+TIP 18
+CONTEXT
+DENSITY AND DEVELOPMENT
+CONSIDER SUSTAINABILITY WHEN EXPLORING 
+COMMUNITIES.
+What you can see
+This map of the village of Willaston in Cheshire West shows 
+potential areas of the greenbelt that could be released 
+for housing.
+What does this mean?
+Local authorities must consider how to meet the housing need. 
+Often this is done by using ‘brown field’ sites within a city. In 
+some instances, land previously designated as ‘greenbelt’ is 
+released for housing developments. In this way it is sometimes 
+argued that an increase in population, particularly if it is for 
+affordable housing, will help the sustainability of a village in terms 
+of schools and shops.
+How might it affect your proposal?
+Being aware of the local plan and any changes that are being 
+considered is important because they might affect your 
+proposals. These can provide an opportunity where previously 
+development would not have been possible. However, it can 
+also be a threat to the existing properties values if the houses 
+previously enjoyed the amenity of the countryside with views 
+across open fields.
+Tip links with 6, 12, 13, 15, 18, 79 and 87.
+100 SITE ANALYSIS ESSENTIALS: AN ARCHITECT’S GUIDE CONTExT 4950
+TIP 19
+CONTEXT
+DENSITY AND DEVELOPMENT
+EXPLORE IF RECENT INTERVENTIONS CAN ALSO 
+PROVIDE OPPORTUNITIES.
+What you can see
+This is the Shakespeare North Playhouse in Prescot. The 
+oak-framed traditional performance space is contained within a 
+building of contemporary design, which provides hospitality and 
+technical support facilities.
+What does this mean?
+The town of Prescot planned the new theatre to attract visitors 
+and provide a catalyst for the regeneration of the area. The 
+masterplan includes infrastructure improvements to ensure that 
+visitors can have easy access and good transport links to other 
+parts of the UK.
+How might it affect your proposal?
+Being aware of developments may allow your proposals to 
+benefit from the potential economic uplift of an area and take 
+advantage of any associated environmental improvements.
+Tip links with 8, 12, 14, 18 and 25.
+100 SITE ANALYSIS ESSENTIALS: AN ARCHITECT’S GUIDE CONTExT 5152
+TIP 20
+CONTEXT
+MATERIALITY AND STYLE
+CONSIDER THE AVAILABILITY OF LOCALLY 
+SOURCED MATERIALS.
+What you can see
+Nantwich is a small market town in Cheshire East. This street 
+has a variety of houses from different eras, but there is a 
+consistency in the use of materials, which gives the street a 
+sense of harmony.
+What does this mean?
+In many areas of the country there is a predominant use of 
+certain materials because they are available locally and it makes 
+economic sense to use them. Sometimes this means that 
+specialist skills are developed to use these materials.
+How might it affect your proposal?
+Being aware of what materials are commonly used can inform 
+what your building might be constructed of. Considering what 
+type of brick or stone is available locally will allow you to 
+create something that not only fits into its context, but is also 
+sustainable, because the materials do not have to be transported 
+over long distances.
+Tip links with 2, 21, 22, 27 and 75.
+100 SITE ANALYSIS ESSENTIALS: AN ARCHITECT’S GUIDE CONTExT 5354
+TIP 21
+CONTEXT
+MATERIALITY AND STYLE
+RESEARCH LOCAL STYLES AND FORMS OF 
+CONSTRUCTION.
+What you can see
+These buildings in Chipping Campden are constructed in 
+local Cotswold stone with stone slabs forming the roof finish. 
+Although there are differences in the scale and form of the 
+buildings, there is a constancy of traditional details to the gables, 
+chimneys and around the windows.
+What does this mean?
+There can often be a particular style of architectural detailing 
+in an area, either because there is the traditional way of doing 
+things, or because the buildings forms part of a larger estate 
+where the architect chose a specific style and pallet of materials.
+How might it affect your proposal?
+The example shown here is from a rather special Cotswold 
+village. It is often the case, with less iconic examples, that there 
+is a particular architectural style in an area or estate, and this 
+can sometimes provide a clue as to how to approach your 
+design. It is best to avoid a simple copy or pastiche, but perhaps 
+reinterpret what is already there in some way as part of your 
+own contemporary design.
+Tip links with 2, 20, 22, 27 and 75.
+100 SITE ANALYSIS ESSENTIALS: AN ARCHITECT’S GUIDE CONTExT 5556
+TIP 22
+CONTEXT
+MATERIALITY AND STYLE
+CONSIDER WHY THE CITY LOOKS THE WAY IT DOES.
+What you can see
+These buildings on Bold Street in Liverpool have a variety of 
+styles, heights and materials. The street currently has many 
+independent shops, as well as bars and restaurants. The lively 
+nature of the architecture suits the different types of users.
+What does this mean?
+The buildings on the street were built in the Victorian era and all 
+at roughly the same time. The development of the individual plots 
+allowed the designs to reflect the aspirations of their owners. It 
+is an animated ensemble, revealing that variety and contrast is 
+an effective design approach.
+How might it affect your proposal?
+If an opportunity came up to develop one of these sites, the 
+varied nature of the frontages allows considerable latitude in 
+terms of architectural handling, materials and scale. Picking up 
+on the lively nature of the street would also be important, as 
+would perhaps instilling a sense of fun.
+Tip links with 2, 20, 21, 27 and 75.
+100 SITE ANALYSIS ESSENTIALS: AN ARCHITECT’S GUIDE CONTExT 5758
+TIP 23
+CONTEXT
+POLITICAL
+WHO ARE THE POLITICAL INFLUENCERS?
+What you can see
+This map shows the location of the combined and regional 
+authorities across England. These are attempts to devolve 
+power to the larger urban centres under the leadership of a local 
+mayor representing several local authorities.
+What does this mean?
+The political landscape may not seem important to an individual 
+project, but the administration of a region – and particularly 
+that of a larger urban area – can have a significant impact on 
+investment, development and ambition. Being aware of this (and 
+where the boundaries of administration and responsibility lie) is 
+part of our wider understanding of place, site and the context in 
+which we design.
+How might it affect your proposal?
+Large projects and regeneration schemes benefit from political 
+endorsement and support. Regional mayors and city regions 
+will have a future vision for their city and its environs. How does 
+this align with your project and site? What can your project 
+contribute to the ambition for the city region and its future?
+Tip links with 12, 13 and 19.
+100 SITE ANALYSIS ESSENTIALS: AN ARCHITECT’S GUIDE CONTExT 59
+ Devolved administrations and metro regions in England60
+TIP 24
+CONTEXT
+POLITICAL
+REVIEW THE LOCAL AUTHORITY PLANNING 
+POLICIES.
+What you can see
+This map shows central Manchester and surrounding districts. 
+The City Council wrote a planning policy document to set out 
+its 10-year strategy for the city. This included specific policy 
+targeting dwelling construction at certain ‘large sites and 
+development opportunity areas’. Other areas were highlighted in 
+the policy for smaller and medium dwelling sites.
+What does this mean?
+The political vision for the city shaped the planning policies and 
+approaches to regeneration. The council identified strategic 
+areas that it wanted to develop in particular ways. It shaped 
+policy and sought out partnerships and commercial allegiances 
+to deliver these goals.
+How might it affect your proposal?
+Planning policy and regional planning strategy documents can 
+have dramatic impacts on the built environment. Whether it is 
+through permitted developments, relaxations of planning rules 
+or the release of land and compulsory purchases, the political 
+vision for a place is always worth examining. How does your 
+proposal align or country wide policy and development goals?
+Tip links with 9, 15, 23, 25 and 31.
+100 SITE ANALYSIS ESSENTIALS: AN ARCHITECT’S GUIDE CONTExT 61
+Harperhey
+Wythenshawe
+ City Centre 
+ Large sites and development opportunities 
+ Range of medium sites
+Areas in Manchester identified for large sites and 
+development opportunities.62
+TIP 25
+CONTEXT
+POLITICAL
+IS YOUR SITE PART OF A CONSERVATION AREA?
+What you can see
+This is a map of Liverpool’s conservation areas. Each zone has 
+been identified as having an important and unique character 
+worthy of preserving. Whilst individual buildings may receive 
+statutory protection through ‘listing’, conservation areas are 
+concerned with wider characteristics and values that extend to 
+streetscapes, landscapes and collections of structures.
+What does this mean?
+Proposals within conservation areas receive additional scrutiny 
+and are expected to respect and respond to the unique values 
+and characteristics of that area. Planners, local pressure groups, 
+residents and other concerned parties will pay particular 
+attention to any new proposals that might be seen to damage or 
+dilute these important qualities.
+How might it affect your proposal?
+If your site sits within a conservation area (or even abuts one), 
+then special care and design justification will be required. It is 
+not necessary to ‘fit in’ or produce an historical pastiche, but it is 
+important to provide clear justification for your design proposals, 
+and to explain how your design will enhance and contribute to 
+the conservation area.
+Tip links with 33, 35, 37 and 42.
+100 SITE ANALYSIS ESSENTIALS: AN ARCHITECT’S GUIDE CONTExT 6364
+TIP 26
+CONTEXT
+PHYSICAL INFRASTRUCTURE
+EXPLORE TYPES OF PLACES AND SPACES AROUND 
+THE SITE.
+What you can see
+This journey through the old part of Amsterdam moves through a 
+sequence of spaces, which include some narrow, dark alleyways 
+and wide, open canals.
+What does this mean?
+Cities are experienced by moving through them, normally on 
+foot. The variety of space and light, as well as the unexpected, 
+creates a dynamic journey. In this example, the visitor leaves the 
+wide tree-lined Geldersekade and enters the narrow alleyways 
+before coming across the unexpected wide canal basin and onto 
+a quiet backwater with warehouses.
+How might it affect your proposal?
+Being aware of the theatrical nature of a city and how people 
+move through it allows you to develop a masterplan and place 
+your proposal in context. This means that you can either build on 
+what is already there or grasp a new opportunity by exploiting 
+the unique aspects of a particular site to create incident 
+and interest.
+Tip links with 1, 3, 27, 28, 29, 35, 37, 46 and 73.
+100 SITE ANALYSIS ESSENTIALS: AN ARCHITECT’S GUIDE CONTExT 6566
+TIP 27
+CONTEXT
+PHYSICAL INFRASTRUCTURE
+INVESTIGATE WHY THE CITY LOOKS THE WAY IT 
+DOES.
+What you can see
+These two maps of Ipswich show how the settlement has 
+developed from a medieval market town to its current layout. The 
+river crossing and civic square are still in the same location.
+What does this mean?
+Understanding the history of a city allows you to make sense of 
+the urban grain, its roads and squares. At Ipswich, the original 
+layout of roads is still visible, but the inner ring road for vehicular 
+traffic tends to create a barrier and makes the medieval street 
+pattern less obvious when moving around the town. The 
+connection between the river crossing and the civic square 
+is lost.
+How might it affect your proposal?
+Try to understand how and why a city has developed into its 
+current form. Aim to be sensitive to earlier layouts whilst also 
+trying to help unify the city, improve connectivity and reinforce 
+the urban grain.
+Tip links with 1, 3, 4, 27, 37 and 43.
+100 SITE ANALYSIS ESSENTIALS: AN ARCHITECT’S GUIDE CONTExT 67
+1780
+202068
+TIP 28
+CONTEXT
+PHYSICAL INFRASTRUCTURE
+IDENTIFY MONUMENTS AND NODES.
+What you can see
+The city of Edinburgh has many important monuments. The 
+Royal Mile has the castle at one end and the parliament 
+building at the other with several other structures of cultural 
+and historical significance between. Here it shows St Mary’s 
+Cathedral, Usher Hall, Edinburgh Castle, the Scottish National 
+Gallery, the Scott Monument, Edinburgh Waverley station, the 
+National Gallery of Scotland and the Scottish Parliament building.
+What does this mean?
+Understanding the history of a city allows you to make sense 
+of the urban grain. The roads, monuments and nodes are all 
+important elements to a city and they allow you to orientate 
+yourself and find your way.
+How might it affect your proposal?
+When working within a city, it is important to respect the existing 
+infrastructure, history and culture. Views to monuments and 
+other structures may become design drivers and it is likely that 
+there will be rules associated with the scale of the development 
+when your site is close to an important building.
+Tip links with 8, 19, 26, 57, 64 and 96.
+100 SITE ANALYSIS ESSENTIALS: AN ARCHITECT’S GUIDE Section through the Royal Mile 
+CONTEXT 69 70
+TIP 29
+CONTEXT
+PHYSICAL INFRASTRUCTURE
+REVIEW THE SCALE OF THE STREET.
+What you can see
+This is a view of a narrow medieval street in York with buildings 
+overhanging the narrow passageway.
+What does this mean?
+Streets are places of encounter, exchange and possibility. 
+They are the shared spaces where the life of a town or city is 
+encountered or, in a smaller settlement, where the community 
+can gather.
+How might it affect your proposal?
+Think about how your design might contribute to the 
+streetscape. Consider how wide the street is in relation to the 
+height of the buildings. What is the relationship between the road 
+width and the pavement? How is the pavement (or wider public 
+realm) going to be used and how does the street façade interact 
+with this domain?
+Tip links with 21, 22 and 37.
+100 SITE ANALYSIS ESSENTIALS: AN ARCHITECT’S GUIDE CONTExT 7172
+TIP 30
+CONTEXT
+PHYSICAL INFRASTRUCTURE
+REVIEW THE PHYSICAL INFRASTRUCTURE.
+What you can see
+This map shows a historic walled city with later developments 
+outside the wall.
+What does this mean?
+Structures such as old city walls and similar boundaries still 
+feature in layouts of towns and cities today (even if the wall 
+has been demolished or dramatically altered). The density and 
+street pattern will have been determined by these features, and 
+different districts and parts of the city will have been determined 
+by their presence.
+How might it affect your proposal?
+Density, building plot sizes, access and heritage considerations 
+need to be considered in your proposal, and these may be 
+impacted by the historic layout of the town including features 
+such as city walls and significant historic structures. Look for 
+shifts in planning density within and outside these structures. 
+Consider how your proposal might respond to its location within 
+the older and more tightly arranged districts or the more formal 
+grid patterns of later expansions.
+Tip links with 15, 18 and 29.
+100 SITE ANALYSIS ESSENTIALS: AN ARCHITECT’S GUIDE CONTExT 7374
+TIP 31
+CONTEXT
+PHYSICAL INFRASTRUCTURE
+IDENTIFY NEIGHBOURHOODS AND DISTRICTS IN 
+AND AROUND YOUR SITE.
+What you can see
+This map shows central Manchester with the large university 
+buildings and facilities flanking Oxford Road. On the right is the 
+residential neighbourhood of Brunswick.
+What does this mean?
+There are often sharp divisions and distinct boundaries between 
+certain districts reflected in the different scale of the buildings 
+and how these places are used. Some districts become more 
+prominent because of their public function and scale, whilst 
+others may seem to nestle almost invisibly within the city fabric. 
+As the university continues to expand, what will the impact be on 
+the surrounding houses and the communities who live there?
+How might it affect your proposal?
+Make sure you venture beyond the site boundaries of your 
+project and explore the neighbouring areas. You may begin to 
+notice different communities, usage patterns and architectural 
+approaches. How might your proposal impact these places and 
+the current communities?
+Tip links with 43, 48 and 78.
+100 SITE ANALYSIS ESSENTIALS: AN ARCHITECT’S GUIDE CONTExT 75
+ The university along Oxford Road
+ Inner-city housing of Brunswick76
+TIP 32
+CONTEXT
+PHYSICAL INFRASTRUCTURE
+IDENTIFY THE SCALE OF THE DISTRICT.
+What you can see
+This map of the north-west of England indicates the relative 
+scale of the cities of Chester, Liverpool and Manchester. It also 
+shows the motorway links connecting these cities.
+What does this mean?
+A city the size of Chester can only support certain types of 
+facilities and residents tend to go to Manchester or Liverpool for 
+major sporting events, cultural activities or specialist services.
+How might it affect your proposal?
+Depending on your brief, some types of facility require a 
+minimum critical mass of population in order to sustain them. 
+Understanding the scale of the proposal relative to the local 
+district allows you to understand how sustainable it might be.
+Tip links with 11, 14, 24, 34, 43, 44 and 84.
+100 SITE ANALYSIS ESSENTIALS: AN ARCHITECT’S GUIDE CONTExT 77
+Manchester
+Liverpool
+Chester78
+TIP 33
+CONTEXT
+PHYSICAL INFRASTRUCTURE
+CONSIDER HOW HISTORICAL BACKSTORY IMPACTS 
+ON THE URBAN GRAIN.
+What you can see
+This view of the Georgian Quarter of Bath shows The Circus and 
+Royal Crescent forming the most impressive residences.
+What does this mean?
+The development of Bath in the eighteenth century as a spa 
+town created the most exclusive and desirable residences with 
+the Bath Assembly Rooms providing the focus for gatherings 
+and events. The layout of the roads and squares were designed 
+to impress and provide a clear hierarchy. This was a set piece 
+design, imposed without any regard to the context at that time.
+How might it affect your proposal?
+This part of Bath is an extreme example of a legacy from one 
+particular era. This area is now designated as a conservation 
+area and any future development and alterations are governed 
+by strict rules. You need a strong argument to support any 
+changes or departure from the existing townscape. Even 
+when working in more everyday settings, it is important to be 
+aware of the historical grain as well as any legislation affecting 
+development and to acknowledge it in your design proposals.
+Tip links with 1, 2, 3, 21, 24, 27 and 33.
+100 SITE ANALYSIS ESSENTIALS: AN ARCHITECT’S GUIDE CONTExT 7980
+TIP 34
+CONTEXT
+PHYSICAL INFRASTRUCTURE
+CONSIDER THE DISTRICT AS PART OF THE OVERALL 
+CITY.
+What you can see
+The conurbation around Birmingham is a collection of smaller 
+districts, each with its own distinct character and history.
+What does this mean?
+The history of each area, why it developed and how each relates 
+to the other is important in understanding why they are as they 
+are. The social and economic story of the Midlands is quite 
+different to other parts of the UK and has strong traditions and a 
+unique industrial heritage.
+How might it affect your proposal?
+Considering the wider context for your site allows you to see the 
+big picture, how your site fits into its district and how that area 
+relates to the wider geographical area. Identifying the distinct 
+character of your district can provide important clues as to the 
+appropriateness and direction of your own proposal.
+Tip links with 1, 3, 5, 6, 12, 13, 23, 25, 27 and 85.
+100 SITE ANALYSIS ESSENTIALS: AN ARCHITECT’S GUIDE CONTExT 81
+Selly Oak Mosely
+Perry Barr
+Edrington
+Handsworth
+Ashton
+Rotten Park Washwood
+Market Hall
+Edbaston Yardley
+Harbourn
+Acock’ Green
+Selly Oak Mosely
+Sparkhill
+Northfeild
+Kings Northon
+ 1731 1838 1863 191382
+TIP 35
+CONTEXT
+PHYSICAL INFRASTRUCTURE
+HOW MIGHT THE PUBLIC REALM INFLUENCE YOUR 
+PROPOSAL?
+What you can see
+This is a drawing of a market space and cathedral square in 
+Ghent, Belgium. The historic square is now home to a new 
+market hall suitable for a variety of gatherings and events 
+throughout the year.
+What does this mean?
+Historical and sensitive sites are capable of new and innovative 
+uses that can enhance the spaces and quality of the public 
+realm. The new market hall helps to reinforce the boundaries 
+of the public square whilst also serving as a sheltered arcade 
+for gatherings.
+How might it affect your proposal?
+Consider the spaces around your site: how can your proposal 
+enhance the public realm? Landscaping, shade, places to 
+sit, habitats for wildlife, colour from planting, protection from 
+the weather and spaces for people to come together and 
+meet with friends, are all part of creating a successful and 
+welcoming cityscape.
+Tip links with 67, 68 and 82.
+100 SITE ANALYSIS ESSENTIALS: AN ARCHITECT’S GUIDE CONTExT 8384
+TIP 36
+CONTEXT
+PHYSICAL INFRASTRUCTURE
+THINK VERTICALLY AS WELL AS HORIZONTALLY; 
+CONSIDER DIFFERENT PROGRAMMES AT DIFFERENT 
+LEVELS.
+What you can see
+A sectional drawing through a medieval street showing how 
+buildings have different functions at different levels, including 
+high-level walkways as shown highlighted here.
+What does this mean?
+Cities and streets must be considered vertically as well as 
+through the simple plan drawing. By cutting sectional drawings 
+through a street you can explore a much richer set of uses and 
+demands on the site and the surrounding area.
+How might it affect your proposal?
+Do not rely on plan drawings alone to show how a place works 
+and is used. Cut a section to show how the programmes might 
+change when regarded vertically. Housing, retail, offices, leisure 
+and food outlets all need to be carefully mapped through the 
+section drawing to understand how the streetscape is used and 
+by whom.
+Tip links with 59, 75 and 77.
+100 SITE ANALYSIS ESSENTIALS: AN ARCHITECT’S GUIDE CONTExT 8586
+TIP 37
+CONTEXT
+PHYSICAL INFRASTRUCTURE
+EXPLORE UNDERLYING CITY PLANS AND 
+STRUCTURES.
+What you can see
+This is a plan of Glasgow showing the grid pattern of streets and 
+city blocks.
+What does this mean?
+There is often an urban grain that can be observed in our cities. 
+This relates to the size of the city block in relation to the street 
+size and pattern. Certain projects may break or flex this pattern 
+but most projects will align with the plots available. Be aware 
+that the plan does not reveal gradients, and what may appear as 
+a grid layout in plan will have a very different feel when visited in 
+person – as is the case in Glasgow.
+How might it affect your proposal?
+How does your site align with the rhythm and structure of 
+the cityscape? Is there a city pattern, grid or underlying 
+planning device that is dictating the urban form? If not, can you 
+discern any typical plot sizes or other arrangements that have 
+determined the urban grain and plot structure of your site?
+Tip links with 30, 31 and 33.
+100 SITE ANALYSIS ESSENTIALS: AN ARCHITECT’S GUIDE CONTExT 87
+ Typical city block
+ Park at the city block scale88
+TIP 38
+CONTEXT
+INVISIBLE CITY
+TRACK MOVEMENT TO PROVIDE DATA ON HOW 
+PEOPLE INTERACT WITH THE CITY.
+What you can see
+This map of part of the Liverpool University campus shows the 
+movement of people using phone tracking data.
+What does this mean?
+This exercise was carried out by a group of architectural 
+students to understand how people move around the campus, 
+the natural gathering areas and pinch points. The large number 
+of students crossing Brownlow Hill, the road at the top of the 
+drawing, is particularly noticeable.
+How might it affect your proposal?
+Understanding how people move around the site can provide 
+clues for the location of key interventions and the impact of 
+any new developments on the masterplan. In the case of this 
+exercise, the team proposed the pedestrianisation of Brownlow 
+Hill, an idea that is actually viable and is now being considered 
+by the local authority.
+Tip links with 45, 47, 65 and 72.
+100 SITE ANALYSIS ESSENTIALS: AN ARCHITECT’S GUIDE CONTExT 8990
+TIP 39
+CONTEXT
+INVISIBLE CITY
+CONSIDER THE IMPACT OF ANY UNDERGROUND 
+SERVICES.
+What you can see
+This university campus in Liverpool has a strip of undeveloped 
+land running diagonally through its centre.
+What does this mean?
+The main railway line linking Liverpool to London runs through a 
+tunnel beneath the campus, making development very restrictive.
+How might it affect your proposal?
+Being aware of substructure services in the vicinity of your 
+site, including sewers, gas and electricity supplies, is important 
+because there may be rules about how the site can be 
+developed. Restrictions associated with building close to train 
+lines can be particularly onerous, whether they are beneath or 
+adjacent to your site.
+Tip links with 1, 3, 41 and 67.
+100 SITE ANALYSIS ESSENTIALS: AN ARCHITECT’S GUIDE CONTExT 9192
+TIP 40
+CONTEXT
+INVISIBLE CITY
+CONSIDER TRAFFIC DATA AND RESTRICTIONS.
+What you can see
+To control the volume of traffic entering the city, York has a 
+park-and-ride scheme, with car parks around the perimeter 
+located on the major routes into the city.
+What does this mean?
+The City Council’s strategy for managing its visitors means that 
+traffic and buses are directed along designated routes with key 
+set-down points within the city. This may also affect visitors’ 
+shopping habits.
+How might it affect your proposal?
+Being aware of the key transport nodes and routes might 
+impact on your proposal, since it may provide an opportunity 
+for your site to benefit from the increased volume of pedestrian 
+traffic. The route between bus set-down points and other major 
+attractions may also mean that those outlets and services are at 
+a premium.
+Tip links with 27, 38, 41, 43, 44 and 48.
+100 SITE ANALYSIS ESSENTIALS: AN ARCHITECT’S GUIDE CONTExT 9394
+TIP 41
+CONTEXT
+INVISIBLE CITY
+DOWNLOAD OR BUILD YOUR OWN 3D MODEL OF 
+THE SITE.
+What you can see
+A computer model of part of London.
+What does this mean?
+Whilst maps are useful diagrams, increasingly we have access 
+to virtual models of our major towns and cities. We can use 
+these to explore and view our cities. These models can 
+contain information about transport, services and planning 
+applications, as well as providing useful details about our site 
+and its neighbourhood.
+How might it affect your proposal?
+You can use virtual city models to test your ideas and insert 
+your own computer models. This will help you to visualise the 
+proposal and to see how it fits into the wider area. The virtual 
+city models can also enable you to ‘explore’ the district and to 
+generate a greater understanding of how it works. The virtual 
+model should not be seen as a replacement for your own 
+physical models but rather as an enhancement and additional 
+insight into the city.
+Tip links with 42.
+100 SITE ANALYSIS ESSENTIALS: AN ARCHITECT’S GUIDE CONTExT 9596
+TIP 42
+CONTEXT
+INVISIBLE CITY
+ARE THERE ANY LITERARY REFERENCES RELATING 
+TO YOUR SITE?
+What you can see
+Nicholas Hawksmoor’s churches in London provided the 
+inspiration for Peter Ackroyd’s novel Hawksmoor.
+What does this mean?
+Have you ever walked down an unfamiliar street yet felt you 
+had been there before? Perhaps it was the setting for a TV 
+programme or film? The imaginary and fictional can shape how 
+we perceive and experience a place.
+How might it affect your proposal?
+Perhaps the site you are researching featured in a particular 
+documentary, sit-com or film set? If so, how does that 
+association shape how you, and others, view that place and how 
+does it impact your design response? Does the site sit within 
+our cultural memory? This might impact tourism, future filming 
+schedules and even listing protection and heritage policy.
+Tip links with 1 and 102.
+100 SITE ANALYSIS ESSENTIALS: AN ARCHITECT’S GUIDE CONTExT 9798
+CASE STUDY 2
+NEW BODLEIAN, 
+WESTON LIBRARY
+WILKINSON EYRE
+What you can see
+The Weston Library (outlined in red) is one of Oxford’s most 
+important institutions. The original Giles Gilbert Scott design was 
+remodelled in 2015 by Wilkinson Eyre to create better storage 
+and research facilities with an improved entrance to the south.
+What does this mean?
+By changing the way in which the south elevation works, the 
+building relates much better to the public realm, providing an 
+active frontage and welcoming visitors. The original plinth has 
+been removed and replaced with steps and ramped access.
+What the architect says
+The project offered an opportunity to boost the library’s 
+relationship with its urban setting by addressing Broad Street 
+and the main Bodleian Library building opposite. The design knits 
+the library more closely into its context by extending the axis 
+created by the Radcliffe Camera, the ‘Old Schools Quadrangle’ 
+and the Clarendon Building, a logical move to encourage the 
+public inside. The design works with, rather than against, Scott’s 
+robust design.
+100 SITE ANALYSIS ESSENTIALS: AN ARCHITECT’S GUIDE CONTExT 99
+Weston Library
+Broad Street
+Clarendon Building
+Bodleian Library/
+Old Schools Quadrangle
+Radcli-e Camera
+University Church of 
+St Mary the Virgin100
+CHAPTER 3
+ROUTES
+The way in which the site is connected to the surrounding area 
+can have an important influence on the viability and form of 
+the proposal. How the site is accessed and where visitors are 
+coming from can affect how the scheme is laid out and who is 
+permitted to access. The organisation of primary and secondary 
+routes allows you to understand the significance of design 
+decisions and can help to develop an appropriate strategy.
+For many places, the main arterial routes define the city and 
+its districts with the secondary routes determining the urban 
+grain within these zones. In rural areas, the roads and paths 
+sometimes have a history going back many centuries. Working 
+within this framework is important if you are to preserve what is 
+special about a place.
+Vehicular
+Vehicular routes include those for cars, buses, trucks and 
+bicycles. Depending on the proposed function, knowing how 
+accessible the site is to major roads and motorways can be 
+important. At a more local level, understanding restrictions on 
+vehicle access will allow you to plan accordingly.
+Cycle routes are becoming increasingly important and in 
+some parts of Europe it is possible for an inexperienced cyclist 
+or child to access the centre of a city in complete safety, 
+100 SITE ANALYSIS ESSENTIALS: AN ARCHITECT’S 
+GUIDE 
+DOI: 10.4324/9781003485988-3ROUTES 101
+segregated from the main vehicular traffic routes. Understanding 
+existing and proposed routes allows you to consider how 
+accessible your site is.
+Pedestrian
+Exploring a city on foot provides a different perspective and 
+pace. Looking at the routes around or through the site allows 
+you to consider the human scale. Where are people coming from 
+and how might your proposal benefit from what is happening 
+around the site? Pedestrian access to the site can be a 
+determining factor in your design strategy and feasibility. In some 
+cases, there may be a public right of way across the site or an 
+opportunity to create a new link.
+Transport
+How well the site is served by public transport and what form 
+this takes can be important. Depending on the function of the 
+proposal, the use of public transport may be important to allow 
+stakeholders to use the facility. Bus stops and metro or train 
+stations can make the site more accessible and therefore more 
+sustainable. For certain projects, the proximity of airports or 
+other major transport hubs can be critical. Different areas will 
+have different transport services and sometimes it is important 
+to pick up on the availability and frequency of these services.
+Timeframe
+When assessing how the existing routes work, it is important to 
+consider how busy they are at different times of the day, month 
+or year. Certain roads are very busy at rush hour and some 
+pedestrian routes linking, say, a university campus to the city 
+centre, may become very quiet during the holidays.
+Movement
+Exploring the intensity of use allows you to establish the 
+significance of certain routes, and this may be important in some 
+commercial situations where the footfall can be a major factor in 
+establishing viability.102
+TIP 43
+ROUTES
+VEHICULAR
+ESTABLISH THE HIERARCHY OF ROUTES AFFECTING 
+YOUR SITE.
+What you can see
+The city of Ipswich has a perimeter ring road. Within the town 
+there are then principal routes and minor roads serving the 
+local areas.
+What does this mean?
+Within every city there is a hierarchy of roads from busy urban 
+expressways to quiet backstreets. The urban grain is often 
+affected by serving the needs of vehicular traffic and this 
+can sometimes be to the detriment of the city. Nevertheless, 
+how an area is served is important in order to establish its 
+development potential.
+How might it affect your proposal?
+Understanding the way in which the roads work allows you to 
+put your site in context. If it is on a major route it will be well 
+served and accessible. Smaller streets can be difficult for large 
+vehicles to negotiate and also less easy to find if your customers 
+are coming by car.
+Tip links with 27, 40, 44, 45 and 51.
+100 SITE ANALYSIS ESSENTIALS: AN ARCHITECT’S GUIDE ROUTES 103
+ Primary roads
+ Secondary roads
+ Minor roads104
+TIP 44
+ROUTES
+VEHICULAR
+IDENTIFY BUS AND CYCLE ROUTES.
+What you can see
+Chester has a network of cycle routes using old railway lines 
+and canal towpaths. Buses are excluded from the main four 
+pedestrianised streets of the historic centre.
+What does this mean?
+Discouraging car use has required designated bus lanes and 
+cycle ways that provide safe routes right into the centre of the 
+city as well as a sustainable transport network.
+How might it affect your proposal?
+Pedestrianised areas can place restrictions on the operation 
+and service of sites within the city. Carrying out construction 
+activities can be especially difficult with deliveries only possible 
+at certain times. Being aware of the transport infrastructure will 
+allow you to grasp the opportunities. If cycling is a major thing, 
+then providing space for bikes to be parked can be important. 
+In certain circumstances, what appears to be a backwater can 
+actually have great commercial potential due to the volume of 
+cyclists and pedestrians.
+Tip links with 27, 40, 43, 48, 49 and 51.
+100 SITE ANALYSIS ESSENTIALS: AN ARCHITECT’S GUIDE ROUTES 105
+ Cycle routes
+ Shared routes
+ Bus routes
+ Bus terminal106
+TIP 45
+ROUTES
+PEDESTRIAN
+EXPERIENCE THE CITY BY WALKING.
+What you can see
+A schematic plan of Rome showing the main tourist sites, 
+walking routes and metro stations.
+What does this mean?
+You can draw and represent cities in a variety of ways to show 
+different situations or events. It is useful to know how a city is 
+traversed and experienced – especially along the main roads and 
+routes. You can add additional layers, such as public transport 
+hubs and connections, to begin to understand how the city is 
+used and experienced.
+How might it affect your proposal?
+Think about how you can represent your site and the 
+surroundings in a diagrammatic way. You can create alternative 
+maps that are not figurative or to scale. Through the diagram, 
+you can depict complex ideas through simple means and remove 
+all unnecessary information to stress a single idea with clarity.
+Tip links with 48, 49 and 53.
+100 SITE ANALYSIS ESSENTIALS: AN ARCHITECT’S GUIDE ROUTES 107
+Vatican
+Pantheon
+Borghese
+Gallery
+Trevi Spanish Steps
+Fountain
+Colosseum
+Campo
+Di Fiori
+Trastevere
+Skyline108
+TIP 46
+ROUTES
+PEDESTRIAN
+EXPLORE THE ALTERNATIVE ROUTES.
+What you can see
+A canal and towpath that cuts through central Manchester, it is 
+flanked with trees and industrial heritage buildings and leads to 
+an old wharf.
+What does this mean?
+City maps are often produced with road and rail transportation 
+in mind; it is these things that have often determined the layout 
+of our cities. However, there may be other lesser-known routes 
+and pathways through the city. Here are some paths from the 
+city’s industrial heritage that now form a walking and cycle route 
+through the city.
+How might it affect your proposal?
+Look out for these often hidden paths through the city, as 
+they can provide rare spaces of tranquility as well as effective 
+connections and spaces for walking, leisure and wildlife. How 
+might you integrate such spaces within your own work and how 
+can we ensure all parts of the city contribute to better urban 
+realms with accessible transport options?
+Tip links with 26, 67 and 74.
+100 SITE ANALYSIS ESSENTIALS: AN ARCHITECT’S GUIDE ROUTES 109110
+TIP 47
+ROUTES
+PEDESTRIAN
+EXPLORE PATHWAYS BASED ON DESIRE LINES.
+What you can see
+On the left is a prescribed footpath with hard surfacing and on 
+the right is a track made by people taking the shortest, or more 
+desirable, route instead.
+What does this mean?
+Despite the best intentions of designers and planners, people 
+will not always follow the paths and routes that are set out for 
+them. If there is a ‘better’ or more useful route then people will 
+tend to carve out a new pathway. Once that route becomes 
+established and forms a new path it will always be used. The 
+illustration shows that even a relatively small saving in time will 
+still be preferred.
+How might it affect your proposal?
+When laying out a large campus, parkway or landscape, try 
+to predict the most direct, shortest routes between the key 
+destinations and lay a path along that route. Alternatively (and 
+this is not always possible) wait for the ‘desire lines’ to become 
+established and then install the hard paving and landscaping 
+to suit.
+Tip links with 35, 55 and 92.
+100 SITE ANALYSIS ESSENTIALS: AN ARCHITECT’S GUIDE ROUTES 111112
+TIP 48
+ROUTES
+TRANSPORT
+CONSIDER THE BIGGER PICTURE OF TRANSPORT 
+INFRASTRUCTURE AND ACCESSIBILITY.
+What you can see
+The city of Liverpool has canal, train, bus and ferry links, as well 
+as an airport.
+What does this mean?
+The radial pattern of roads is particularly pronounced and 
+provides good links for buses and cars across the city. The train 
+lines tend to follow the estuary as well as providing links inland. 
+The airport is not actually connected to the train infrastructure 
+and requires a bus link.
+How might it affect your proposal?
+How well your site is connected to other parts of the city, and 
+also to the wider geographical area, will make a difference to 
+how accessible it is to different groups of people. The viability of 
+your proposal may be affected by how easily it is serviced or, if 
+it is a major attraction or sports venue, how many thousands of 
+people can visit it within 30 minutes of their home.
+Tip links with 40, 43, 44, 45, 49 and 50.
+100 SITE ANALYSIS ESSENTIALS: AN ARCHITECT’S GUIDE ROUTES 113
+ Road
+ Rail
+ Ferry
+ Canal114
+TIP 49
+ROUTES
+TRANSPORT
+EXPLORE HOW WELL YOUR SITE IS SERVED BY 
+TRANSPORT TERMINALS AND BUS STOPS.
+What you can see
+This map of York shows the location of bus stops, the bus 
+terminal and rail stations. The location of the main hospital and 
+medical centre are shown in yellow.
+What does this mean?
+Accessing healthcare facilities using public transport is 
+important for patients, staff and visitors. In York they are well 
+served with rail stations and bus stops nearby.
+How might it affect your proposal?
+When considering the viability of a proposal, proximity of public 
+transport is important, not only from a viability point of view 
+but also in terms of sustainability. Facilities, such as sports and 
+leisure arenas, as well as workplaces, need to be accessible 
+without requiring a car. Very occasionally a new station is 
+provided to support a new development, but this is expensive 
+and only a major initiative would warrant this sort of investment.
+Tip links with 34, 40, 43, 44, 45, 46, 48, 51 and 52.
+100 SITE ANALYSIS ESSENTIALS: AN ARCHITECT’S GUIDE ROUTES 115
+ Healthcare facility
+ Bus stop
+ Bus terminal
+ Rail station116
+TIP 50
+ROUTES
+TRANSPORT
+HOW WELL IS THE SITE CONNECTED NATIONALLY?
+What you can see
+A map showing the motorway networks and major airports 
+within England.
+What does this mean?
+Different parts of the country are connected through a variety 
+of infrastructure and transportation networks that impact 
+commercial decisions, distribution systems and regional 
+economic patterns.
+How might it affect your proposal?
+Whilst most analysis is undertaken at a local level, it can be 
+useful to switch scales and consider a regional, or even national, 
+position. Consider how your site is connected to a much larger 
+system of infrastructure. How do these networks of rail, road, 
+flight paths and docks impact the place you are designing for, 
+and how might this connectivity shape your clients’ decision to 
+invest and build in that area?
+Tip links with 12 and 25.
+100 SITE ANALYSIS ESSENTIALS: AN ARCHITECT’S GUIDE ROUTES 117118
+TIP 51
+ROUTES
+TIMEFRAME
+CONSIDER HOW SPECIAL EVENTS IMPACT THE CITY.
+What you can see
+The Chester races are a popular event and many of the 
+attendees arrive at the rail station and then walk across the city. 
+In the evening the reverse journey takes place, with more of a 
+party atmosphere.
+What does this mean?
+Chester is a very different place on race days, much busier with 
+all the shops, bars and restaurants full to capacity. Other cities 
+may have other facilities generating large crowds, such as sports 
+stadiums or event arenas.
+How might it affect your proposal?
+Special events, festivals and major performances can be a 
+challenge for a city but also a great opportunity. If your site 
+is close to the main route leading to the venue there will be 
+potential to develop the design in such a way to be able to 
+cope with both quiet days and busy times. Allowing flexibility of 
+function can avoid facilities being underused for large parts of 
+the year. In some circumstances the risks associated with large 
+numbers of people has to be managed and this can impact on 
+infrastructure and the design of the townscape.
+Tip links with 8, 12, 40, 44, 45, 52, 71 and 82.
+100 SITE ANALYSIS ESSENTIALS: AN ARCHITECT’S GUIDE ROUTES 119120
+TIP 52
+ROUTES
+TIMEFRAME
+REVIEW HOW INTENSITY OF USE VARIES OVER 
+TIME.
+What you can see
+The Knowledge Quarter of Liverpool is linked to the city centre 
+via two roads: Mount Pleasant and Brownlow Hill. The main rail 
+station is also shown in red.
+What does this mean?
+During termtime these routes are busy with students and the 
+shops and cafes do good business. During the summer break 
+things quieten down considerably.
+How might it affect your proposal?
+Seasonal differences can make a big difference to the viability 
+of businesses and other facilities. The Christmas period can be 
+brilliant for pop-up markets and bars that are not sustainable at 
+other times. Some towns rely on holiday trade but are quiet at 
+other times. Considering the broader picture over a 12-month 
+period can sometimes be useful.
+Tip links with 6, 14, 50, 71 and 79.
+100 SITE ANALYSIS ESSENTIALS: AN ARCHITECT’S GUIDE ROUTES 121122
+CASE STUDY 3
+MERCER WALK
+RITCHIE STUDIO
+What you can see
+This mixed-use development is in the heart of London’s Covent 
+Garden, a sensitive conservation area. The client was interested 
+in long-term sustainability and economic viability, so quality 
+was important.
+What does this mean?
+The scheme transformed a group of old warehouse buildings 
+and cluttered service yards to create a completely new public 
+realm space. A new pedestrian route links Mercer Street and 
+Langley Street to form a new piazza at the heart of this formally 
+inaccessible site. Mercer Walk uses a new architectural language 
+that picks up on the existing, creating new spaces with similar 
+proportions and human scale to that of the surrounding area.
+What the architect says
+You need to understand the adjoining streets and the historical 
+fabric; take a snapshot from above and consider what the public 
+room is like. Look at massing and how openings are articulated 
+in the elevations. Consider the building’s orientation in relation 
+to the rising and falling of the sun. What space can be created? 
+What are the benefits of the routes created? It’s important to 
+make them work and to communicate the ideas in a way that 
+can be understood by both the client and the public.
+100 SITE ANALYSIS ESSENTIALS: AN ARCHITECT’S GUIDE ROUTES 123
+Before
+After124
+CHAPTER 4
+ENVIRONMENT
+The term ‘Environment’ covers climate as well as topographical 
+features and townscape. The microclimate of your site may be 
+the starting point for a sustainable proposal and being aware of 
+the localised effects of sun, wind and rain should allow you to 
+work with the elements, rather than against them. When dealing 
+with live projects, a topographical or building survey is often the 
+starting point. Even when carrying out initial option appraisals, 
+some sort of accurate site plan with approximate levels is 
+required. Whether the site is in the city or a more rural location, 
+the physical environment within which it is located will have a 
+bearing on the proposals. Gathering the information, so that it is 
+readily available during the design process, will allow you to be 
+reminded of the key design influences.
+Climate
+Climate data and the ‘yellow banana diagram’, indicating the 
+sun’s movement across the site, is often used. Wind rose charts 
+are also popular, showing the direction and frequency of the 
+wind distribution for an area. However, the data gathered is only 
+useful if it provides information that is relevant to the specific 
+site location and will make a difference to the design proposal.
+100 SITE ANALYSIS ESSENTIALS: AN ARCHITECT’S GUIDE 
+DOI: 10.4324/9781003485988-4ENvIRONMENT 125
+It is now relatively easy to set up a ‘Sketch Up’ model and show 
+how shadows are cast across a site at different times of the day 
+or year. Alternatively, a physical site model can be tested using a 
+heliodon – or simply replicating altitude and azimuth with a torch.
+Wind direction is affected by local features, so that winds tend 
+to flow along valleys or estuaries rather than across them. Being 
+aware of extreme weather in exposed locations is important as it 
+will affect the design proposals.
+Data on rainfall, temperature range and humidity are readily 
+accessible, but the way these events occur at extreme times 
+needs to be considered, since one of the issues associated with 
+climate change is an increase in extremes.
+Topographical
+Having information about the size of the site, the levels and 
+any important features is an essential starting point for any 
+design proposal. The accuracy of the information should tally 
+with the level of design detail being considered. Even relatively 
+flat sites can have falls across them, and these can make a big 
+difference to access and floor levels. Also take note of gradients, 
+ramps or steps. Ground conditions, substructure services and 
+contamination are all important considerations with a live project 
+but may be less so with theoretical college projects. When 
+dealing with existing buildings, an accurate and detailed survey is 
+essential, especially when proposals become more detailed.
+Natural features
+Whether the site is located in the city or a more rural location, 
+the existing landscape and natural features may influence your 
+design proposals. Existing trees can have an impact on what 
+might be possible in terms of siting your project and wildlife 
+habitats can also be a major constraint. For a live project, 
+surveys of newts, bats and other mammals can be necessary. 
+A site near a river may be affected by flooding and issues 
+associated with water run-off and erosion can be important 
+considerations. The biodiversity of a site can sometimes be a 
+major factor to be considered.126
+Man-made features
+The environment may be affected by man-made features and 
+the townscape might include unusual ground surface materials, 
+bollards, railings and other street furniture. The modern era has 
+introduced less attractive equipment into towns and features 
+such as power lines, telephone masts, satellite disks and solar 
+panels, which can be intrusive features.
+The quality of artificial light can influence the character of a 
+space at night and be a barrier to ‘dark skies’ in rural areas. The 
+same is true of sound pollution and an awareness of nearby 
+transport routes or manufacturing facilities may be significant 
+depending on the proposal. Air quality is also important, as well 
+as an awareness of unpleasant odours as a result of natural or 
+man-made processes.
+Timeframe
+When considering the climate, as well as sound, light and 
+air pollution, it is necessary to note how things vary over 
+the seasons or over a typical day. For example, the noise 
+associated with clubs and music venues may only be evident 
+later in the evening and poor air quality may coincide with 
+particular climatic conditions or rush hours. Considering the 
+environmental conditions over a 24-hour period can be useful 
+and an awareness of the climate at different times of the year 
+is essential.
+Street hierarchies
+The quality of the urban environment is often determined by the 
+streets and the height of the buildings. This is perhaps most 
+pronounced in a medieval city, with narrow alleyways and high 
+buildings, but more modern cities like New York can also provide 
+an extraordinary experience. The extent to which these patterns 
+dictate the future proposals will depend upon the function, 
+and also the current regulations on space standards and 
+interface distances.
+100 SITE ANALYSIS ESSENTIALS: AN ARCHITECT’S GUIDE ENvIRONMENT 127
+Sustainability
+Sustainability can be assessed from many standpoints and each 
+site will have different requirements and opportunities. Social 
+and economic sustainability may be a big factor in assessing 
+the viability of the proposals in the context of the surrounding 
+area. The availability of natural resources locally may also affect 
+choices on construction materials.
+phenomenology
+Architecture is a spatial medium but it also has tangible 
+qualities – surfaces and textures – that the architect can use, 
+sculpt and curate. These qualities also change appearance in 
+different lighting conditions, at different times of the day and in 
+different seasons. These qualities in and around the site can be 
+observed, recorded and might inform your response as part of 
+the design proposal.
+Buildings also have acoustic qualities. The reverberation, 
+echoes and the relationship between volume and surface 
+materials can have a profound impact on how the space is used 
+and experienced.
+As designers we can both respond to these qualities and 
+seek to create them. We can also think beyond the five senses 
+and attempt to invoke memories, recall associations and 
+stir emotions.
+This approach to design requires the inclusion of stakeholders 
+who are involved with the project but perceive things in a 
+different way. Inclusivity and accessibility must be at the core of 
+what we produce.
+Whist statistics, maps and graphs can provide objective data, 
+visiting the site and reflecting upon how it makes you feel can be 
+important. Consider how ‘safe’ you feel on the site or when moving 
+through the surrounding areas. You might develop a creative 
+response to the site through a photographic montage, or perhaps 
+there is a particular photograph or artwork that encapsulates 
+the site in some way. Site analysis does not have to remain a 
+fact-based extraction of data; even your own maps and sketches 
+of the site can be fundamental in developing design ideas.128
+TIP 53
+ENVIRONMENT
+CLIMATE
+ASSESS SUN PATHS, SHADING AND DAYLIGHT.
+What you can see
+A sketch of Boston, Massachusetts and the shadows cast onto 
+Boston Commons.
+What does this mean?
+In Boston there is legislation to protect the Commons from 
+being overshadowed by the tall developments at the periphery 
+of the park. New construction, particularly large and tall 
+developments, can have a major impact on the sunlight/shading 
+on neighbouring structures and amenities.
+How might it affect your proposal?
+Consider the orientation of your design to benefit from direct 
+sunlight or to reduce the impact of solar gain and glare. 
+Shadow paths can also be plotted to analyse whether parts of 
+your site are in shade at certain times of the year. These can 
+equally demonstrate the impact your proposal might have on 
+neighbouring plots. Work with the solar and shadow paths to 
+enhance your design and to create comfortable, energy-efficient 
+solutions that respond to the light and shade.
+Tip links with 57 and 97.
+100 SITE ANALYSIS ESSENTIALS: AN ARCHITECT’S GUIDE ENvIRONMENT 129130
+TIP 54
+ENVIRONMENT
+CLIMATE
+ESTABLISH THE LOCAL WIND PATHS AND 
+PREVAILING WINDS.
+What you can see
+A dominant wind direction flowing across the site.
+What does this mean?
+The wind direction can impact on the use and enjoyment of a 
+site – especially in cities with large buildings, coastal areas and 
+exposed sites.
+How might it affect your proposal?
+Identify the dominant wind direction and whether there is 
+potential to provide windbreaks through planting, hedges, 
+trees and landscaping to improve the comfort for building 
+users. An exposed site may also require different construction 
+specifications to mitigate storm damage and extreme winds. In 
+city contexts, tall buildings may generate strong wind tunnels 
+with intense gusts of wind. Mitigate against these with your 
+design, especially at the entrances and any exposed outside 
+areas such as roof terraces and balconies.
+Tip links with 55.
+100 SITE ANALYSIS ESSENTIALS: AN ARCHITECT’S GUIDE ENvIRONMENT 131132
+TIP 55
+ENVIRONMENT
+CLIMATE
+CONSIDER HOW THE MICROCLIMATE AFFECTS THE 
+SITE.
+What you can see
+Sun, wind and rain contribute to create a particular microclimate 
+for a site dependent upon its location, orientation and section.
+What does this mean?
+All buildings must be designed for their local climate to keep 
+the building occupants comfortable. Whilst broad climatic 
+data is readily available, each site will have its own particular 
+microclimate that must be considered.
+How might it affect your proposal?
+A microclimate may not conform to the broader averages 
+and typical climate statistics. Mountainous and hillside sites, 
+coastal peninsulas, valleys and plains all express very particular 
+conditions – these are opportunities for your design to exploit 
+the specific site attributes and to ensure your design is carefully 
+adapted to its plot.
+Tip links with 56.
+100 SITE ANALYSIS ESSENTIALS: AN ARCHITECT’S GUIDE ENvIRONMENT 133
+Wind Speeds
+ 1.8 m/s sitting for long periods
+ 3.6 m/s sitting for short periods
+ 5.3 m/s leisurely walking
+ 7.5 m/s walking fast
+ 7.6 m/s uncomfortable134
+TIP 56
+ENVIRONMENT
+CLIMATE
+CONSIDER IF TIDAL PATTERNS OR RISING SEA 
+LEVELS HAVE AN IMPACT ON YOUR SITE.
+What you can see
+The island of Lindisfarne, off the Northumbrian coast, is a 
+popular destination for pilgrims and tourists. There is a small 
+village on the island with a public house. The island is cut off 
+from the mainland by the tide twice a day.
+What does this mean?
+The people who live and work on the island need to consider the 
+tidal patterns if they want to journey to the mainland and there 
+tend to be fewer tourists on the island when the tide is in.
+How might it affect your proposal?
+This is a rather extreme example of the influence of the tides 
+on people’s everyday lives. However, there are many coastal 
+areas, including estuaries, where the tidal patterns make a 
+big difference to the appearance and functionality of the site. 
+Issues such as rising sea levels and coastal erosion can also be 
+important considerations when assessing longer term strategies.
+Tip links with 57, 62 and 63.
+100 SITE ANALYSIS ESSENTIALS: AN ARCHITECT’S GUIDE ENvIRONMENT 135
+Lindisfarne Castle
+High tide
+Low tide136
+TIP 57
+ENVIRONMENT
+TOPOGRAPHICAL
+SURVEY SITE LEVELS AND FEATURES.
+What you can see
+This area has four different interconnecting transport 
+infrastructures vertically adjacent to each other just outside the 
+medieval city walls but within the conservation area.
+What does this mean?
+These various structures place considerable constraints on the 
+development potential of the adjoining sites. Any proposal would 
+require not only accurate physical surveys, but also checks on 
+any legal and legislative constraints placed on proposals, as 
+well as an assessment of the structural implications. Careful 
+coordination and phasing of construction would also be required.
+How might it affect your proposal?
+This site provides an exciting opportunity for the designer 
+and the possibility to link the various levels in some way. 
+Connections to infrastructure and circulation networks do not 
+just exist at ground-floor level. Consider sectional studies to 
+investigate below and above the site level in order to fully exploit 
+the opportunities.
+Tip links with 58, 61, 87 and 88.
+100 SITE ANALYSIS ESSENTIALS: AN ARCHITECT’S GUIDE ENvIRONMENT 137
+View across railway, canal and elevated road
+25.00m
+19.50m
+14.00m
+8.50m
+Sectional elevation along the railway line138
+TIP 58
+ENVIRONMENT
+TOPOGRAPHICAL
+DETERMINE THE SITE BOUNDARY – IT IS NOT 
+ALWAYS CLEARLY DEFINED.
+What you can see
+These fields on the outskirts of Willaston in Cheshire West 
+have potential to be developed for housing. However, the actual 
+boundaries are formed of shrubs and trees and are difficult 
+to define.
+What does this mean?
+The fields are in multiple ownerships, as is the land around 
+the development area. Each landowner is likely to want a 
+fair remuneration for use of their land and this tends to be 
+proportional to the site area.
+How might it affect your proposal?
+Defining the site boundary can be critical to whether a 
+proposition will work or not. It may affect the number of 
+dwellings that can be accommodated, for example. Moving 
+forward on a false premise is likely to cause problems later 
+on. Sometimes boundaries are recorded in the deeds of the 
+property but often the ‘red line’ indicated on the legal document 
+or land registry is difficult to determine on site and this can lead 
+to disputes.
+Tip links with 3, 59, 62, 63, 67, 87 and 88.
+100 SITE ANALYSIS ESSENTIALS: AN ARCHITECT’S GUIDE ENvIRONMENT 139140
+TIP 59
+ENVIRONMENT
+TOPOGRAPHICAL
+INVESTIGATE THE GROUND CONDITIONS.
+What you can see
+The top site plan shows a petrol filling station. The site has 
+subsequently been redeveloped as a three-storey apartment 
+building as shown in the lower drawing.
+What does this mean?
+Sometimes it is difficult to tell how a site was previously 
+used without careful research. After the filling station closed 
+the buildings were demolished and the site lay dormant for 
+many years, possibly due to the high cost of dealing with 
+the contamination of the fuel tanks. These sites are known 
+as brownfield sites and may contain a variety of polluting 
+contaminants in the ground. Making a site suitable for housing 
+can be prohibitively expensive due to the excavation required 
+and ensuring any polluting material and gases do not enter the 
+new buildings.
+How might it affect your proposal?
+The development potential of a site can be finely balanced 
+financially. It is sometimes said that ‘all the risks are in the 
+ground’; contamination, poor ground conditions or hidden 
+basements can all have high associated cost. When dealing with 
+a live project a ground investigation is essential.
+Tip links with 1, 3, 39 and 58.
+100 SITE ANALYSIS ESSENTIALS: AN ARCHITECT’S GUIDE ENvIRONMENT 141
+2020
+1990142
+TIP 60
+ENVIRONMENT
+NATURAL FEATURES
+CELEBRATE THE NATURAL FEATURES.
+What you can see
+A sketch of Snowdonia in Wales with a valley and small 
+settlement below the mountains in the distance.
+What does this mean?
+The materials, climate, altitudes and features all have an impact 
+on how we approach design and respond to the place in which 
+we are working. Dramatic landscapes and vast terrains can 
+provide wonderful settings for our designs – but proposals must 
+be located with utmost care to both acknowledge the natural 
+landscape and defer to its far grander scale.
+How might it affect your proposal?
+Architects have a duty to respect the natural landscape and, 
+wherever possible, to leave it in a better state than how it was 
+found. Working with the landscape and topography, rather 
+than imposing a plan, is the bare minimum. By considering the 
+inclines, water flow, vistas, micro-climates, trees and wildlife you 
+can aim to complement the sites you work in and around.
+Tip links with 49, 60 and 64.
+100 SITE ANALYSIS ESSENTIALS: AN ARCHITECT’S GUIDE ENvIRONMENT 143144
+TIP 61
+ENVIRONMENT
+NATURAL FEATURES
+CONSIDER THE ROOTS AND CROWN OF ALL TREES 
+WITHIN THE SITE.
+What you can see
+A sketch of a tree showing the extensive root network and 
+recommendation that properties are at least the equivalent 
+distance to the tree’s height away from the tree.
+What does this mean?
+Large trees can cause shrinkage and swelling in clay soil 
+conditions, and this may damage a building’s foundations. 
+Chopping through a tree’s roots will also weaken the tree and 
+make it less stable in storms. Falling trees can be a danger to 
+life and property. Certain trees have Tree Preservation Orders, 
+which mean they must not be damaged or cut down.
+How might it affect your proposal?
+Trees provide shelter and shade and their environmental 
+benefits are essential to human life. Their root structure must 
+be protected, rather than erased or damaged. Planting trees 
+and using their ability to provide shade, create vistas, block 
+unsightly elements, provide fruit and encourage biodiversity and 
+pollinators can enhance nearly every project.
+Tip links with 4, 57 and 65.
+100 SITE ANALYSIS ESSENTIALS: AN ARCHITECT’S GUIDE ENvIRONMENT 145146
+TIP 62
+ENVIRONMENT
+NATURAL FEATURES
+CONDUCT AN ENVIRONMENTAL ASSESSMENT OF 
+NATURAL HABITATS.
+What you can see
+Bats, newts and badgers are just some of our wildlife with 
+protected status.
+What does this mean?
+Certain animals and trees have legal protection and must not be 
+disturbed, nor their habitats destroyed by construction projects. 
+There are strict rules and severe penalties to ensure vulnerable 
+and important species are protected. Certain places are also 
+labelled sites of special scientific interest, and others may be 
+deemed ‘green belt’ or agricultural use only to limit and control 
+where development may take place. Larger projects should have 
+a specialist ecological survey conducted to ensure any protected 
+species can be identified and protected, as well as to examine 
+the impact on the wider ecology of the site.
+How might it affect your proposal?
+All construction has an environmental and ecological impact, but 
+particular care must be given not to disturb rare and protected 
+species. Rewilding and rehabilitation of former industrial sites 
+into parkland and wildlife habitats is increasingly important and 
+necessary. Whilst your site and remit may be limited, there is 
+scope to lobby and engage with these issues.
+Tip links with 35, 62 and 68.
+100 SITE ANALYSIS ESSENTIALS: AN ARCHITECT’S GUIDE ENvIRONMENT 147148
+TIP 63
+ENVIRONMENT
+NATURAL FEATURES
+CHECK FLOOD RISK DATA, ESPECIALLY IN LOW￾LYING LOCATIONS.
+What you can see
+This map of York shows zones where there is a 1 in 25 and a 1 in 
+100 annual likelihood of flooding. As you can see, large areas of 
+the city are affected.
+What does this mean?
+There are strict policies laid down for any developments in 
+the flood zone and owners of existing buildings will have 
+contingencies in place to deal with potential floods. National 
+agencies have strategic plans to address and avert issues of 
+flooding. However, in some cases it is not possible to prevent 
+flooding and the impact has to be managed.
+How might it affect your proposal?
+Examples from around the world show many ingenious methods 
+of dealing with flood risk. In some cases, a sacrificial zone will 
+allow for occasional floods by putting utility accommodation on 
+the ground floor. In the Netherlands, housing that ‘floats’ allows 
+the accommodation to overcome the problem. In other areas, 
+housing and linking walkways are placed on ‘stilts’ to lift the 
+accommodation above the flood level.
+Tip links with 56, 57, 61, 87 and 88.
+100 SITE ANALYSIS ESSENTIALS: AN ARCHITECT’S GUIDE ENvIRONMENT 149
+ Normal river level
+ 1 in 25 annual probability of flooding
+ 1 in 100 annual probability of flooding150
+TIP 64
+ENVIRONMENT
+NATURAL FEATURES
+EXPLORE THE BACKSTORY OF ANY FORMAL 
+LANDSCAPES.
+What you can see
+This is the ‘Roman Garden’, a part of the Victorian Grosvenor 
+Park in Chester. This section was laid out in 1949 to display 
+fragments from the Roman legionary fortress.
+What does this mean?
+This is a rather unusual example of a formally laid out landscape, 
+and one that provides a place for visitors to sit and ponder the 
+antiquities. The medieval wall, which forms the eastern boundary 
+of the old city, provides shelter and creates its own microclimate 
+as the sun heats it up during the morning. The garden provides a 
+pedestrian route to the river and is popular with tourists.
+How might it affect your proposal?
+Working within a site that already has a formal landscape allows 
+you to explore the existing design strategy and consider how 
+this might affect your proposals. You may feel you can improve 
+or completely change what is there. An analysis of the site and 
+its history should be the starting point and allow you to justify 
+your scheme in an objective way.
+Tip links with 1, 20, 26, 28, 47, 60 and 65.
+100 SITE ANALYSIS ESSENTIALS: AN ARCHITECT’S GUIDE ENvIRONMENT 151152
+TIP 65
+ENVIRONMENT
+MAN-MADE FEATURES
+CONSIDER THE EXISTING STREETSCAPE.
+What you can see
+The Town Hall Square in Chester provides a civic space for 
+various events throughout the year.
+What does this mean?
+Civic space is important and having a flexible gathering space 
+in our towns and cities is essential for building community and 
+providing a place for celebrations, protests, special events, 
+Christmas fairs and summer festivals. The way in which the 
+square is laid out also provides places for visitors to relax.
+How might it affect your proposal?
+Street furniture, ground materials and civic paraphernalia 
+contribute to the special character of civic spaces. Sometimes, 
+for example in docklands areas, the objects can be of historic 
+interest and tell the story of the place. Being aware of what 
+is around the site and how it works allows you to put your 
+proposals in context and consider what objects and finishes are 
+important and what might be changed.
+Tip links with 1, 20, 26, 28, 47, 64, 66, 92 and 95.
+100 SITE ANALYSIS ESSENTIALS: AN ARCHITECT’S GUIDE ENvIRONMENT 153154
+TIP 66
+ENVIRONMENT
+MAN-MADE FEATURES
+HOW DOES STREET FURNITURE IMPACT ON THE 
+SITE?
+What you can see
+A sketch of fixed and temporary street furniture, including 
+planting and solar shading.
+What does this mean?
+Our streets and public spaces need to be carefully designed 
+and planned with appropriate gathering spaces and resting 
+spots. The furniture enables streets and squares to be used and 
+enjoyed throughout the day as gathering spaces, rather than just 
+as thoroughfares.
+How might it affect your proposal?
+Think about how you can design the streets, public realm and 
+outside spaces so that they are enjoyable and add value to the 
+cityscape. Rather than using bollards, railings or other defensive 
+solutions to control behaviour, consider how planting, material 
+changes and furniture can be deployed instead. Providing places 
+for people to gather adds value to a site, offers informal security 
+and a sense of wellbeing, as well as providing opportunities to 
+introduce greenery and wildlife habitats.
+Tip links with 47, 64, 65, 67 and 72.
+100 SITE ANALYSIS ESSENTIALS: AN ARCHITECT’S GUIDE ENvIRONMENT 155156
+TIP 67
+ENVIRONMENT
+MAN-MADE FEATURES
+CONSIDER THE IMPACT OF TELECOMMUNICATIONS, 
+MASTS AND SATELLITE DISHES ON YOUR SITE.
+What you can see
+A telephone mast and street lamp with some uncoordinated 
+cables and wires.
+What does this mean?
+All cities and buildings rely on an array of services and 
+infrastructure, some of which is carried on masts or fixed to 
+buildings, such as telecommunication wires and electricity. It can 
+become intrusive and add a sense of ‘clutter’ to our streetscapes 
+and façades.
+How might it affect your proposal?
+Whilst the installation of services and infrastructure may be 
+beyond the scope and reach of some projects, whenever 
+possible coordinate these essential services so that they are 
+appropriately sited, preferably hidden from view, and easily 
+accessible for future maintenance and servicing.
+Tip links with 68.
+100 SITE ANALYSIS ESSENTIALS: AN ARCHITECT’S GUIDE ENvIRONMENT 157158
+TIP 68
+ENVIRONMENT
+MAN-MADE FEATURES
+CONSIDER THE IMPACT OF ARTIFICIAL LIGHTING.
+What you can see
+The Wellington Arch in London lit up at night.
+What does this mean?
+Using artificial lighting can dramatically enhance a building at 
+night. Certain objects, such as the archway shown here, are 
+singled out as celebrated jewels within the cityscape. More 
+discreet and subtle lighting solutions may be more appropriate in 
+other contexts.
+How might it affect your proposal?
+Think about how your scheme will look at night-time. Can it be 
+enhanced through some celebratory lighting that accentuates its 
+features and draws attention to it? Other proposals might benefit 
+from more subtle or utilitarian lighting. Beware of increasing light 
+pollution or causing a nuisance to neighbours through insensitive 
+lighting. Also consider how the light fittings look during daylight 
+hours. They should be unobtrusive and mounted with care to not 
+detract from the main façade.
+Tip links with 67.
+100 SITE ANALYSIS ESSENTIALS: AN ARCHITECT’S GUIDE ENvIRONMENT 159160
+TIP 69
+ENVIRONMENT
+MAN-MADE FEATURES
+IS YOUR SITE IMPACTED BY NOISE?
+What you can see
+The Department for Environment, Food and Rural Affairs 
+commissioned a study on noise pollution and air quality. 
+Here you can see the noise levels at the intersection of two 
+motorways, the M1 and M62 near Leeds.
+What does this mean?
+The noise level along the motorway exceeds 75 decibels and 
+has a major impact on the surrounding areas. The noise pollution 
+level in the areas within the dashed lines are unacceptably high.
+How might it affect your proposal?
+There are many noise and air quality studies available online 
+that you can consult for your own site. Ensure you are aware of 
+noise problems and any other potential issues for your site. The 
+noise pollution may be seasonal or diurnal. Orientation, building 
+specification and being aware of vibrations and noise transfer 
+through the fabric of the building should also be considered.
+Tip links with 61, 62 and 74.
+100 SITE ANALYSIS ESSENTIALS: AN ARCHITECT’S GUIDE ENvIRONMENT 161
+ 75+ decibels
+ 70–75 decibels
+ 65–69 decibels
+ 60–65 decibels162
+TIP 70
+ENVIRONMENT
+TIMEFRAME
+INVESTIGATE HOW THE SITE USE VARIES OVER 
+24 HOURS.
+What you can see
+This is the Ropewalks area of Liverpool and the heart of the club 
+and bar area of the city (shown in blue).
+What does this mean?
+During the daytime these streets are relatively quiet, with the 
+exception of Bold Street on the right-hand side of the map, 
+which also has shops and restaurants. In the evening and early 
+hours of the morning the area is buzzing with activity as people 
+enjoy the nightlife, music and vibrancy of the district.
+How might it affect your proposal?
+Understanding how areas of the city are used over a 24-hour 
+period is important. Some of these streets can be quite noisy 
+late at night and although there are some flats in the area, it 
+would not be the obvious choice for residential use for families.
+Tip links with 38, 51, 52 and 71.
+100 SITE ANALYSIS ESSENTIALS: AN ARCHITECT’S GUIDE ENvIRONMENT 163164
+TIP 71
+ENVIRONMENT
+TIMEFRAME
+EXPLORE HOW SITE USE CHANGES OVER THE 
+COURSE OF A YEAR.
+What you can see
+The Edinburgh International Festival is a major cultural event that 
+occurs in August each year, with this map showing the location 
+of some of the performance venues.
+What does this mean?
+The influx of thousands of visitors makes the city into a very 
+different place with all the cafes, bars and restaurants at full 
+capacity and many residents moving out, renting their homes 
+to visitors.
+How might it affect your proposal?
+Being aware of how a city changes throughout the year allows 
+you to put into perspective the different modes of use. You may 
+happen to visit on a day when it is quiet and form a particular 
+impression. Looking into the festivals and events that occur, 
+as well as the Christmas shopping period, can turn up a very 
+different picture.
+Tip links with 51, 52 and 70.
+100 SITE ANALYSIS ESSENTIALS: AN ARCHITECT’S GUIDE ENvIRONMENT 165166
+TIP 72
+ENVIRONMENT
+STREET HIERARCHIES
+CONSIDER THE PROPORTION OF PAVEMENT TO 
+ROAD.
+What you can see
+The Embankment, running along the north bank of the River 
+Thames in central London, where there are designated zones for 
+pedestrians and different types of transport.
+What does this mean?
+London, like many cities, has embraced cycling as a sustainable 
+and convenient way of getting around the city. The Embankment 
+is a major thoroughfare; segregating traffic allows safe routes 
+for travel as well as creating pleasant places to sit and enjoy 
+the view.
+How might it affect your proposal?
+Thinking about the public realm and how it works in the area 
+around your site means that your proposals can be put in 
+context. It may even be that you are recommending a new 
+way of using existing streets, squares and parks, either by 
+segregation or by using some sort of ‘shared platform’, where all 
+types of traffic have to take equal care. Opportunities for street 
+cafes may also be affected.
+Tip links with 27, 29, 40 and 73.
+100 SITE ANALYSIS ESSENTIALS: AN ARCHITECT’S GUIDE ENvIRONMENT 167168
+TIP 73
+ENVIRONMENT
+STREET HIERARCHIES
+CONSIDER THE STREET’S HEIGHT TO WIDTH RATIO.
+What you can see
+Mercer Street off Seven Dials in the Covent Garden area 
+of London; a narrow street originally providing access 
+to workshops.
+What does this mean?
+The Seven Dials area of Covent Garden has a colourful 
+history. Originally laid out by Thomas Neale to maximise 
+the development potential and rental, the buildings were 
+subsequently used for workshops and warehouses. It also forms 
+one of the boundaries of the Mercer Walk scheme (referred to in 
+Case Study 3).
+How might it affect your proposal?
+Being aware of the proportions of streets by looking up and 
+exploring the section provides an extra dimension to your site 
+analysis. Whether it is a wide boulevard or narrow back street 
+makes a difference to your intervention and affects how the 
+scheme can be viewed.
+Tip links with 2, 3, 26, 29 and 72.
+100 SITE ANALYSIS ESSENTIALS: AN ARCHITECT’S GUIDE ENvIRONMENT 169170
+TIP 74
+ENVIRONMENT
+SUSTAINABILITY
+EXPLORE OPPORTUNITIES TO UTILISE THE SITE’S 
+RESOURCES.
+What you can see
+At the Centre for Alternative Technology in Powys, Wales, 
+there is a funicular used to transport visitors up the steep 
+embankment. Both carriages are connected via a cable 
+and operate using a small amount of energy by utilising the 
+counterbalance of the other carriage.
+What does this mean?
+Every aspect of the design process – contextual analysis, 
+movement of people and factors such as embodied energy – 
+must be considered at all stages of the design, construction, use 
+and re-use of the site.
+How might it affect your proposal?
+How might you utilise the site’s natural attributes to increase 
+sustainability and reduce carbon dependency? Researchers 
+at places like the Centre for Alternative Technology have been 
+grappling with these issues for decades, but the responsibility 
+now extends from the fringes of the built environment and is a 
+core responsibility for all designers.
+Tip links with 55, 77 and 79.
+100 SITE ANALYSIS ESSENTIALS: AN ARCHITECT’S GUIDE ENvIRONMENT 171172
+TIP 75
+ENVIRONMENT
+SUSTAINABILITY
+CONSIDER OPPORTUNITIES TO DEPLOY LOCAL 
+MATERIALS.
+What you can see
+A detail of St Alban’s Church in Norwich. Built in the inter-war 
+period, it utilises locally available stone – unknapped flints, set 
+within red-brick dressings.
+What does this mean?
+The materials used for this church are locally available and have 
+not had to travel very far from the place they were quarried 
+and burnt. Using local materials reduces the amount of energy 
+required to transport the materials to the site. It can also help 
+with creating a sense of place and adding local flavour.
+How might it affect your proposal?
+Reducing the carbon footprint of construction is essential 
+and this includes reducing the amount of energy required to 
+transport heavy and large building materials. Where possible, 
+aim to source materials and products that are produced close 
+to the site. Not only will this reduce the carbon produced during 
+the construction of the project, but it will also help to create a 
+regional design response. Local techniques, crafts and skills can 
+also be deployed to produce designs that reflect their locality 
+and community.
+Tip links with 20 and 77.
+100 SITE ANALYSIS ESSENTIALS: AN ARCHITECT’S GUIDE ENvIRONMENT 173174
+TIP 76
+ENVIRONMENT
+PHENOMENOLOGY
+EXPLORE OPPORTUNITIES TO CREATE THE SENSE 
+OF A JOURNEY.
+What you can see
+In the grounds of Fountains Abbey, North Yorkshire, are a series 
+of ‘eye-catcher’ follies. They lead the eye through the landscape 
+and give various focal points. En route to one of the follies, the 
+visitor encounters dramatic landscapes with trees and grottoes 
+and is finally rewarded with a view back over the landscape and 
+perhaps to another folly.
+What does this mean?
+Consider creating a series of ‘events’, ‘eye-catchers’, vistas and 
+views that entice the visitor through your project landscape.
+How might it affect your proposal?
+What special and unique qualities does your site have that could 
+be arranged into a journey or sequential experience for the 
+visitor to enjoy. Create your own architectural promenade. This 
+can also help with wayfinding and signposting.
+Tip links with 43, 91 and 92.
+100 SITE ANALYSIS ESSENTIALS: AN ARCHITECT’S GUIDE ENvIRONMENT 175176
+TIP 77
+ENVIRONMENT
+PHENOMENOLOGY
+CONSIDER THE POTENTIAL FOR AN 
+ARCHITECTURAL PROMENADE AND MYSTERY.
+What you can see
+A sketch of the Oratory temple in Liverpool, perched on top of a 
+small rocky outcrop. It sits above a former stone quarry, later a 
+garden and burial site.
+What does this mean?
+Moving through this space with its hidden views, tunnels and 
+almost subterranean landscapes invokes certain feelings and 
+responses from visitors. Our senses – especially those of sound 
+and touch – become heightened and we enjoy the shadows 
+and shifts in light. There is a sense of the sublime and attractive 
+decay in this space.
+How might it affect your proposal?
+Consider how you might use shadows, darkness and 
+anticipation. The sense of exploring, touching and hearing 
+can be immensely powerful. Not everything can be explained 
+or understood, we need to leave some room for mystery 
+and ambiguity.
+Tip links with 43, 100 and 102.
+100 SITE ANALYSIS ESSENTIALS: AN ARCHITECT’S GUIDE ENvIRONMENT 177178
+TIP 78
+ENVIRONMENT
+PHENOMENOLOGY
+BE AWARE OF HISTORICAL CONNOTATIONS.
+What you can see
+The Cestrian Book of the Dead provides a record of historical 
+sites of drownings on the Dee Estuary dating back to the early 
+1500s. The dotted line shows the line of the old ford between 
+England and Wales.
+What does this mean?
+The map reveals that the estuarine landscape was historically 
+a thriving social and cultural space for washing clothes, 
+grazing, bathing and leisure. However, due to the hazardous, 
+unpredictable nature of the terrain, many people died on the site.
+How might it affect your proposal?
+An awareness of the history and past uses of your site provide 
+perspective and depth to your appreciation of it. Whilst marshes 
+are a popular destination for walkers and birdwatchers who 
+come to enjoy the tranquil surroundings, this macabre story 
+shows that a deep and dark history may exist. What stories lie 
+beneath your site?
+Tip links with 1, 3, 4, 6, 8, 27, 76 and 77.
+100 SITE ANALYSIS ESSENTIALS: AN ARCHITECT’S GUIDE ENvIRONMENT 179
+Route across estuary at low tide
+ENGLAND
+WALES
+Flint
+Neston
+Burton
+Shotwick Route across estuary at low tide
+ENGLAND
+WALES
+Flint
+Neston
+Burton
+Shotwick180
+CASE STUDY 4
+AELTC COMMUNITY 
+TENNIS CENTRE
+LANGSTAFF DAY ARCHITECTS
+What you can see
+The tennis club in Raynes Park had a problematic site. It frequently 
+flooded and the sports pitches could not be used. Other factors 
+and constraints had to be considered, such as orientating the 
+tennis courts in the same direction as the Wimbledon courts for 
+effective practice; providing suitable drop-off and parking areas; 
+maximising views from the club house over the courts without 
+overshadowing; providing community-use pitches that could be 
+isolated from the tennis courts; providing discrete maintenance 
+facilities and also respecting the residential neighbourhood.
+What does this mean?
+This was a project with numerous demands and sometimes 
+contradictory requirements. The architects had to reconcile 
+these competing agendas, and they did this by first turning a 
+problem into an asset – flooding and drainage. By installing a 
+Sustainable Drainage System (SuDS) they developed a new 
+habitat for wildlife and worked with nature rather than against it. 
+They also salvaged drainage water for irrigation purposes.
+The clubhouse was relocated by the car park and drop-off 
+point to provide a welcoming entrance with extensive 
+views overlooking the courts rather than the neighbouring 
+residential gardens.
+What the architect says
+Constraints and problems can become important design 
+generators. By carefully studying the site along with the client 
+100 SITE ANALYSIS ESSENTIALS: AN ARCHITECT’S GUIDE ENvIRONMENT 181
+requirements we were able to reconcile the array of demands 
+and problems that enhanced the project.
+Drainage is becoming increasingly important and as we 
+become more susceptible to flooding we need to ensure this 
+is carefully considered at the design stage, and that large hard 
+landscaped areas are permeable. Using a SuDS allowed us to 
+create new habitats for wildlife and to eliminate the waterlogging 
+problems. We now have a solution that serves the community, 
+enhances the site and makes a positive contribution to 
+the environment.
+flooding
+no drainage
+detention basin
+permeable
+car park 
+surface
+views from
+clubhouse
+maintenance
+recycled 
+water for 
+irrigation
+under court
+drainage
+clubhouse overlooking 
+neighbours
+hard landscaping 
+for parking
+EXISTING PROPOSED
+playing surfaces182
+CHAPTER 5
+GROUPINGS AND 
+USAGE
+‘Groupings’ refer to the various functions and uses of the 
+site. For example, if the site is located within a predominantly 
+residential area then this is likely to affect the way it might 
+be developed and what future usage would be regarded as 
+appropriate. Establishing what is going on around the site 
+will help inform your project. Sometimes there may be similar 
+facilities close by and you will need to consider whether your 
+proposal is trying to work with these facilities or is in competition 
+with them. In live projects, ownership of land can also be an 
+important factor affecting access and sometimes the whole 
+viability of the project.
+Site usage
+What is the current use of the site and what is its designation 
+in terms of local authority planning? Establish how the site is 
+being used now. If there is a change of function, say from retail 
+to residential, there will be implications in terms of planning 
+approval, which must inform your design proposal.
+100 SITE ANALYSIS ESSENTIALS: AN ARCHITECT’S GUIDE 
+DOI: 10.4324/9781003485988-5GROUpINGS AND USAGE 183
+around the site
+The functions of the areas around the site will have an influence 
+on how the site might be developed. What is the predominant 
+use of the surrounding buildings or land? Where are the key 
+buildings or facilities located? How close is the local school or 
+hospital? Exploring what parks or other recreational amenities 
+are available may also be important, as well as the proximity 
+of countryside and other open spaces. The story of land use 
+is often a complex one and may involve accessing census or 
+other data to establish what is going on. Land ownership is also 
+important, and it may be that a single individual or company 
+controls what goes on over a large geographical area.
+Considering the ‘public’ and ‘private’ areas provides a 
+perspective on access and perception. There are often 
+thresholds or boundaries that exist (not always physical) that 
+signal public access or private domains.
+Relationship to the wider area
+How the district or the area immediately around the site relates 
+to the wider geographical area may be important. Is your site 
+unique, or is it part of a much wider zone? How does your town 
+or city relate to the country as a whole? Are the functions you 
+propose replicated elsewhere? The sustainability and viability of 
+the proposal may be related to what is happening elsewhere and 
+the interdependency between these functions. When looking at 
+a site, consider the idea of ‘animation’ – how the area or street 
+becomes ‘alive’, how people use the streets and what impact 
+this makes.184
+TIP 79
+GROUPINGS
+SITE USAGE
+MAP OUT THE VARIOUS FUNCTIONAL USES 
+AROUND YOUR SITE.
+What you can see
+A plan of Liverpool city centre showing certain buildings 
+highlighted according to their use. Certain parts of a city may 
+become associated with a particular activity or specialist 
+provision. Here the map shows the location of public houses, 
+nightclubs and cinemas within a small area highlighting the 
+night-time activity of the district.
+What does this mean?
+You need to know what kind of neighbourhood your site is 
+located within. This may help with providing historical content 
+and context, as well as highlighting more pragmatic needs 
+especially with regards to noise, music venues, late-night 
+entertainment and large crowds.
+How might it affect your proposal?
+It is useful to produce maps of the neighbourhood highlighting 
+the main uses and activities that take place there. This can help 
+to identify potential noise problems and usage patterns. Think 
+about how the district surrounding your site is currently used and 
+the main activities that occur. Will your proposal align with how 
+the area is currently used and perceived? Will it complement or 
+contrast with current usage patterns? Will you need to modify your 
+proposal to mitigate against problems or perceived nuisances?
+Tip links with 38, 50 and 72.
+100 SITE ANALYSIS ESSENTIALS: AN ARCHITECT’S GUIDE GROUpINGS AND USAGE 185
+ Public houses
+ Nightclubs
+ Cinema186
+TIP 80
+GROUPINGS
+SITE USAGE
+HOW HAS THE FUNCTION OF YOUR SITE CHANGED 
+OVER TIME?
+What you can see
+An old church building, designed for Christian worship, and now 
+with a broader community focus.
+What does this mean?
+Buildings might serve a specific purpose and have a single 
+‘user group’, but often they have many different types of visitor/
+occupancy at different times. Buildings also change uses and are 
+adapted to meet new demands and purposes at different stages 
+of their life.
+How might it affect your proposal?
+Consider the various groups, communities, businesses, 
+occupants and visitors who are likely to inhabit and experience 
+your proposal. How might you respond to their needs (and if 
+possible, future as yet unknown uses)? It is more important 
+than ever that buildings can be reused and modified to suit 
+changing needs. Propose rehabilitation and adaption rather than 
+demolition and starting again to save energy and reduce waste.
+Tip links with 81, 82 and 84.
+100 SITE ANALYSIS ESSENTIALS: AN ARCHITECT’S GUIDE GROUpINGS AND USAGE 187188
+TIP 81
+GROUPINGS
+AROUND THE SITE
+BE AWARE OF ACTIVITIES OR FUNCTIONS 
+ASSOCIATED WITH YOUR SITE OR BRIEF.
+What you can see
+The area around Leeds has several large hospitals serving 
+the local community. Together they provide the full range of 
+diagnosis, treatment and specialist care.
+What does this mean?
+Depending on the project brief, some functions may work 
+together with other facilities around the area; they also may be 
+linked to a distribution centre or head office.
+How might it affect your proposal?
+Consider how your scheme relates to other sites and operational 
+issues. How quickly you can move between sites may affect 
+the viability and sustainability of a proposal. Proximity to rail or 
+road networks could be critical to the success of a proposal. 
+In the case of hospitals, staff and equipment may have to 
+transit between sites. Public transport connections will also be 
+important for some patients and their visitors.
+Tip links with 24, 44, 48, 49, 50 and 78.
+100 SITE ANALYSIS ESSENTIALS: AN ARCHITECT’S GUIDE GROUpINGS AND USAGE 189
+Leeds Bradford
+1.
+4.
+5. 6.
+2. 3.
+Halifax
+Wakefield
+Leeds Bradford
+1.
+4.
+5. 6.
+2. 3.
+Halifax
+Wakefield
+ Hospitals
+1. Bradford
+2. Leeds General
+3. St James’s
+4. St Luke’s
+5. Calderdale Royal
+6. Pinderfields
+ Motorways190
+TIP 82
+GROUPINGS
+AROUND THE SITE
+CONSIDER THE PROXIMITY OF KEY FACILITIES.
+What YOU CAN see
+A map of York showing the location of key facilities.
+What does this mean?
+The 15-minute city was a concept put forward by Professor 
+Carlos Moreno to describe a sustainable community where daily 
+necessities and services such as work, shopping, education, 
+healthcare and leisure can be easily reached within a 15-minute 
+walk or bike ride. York is a good example of this, partly as 
+a result of its size. However, larger cities can still provide a 
+sustainable infrastructure when they are broken down into 
+self-supporting districts.
+How might it affect your proposal?
+Mapping the location of key facilities means that you can 
+assess how close your site is to the things that form part of 
+everyday life for a family. This is important because access 
+using public transport, cycling and walking is more sustainable 
+and also avoids long car journeys to ferry the family about. 
+The requirements included within your brief, and how to these 
+relate to facilities that already exist around the site, provides an 
+indication of sustainability.
+Tip links with 24, 44, 48, 49, 54, 79 and 85.
+100 SITE ANALYSIS ESSENTIALS: AN ARCHITECT’S GUIDE GROUpINGS AND USAGE 191
+ Hospital
+ Secondary school
+ Cinema/entertainment
+ Sports facilities/stadium
+ Parks and recreation192
+TIP 83
+GROUPINGS
+AROUND THE SITE
+INVESTIGATE THE PREVIOUS USES OF THE SITE.
+What you can see
+The Chester City Infirmary was the main hospital until a new 
+facility was built in the 1980s. The vacant site at the top 
+right-hand side of the drawing is an old Roman cemetery, 
+dating from c.200 bce. The lower plan shows the site today, 
+redeveloped for housing with the original buildings remodelled to 
+provide apartments.
+What does this mean?
+Understanding the historical uses of the site allows a greater 
+level of engagement. Repurposing existing buildings is 
+sustainable and provides a link with the past. The site may also 
+have emotional ties, while archaeological remains may determine 
+how the land is used and developed.
+How might it affect your proposal?
+Past uses of the site can have a bearing on your current 
+proposals, in the case of this example the undeveloped area is in 
+recognition of the historical significance of the Roman graveyard. 
+Gathering information from Digimap®, Google Earth and other 
+archive sources is quick and easy to do online and can reveal 
+the history of your site.
+Tip links with 1, 2, 3, 8, 27, 39, 42 and 78.
+100 SITE ANALYSIS ESSENTIALS: AN ARCHITECT’S GUIDE GROUpINGS AND USAGE 193
+1940
+2020194
+TIP 84
+GROUPINGS
+AROUND THE SITE
+ESTABLISH CURRENT USAGE CATEGORIES LOCALLY.
+What YOU CAN see
+A map of the area around the Knowledge Quarter in Liverpool 
+gives an overview of the types of uses in the area.
+What does this mean?
+The character of an area is influenced by the types of uses 
+within it. Whilst some buildings may have been repurposed, the 
+functions will affect activity and how busy the area is at different 
+times of the day and night.
+How might it affect your proposal?
+In this example, a large part of the area is given over to 
+educational use for universities and schools. Interestingly, there 
+is also an area of housing comprising of some older apartments 
+as well as two-storey housing for families and retired people. 
+Understanding the grain of the area gives important clues as to 
+what sorts of interventions might be appropriate.
+Tip links with 6, 17, 31, 79, 81 and 83.
+100 SITE ANALYSIS ESSENTIALS: AN ARCHITECT’S GUIDE GROUpINGS AND USAGE 195
+ Rail station
+ Student accommodation
+ Commercial with some living accommodation upstairs
+ Ecclesiastical
+ Housing
+ Educational196
+TIP 85
+GROUPINGS
+RELATIONSHIP TO THE WIDER AREA
+INVESTIGATE EMERGING TYPES AND PLANNED 
+DEVELOPMENTS.
+What you can see
+A map of Bristol showing the location of student 
+accommodation, student accommodation granted planning 
+permission and student accommodation currently under 
+consideration for planning permission.
+What does this mean?
+There is a lot of information available to you in the public domain. 
+Access this information and use it to produce your own maps 
+to understand how your city is changing and what is likely to 
+happen in the near future. In this example, there has been a 
+sudden growth in student residences in the UK. This has had a 
+major impact on the development of our cities and the types of 
+projects seeking planning permission.
+How might it affect your proposal?
+Depending on what you are planning for your site, the inclusion 
+of a large block of student housing could be a major advantage/
+disadvantage. How is the city likely to develop and change, and 
+what kind of buildings are being proposed?
+Tip links with 78 and 81.
+100 SITE ANALYSIS ESSENTIALS: AN ARCHITECT’S GUIDE GROUpINGS AND USAGE 197
+ Student accommodation
+ Planning permission approved for student accommodation
+ Planning permission under consideration for 
+student accommodation198
+TIP 86
+GROUPINGS
+RELATIONSHIP TO THE WIDER AREA
+MAP REPEATING SERVICES, FORMS AND TYPES.
+What you can see
+A map of Bristol showing the location of medical practices, 
+dental practices, pharmacies and hospitals.
+What does this mean?
+It is useful to map out where similar activities are located, 
+as this will show the distribution of particular services and 
+amenities across the city and may help to demonstrate 
+need/change/future use.
+How might it affect your proposal?
+Depending on the function of your site it can be desirable to 
+have a concentration and dense grouping of particular facilities. 
+Other functions will benefit from being spread out with sufficient 
+distance to balance with demand. You may wish to demonstrate 
+that certain functions could be better concentrated into a single 
+form, or perhaps your study will highlight an urgent need. This 
+kind of study can usefully feed into feasibility studies.
+Tip links with 10, 13 and 14.
+100 SITE ANALYSIS ESSENTIALS: AN ARCHITECT’S GUIDE GROUpINGS AND USAGE 199
+ Medical practice
+ Hospital
+ Pharmacy
+ Dental practice200
+CASE STUDY 5
+PHOENIX GARDEN 
+COMMUNITY BUILDING
+OFFICE SIAN
+What you can see
+Phoenix Garden Community Building is located between Soho 
+and Covent Garden in central London. Phoenix Garden is the last 
+remaining of seven Covent Garden community gardens built in 
+the 1980s and occupies a former Second World War bomb site.
+What does this mean?
+The building adopts a triangular-shaped plan that traces 
+the edge of the site’s boundary, invoking the classic English 
+walled garden typology. The solid brick wall is softened by 
+the arched entranceway and a band of limestone at roof level 
+proudly displays the building’s name. The north-facing façade 
+overlooking the garden’s interior is composed of oak framing 
+and large windows, offering views into the oasis beyond. The 
+site levels rise as one moves away from the building, revealing 
+the green roof when viewed from the far end of the garden. The 
+material palate of brick is again used on the floor, allowing the 
+garden paths to seamlessly enter the interior space, as well as 
+being a durable surface for muddy boots.
+What the architect says
+Context is as much about community and creating spaces for 
+conversations and gatherings as it is about the physical materials 
+and surrounding cityscape. Whilst the building’s concise 
+materiality is subtly drawn from the immediate streetscape, it 
+is the sense of moving through the solid brick wall and into the 
+unknown ‘secret’ garden beyond that guides the design.
+100 SITE ANALYSIS ESSENTIALS: AN ARCHITECT’S GUIDE GROUpINGS AND USAGE 201
+It’s a humble building that Office Sian has successfully 
+elevated into a creative piece of architecture through its 
+commitment to distilling the design intent. Despite its small 
+stature, the careful detailing and clarity of approach makes it 
+stand out amongst its much larger neighbours.202
+CHAPTER 6
+INTERFACE
+The boundary of your site creates an interface with its perimeter. 
+Sometimes the boundary line is clear, as a fence or a river, 
+but often the threshold is less well defined. Views out to the 
+areas beyond can form important vistas and may act as design 
+drivers. Views into the site can also be significant; consider 
+how your design proposal will be seen from the surrounding 
+areas. The interface between your site and its surroundings is 
+important and will need constant review throughout the design 
+development process.
+Site boundary
+The location of the site boundary and what it consists of is the 
+starting point for any proposal. When dealing with live projects 
+this is not always straightforward. The boundary may be poorly 
+defined as part of a wide hedge or a fence may have been 
+removed, or else the boundary may not be marked physically at 
+all and is in the middle of a field. Establishing what the boundary 
+100 SITE ANALYSIS ESSENTIALS: AN ARCHITECT’S GUIDE 
+DOI: 10.4324/9781003485988-6INTERFACE 203
+is, what materials it is constructed from and its permeability are 
+all important and may have an impact on the design proposals. 
+Ownership of the site and adjacent areas can be significant. 
+In certain circumstances a land-locked site may be difficult to 
+develop, or it may be that an adjacent owner controls a ‘ransom 
+strip’, which potentially provides access. Sometimes a boundary 
+will be created by a route or road, and considering how the site 
+relates to the movement along the street will have an impact 
+on the design. Finally, the permeability of the boundary is an 
+important consideration, and it may be that views out from the 
+site are impossible, or access to the site is restricted.
+Views into the site
+Exploring the views into the site from key vantage points is 
+important. Having these photographs or sketches available as a 
+constant reminder throughout the design process should ensure 
+that the impact of the scheme has been properly considered. 
+There may be reasons for taking a very positive stance so that 
+your proposal closes a vista or creates a landmark. Alternatively, 
+it may be the case that you want to fit in discretely. Either way, 
+testing how the scheme will be viewed is important.
+With a live project the Local Planning Authority will take a 
+keen interest in these things and may require the architect to 
+produce CGI renders from specific viewpoints. Street elevations 
+are also a useful way to test a proposition, as are hand-drawn 
+sketches on tracing paper over site photographs. In conservation 
+areas there may be strict rules governing the height and impact 
+of new developments.
+Views out from the site
+Considering the available views out from the site is important for 
+two reasons. Firstly, the potential for views and any restriction on 
+privacy and interface distances may be a major constraint on the 
+design proposal. Secondly, views out from the site to other key 
+landmarks or vistas may provide a key design driver. Considering 
+the skyline and whether the site is elevated or not will make 
+a difference to the opportunities for views out. Exploring the 204
+potential and having this information to hand is essential if the 
+proposals are to exploit the opportunities.
+Neighbours
+Privacy and interface to the adjoining sites can be a major 
+constraint to the design proposals. In live projects this is 
+also tied into land ownership and legislation about interface 
+distances, especially if the project is concerned with housing. 
+Rights of light can also be an important consideration and, in 
+cities like London, a complex issue to assess. Corners need 
+special attention, as they offer a lot of design opportunity and 
+must respond to both streets and the wider junction.
+Access
+The nature of the boundary and the routes around the site 
+will determine the availability of access. Identifying potential 
+access points will allow you to consider what is possible in 
+terms of the developing design. Issues such as adjacent land 
+ownership, rights of access for you and your neighbours and 
+any restrictions will all be factors. In live projects these things 
+can sometimes make a project non-viable because there may be 
+issues outside the control of the site owner or developer.
+100 SITE ANALYSIS ESSENTIALS: AN ARCHITECT’S GUIDE A key vista from the town square in Amersfoort206
+TIP 87
+INTERFACE
+SITE BOUNDARY
+ESTABLISH THE EXTENT AND NATURE OF THE SITE 
+BOUNDARY.
+What you can see
+A proposal to construct a new house (shown in yellow) in the 
+gap between existing houses. There are big level differences on 
+this steeply sloping riverside site.
+What does this mean?
+Developing the site involves extensive excavations close to the 
+adjoining properties. Establishing the extent of the site boundary 
+accurately is essential and requires a topographical survey as 
+well as a ground investigation. This allows the developer to 
+anticipate the impact of the scheme and then negotiate with the 
+two neighbours who will be affected by the new construction.
+How might it affect your proposal?
+Party wall agreements are a legal requirement when building in 
+close proximity to a neighbouring property. Understanding the 
+implications of your proposal is important at an early design 
+stage. Being a good neighbour and thinking about the impact 
+of your design is also important. What will the neighbouring 
+properties see? How will your design impact on shadows, views 
+and enjoyment of their property?
+Tip links with 59, 88, 89, 99 and 100.
+100 SITE ANALYSIS ESSENTIALS: AN ARCHITECT’S GUIDE INTERFACE 207208
+TIP 88
+INTERFACE
+SITE BOUNDARY
+ASSESS THE PERMEABILITY OF THE SITE 
+BOUNDARIES.
+What you can see
+A site between the city walls and the main perimeter road 
+in Chester.
+What does this mean?
+The site is prominent and highly visible to traffic moving around 
+the city. Steel railings form the southern boundary to the street, 
+with high medieval sandstone walls to the west. Abutting the site 
+to the north is a more recent development in brick with a glazed 
+timber-framed upper storey overlooking the site.
+How might it affect your proposal?
+What the boundary consists of and how permeable it is will 
+impact your design proposal. In the case of this site, the 
+prominent southern boundary provides a great opportunity, 
+whereas the windows at the upper level to the north will place 
+restrictions on what might be possible. Thinking about the 
+constraints and opportunities provides clues on the direction 
+your scheme might take.
+Tip links with 60, 87, 94, 95, 97 and 98.
+100 SITE ANALYSIS ESSENTIALS: AN ARCHITECT’S GUIDE INTERFACE 209210
+TIP 89
+INTERFACE
+SITE BOUNDARY
+OBTAIN AN ACCURATE SITE SURVEY TO PROPERLY 
+ASSESS THE SITE’S POTENTIAL.
+What you can see
+A sketch scheme for a small housing development in a rural 
+location at the edge of a village in Cheshire. This was produced 
+using an Ordnance Survey map from Digimap®.
+What does this mean?
+The number of dwellings that can be accommodated on the 
+site will have a direct bearing on the viability of the scheme. 
+Sometimes, at an early stage, architects rely on Ordnance 
+Survey data from Digimap® and this allows a general layout to 
+be produced, but more accurate plans will be required for the 
+final scheme.
+How might it affect your proposal?
+It is essential to have a physical survey of the site. When 
+preparing a sketch scheme, the architect may use Digimap® and 
+will sometimes err on the side of caution when assessing the 
+development potential of the site. They will also state caveats 
+so that the developer understands the level of accuracy of the 
+proposal until such time as a topographical survey has been 
+carried out.
+Tip links with 60, 87, 88, 91 and 97.
+100 SITE ANALYSIS ESSENTIALS: AN ARCHITECT’S GUIDE INTERFACE 211212
+TIP 90
+INTERFACE
+SITE BOUNDARY
+CONSIDER THRESHOLDS WHERE BOUNDARIES ARE 
+POORLY DEFINED.
+What you can see
+This enclosure in the moorland of North Wales has tracks 
+running through it with varying levels of definition.
+What does this mean?
+This area of the country has a long history of habitation dating 
+back to 4000 bce. Many of the tracks appear to relate to 
+Neolithic monuments and settlements associated with the ‘axe 
+factory’ located close by. Artefacts from this location have been 
+found in other parts of the country, indicating that some sort of 
+trade existed with objects being transported hundreds of miles.
+How might it affect your proposal?
+Sometimes finding clues to determine the site layout and 
+the boundaries can be difficult. Picking up on old paths and 
+bridleways can provide a means of recognising the special things 
+about a site and these can be used to help make decisions 
+about your proposals.
+Tip links with 1, 3, 87, 88 and 89.
+100 SITE ANALYSIS ESSENTIALS: AN ARCHITECT’S GUIDE INTERFACE 213214
+TIP 91
+INTERFACE
+SITE BOUNDARY
+RESEARCH ANY LEGAL RESTRICTIONS IMPACTING 
+THE SITE.
+What you can see
+The site boundary is shown in yellow and the access road to the 
+site shown in grey.
+What does this mean?
+This is a highly desirable site on the sloping bank of the River 
+Dee. Whist a case could be made to develop the land for 
+housing, the access is not an ‘adopted’ road, but a privately 
+owned one. Permission to use the road would therefore be 
+required if the site was to be used.
+How might it affect your proposal?
+Checking ownership, covenants, wayleaves or restrictions on a 
+site can be important when assessing the viability of a proposal. 
+This information is not always in the public realm and when 
+dealing with live projects, it is best left to the client and their 
+legal advisors.
+Tip links with 46, 61, 97, 98 and 99.
+100 SITE ANALYSIS ESSENTIALS: AN ARCHITECT’S GUIDE INTERFACE 215216
+TIP 92
+INTERFACE
+VIEWS INTO THE SITE
+MAKE A SKETCH LOOKING INTO THE SITE.
+What you can see
+A sketch of Bold Street in Liverpool showing a strong linear axis 
+that terminates with St Luke’s Church.
+What does this mean?
+Our proposals do not only offer views out, we must also 
+consider how the site is viewed from the outside. Consider how 
+others can view the site and how linear axes and strong visual 
+connections might be impacted by new additions.
+How might it affect your proposal?
+Sketching a view that looks into your site can help you to 
+visualise how your proposal might look and how neighbouring 
+buildings will be impacted by your proposal.
+Tip links with 75, 93 and 94.
+100 SITE ANALYSIS ESSENTIALS: AN ARCHITECT’S GUIDE INTERFACE 217218
+TIP 93
+INTERFACE
+VIEWS INTO THE SITE
+HOW WILL YOUR PROPOSAL IMPACT THE 
+TOWNSCAPE?
+What you can see
+A six-storey hotel in Chester, designed in the 1980s. The building 
+is higher than its neighbours and sits alongside the Guildhall, one 
+of the important monuments of this city.
+What does this mean?
+The hotel has a dramatic impact on the skyline of the city and 
+also competes with the spire of the Guildhall. The sketch shows 
+the vista looking into the site from the Grosvenor Bridge, one of 
+the main routes into the city from the south.
+How might it affect your proposal?
+When developing a proposal, it is important to consider the 
+impact it may have on its surroundings. Views into the site from 
+a distance may be significant and it is important to explore the 
+potential impact that your scheme may have on the area as a 
+whole. Producing physical or 3D models will help to test the 
+impact of your proposal.
+Tip links with 91, 93 and 95.
+100 SITE ANALYSIS ESSENTIALS: AN ARCHITECT’S GUIDE INTERFACE 219220
+TIP 94
+INTERFACE
+VIEWS INTO THE SITE
+SURVEY THE ADJACENT PROPERTIES.
+What you can see
+The Liverpool Playhouse theatre showing the historical music 
+hall on the right from 1866, with the later modern addition on the 
+left from 1968. The extension provides an additional foyer, bar, 
+dressing rooms and workshop.
+What does this mean?
+The new extension did not try to blend in with the historical 
+part of the building. A deliberate and provocative solution was 
+produced that sought to offer something new and distinct from 
+the old. By carefully abutting the older building on the side 
+façade, the historical arrangement and formal symmetry of the 
+old is respected.
+How might it affect your proposal?
+Contemporary design can sit well in historical contexts and 
+provide a welcome foil to older architecture. An appropriate 
+solution can recognise and respect heritage whilst still being 
+contemporary and cutting edge. This does not mean that your 
+design should be gimmicky or a crude attempt to ‘stand out’, but 
+be brave and confident with your proposals when marrying old 
+and new.
+Tip links with 21, 22 and 29.
+100 SITE ANALYSIS ESSENTIALS: AN ARCHITECT’S GUIDE INTERFACE 221222
+TIP 95
+INTERFACE
+VIEWS OUT FROM THE SITE
+MAKE A SKETCH OF THE SKYLINE.
+What you can see
+A sketch from Birkenhead looking across the river towards 
+Liverpool. The city skyline has been sketched to show the 
+major landmarks.
+What does this mean?
+Cities are collections of thousands of unique buildings providing 
+opportunities for distinctive skylines, views and roofscapes.
+How might it affect your proposal?
+Your project might have a major impact on the skyline of the 
+cityscape. Certain places have protected vistas, for example 
+around St Paul’s Cathedral in London, whereas other cities have 
+become famous for particular views and the dramatic high-rise 
+skyscrapers. If your work will have an impact on the skyline or 
+city elevation, make sure it is tested and mocked up to on a large 
+scale to reveal its impact.
+Tip links with 91, 95 and 101.
+100 SITE ANALYSIS ESSENTIALS: AN ARCHITECT’S GUIDE INTERFACE 223224
+TIP 96
+INTERFACE
+VIEWS OUT FROM THE SITE
+IDENTIFY KEY AXES AND MONUMENTS.
+What YOU CAN see
+Liverpool One is a large retail development by Grosvenor Estates 
+in the centre of Liverpool. Views of the cathedral, the Royal Liver 
+Building and Royal Insurance Building can be seen from the 
+shopping centre.
+What does this mean?
+The client amassed a high-profile team of architects as part 
+of a masterplan. Locking the development into the urban grain 
+was considered to be important and this included allowing local 
+monuments to become the focus of key vistas. The views out 
+were an important design driver for the masterplan.
+How might it affect your proposal?
+Views out from your site can be generators for your design 
+strategy. Exploring how the city works in the area around your 
+site will allow you to pick up on key axes or monuments as well 
+as ensuring you are respectful of the existing urban grain.
+Tip links with 3, 28, 37, 93 and 95.
+100 SITE ANALYSIS ESSENTIALS: AN ARCHITECT’S GUIDE INTERFACE 225226
+TIP 97
+INTERFACE
+NEIGHBOURS
+ESTABLISH INTERFACE DISTANCES TO ADJACENT 
+PROPERTIES.
+What you can see
+A street in the centre of Leeds with a new development opposite 
+the Old Post Office.
+What does this mean?
+The new building looks directly onto the older building with about 
+16m between them, creating the potential for loss of privacy and 
+visual intrusion.
+How might it affect your proposal?
+Local authority planning legislation provides guidelines for 
+interface distances depending upon the type of buildings, their 
+function and what the affected rooms are used for. Regardless 
+of legal requirements, being respectful of neighbours’ privacy is 
+an important consideration, particularly in dense city centre sites 
+and where housing is concerned.
+Tip links with 29, 87, 88, 95 and 98.
+100 SITE ANALYSIS ESSENTIALS: AN ARCHITECT’S GUIDE INTERFACE 227228
+TIP 98
+INTERFACE
+NEIGHBOURS
+HOW WILL RIGHTS OF LIGHT IMPACT YOUR 
+PROPOSAL?
+What YOU CAN see
+Toronto Square in the centre of Leeds, located between the Old 
+Post Office and the former Yorkshire Penny Bank (in yellow), two 
+impressive buildings from the Victorian era.
+What does this mean?
+The new building extension (in pink) created a dispute following 
+construction in 2009 because the owner of the Yorkshire Penny 
+Bank building claimed that it blocked his daylight. Following legal 
+action, the developer was required to remove parts of the sixth 
+and seventh floors.
+How might it affect your proposal?
+Rights of light can be complex matters to assess and apply 
+equally to large buildings and much more modest domestic 
+extensions. This can be a particularly sensitive issue in central 
+London where architects sometimes engage a specialist to 
+assess the situation. Whatever the legal situation, it is important 
+to consider the impact your proposal is having on its neighbours 
+and their quality of light.
+Tip links with 2, 5, 73, 87 and 97.
+100 SITE ANALYSIS ESSENTIALS: AN ARCHITECT’S GUIDE INTERFACE 229230
+TIP 99
+INTERFACE
+ACCESS
+CONSIDER THE IMPLICATIONS OF ANY LEGAL 
+RESTRICTIONS.
+What you can see
+The proposed club house for rowing eights on the River Dee.
+What does this mean?
+The proposal was not allowed to go ahead despite having 
+received planning approval from the local authority. Originally, 
+the riverside gardens were owned by the large Victorian houses 
+shown on the inset plan. A legal covenant restricted what could 
+be built on the site, even though ownership had changed.
+How might it affect your proposal?
+Your site may have historical legal restrictions on how it may 
+be used, along with tithes, rents and other restrictions. It is 
+important that the client and their legal advisors confirm all legal 
+restrictions on their site. Access to this information is not always 
+in the public domain and detailed searches must be undertaken.
+Tip links with 87, 88, 89, 91 and 100.
+100 SITE ANALYSIS ESSENTIALS: AN ARCHITECT’S GUIDE INTERFACE 231232
+TIP 100
+INTERFACE
+ACCESS
+RESEARCH AND MAP ANY LEGAL RESTRICTIONS 
+AND RIGHTS OF ACCESS.
+What you can see
+A plan of Frodsham in Cheshire showing the M53 motorway in 
+red, along with the dashed line showing the railway. The pink 
+lines are bridleways and public footpaths. These are ancient 
+routes and must be kept open for all to use.
+What does this mean?
+Developments must maintain these access rights even if it 
+means building bridges across motorways and railway lines, 
+and providing footpaths through developments. Even private 
+land may have access rights that are protected and must 
+be respected.
+How might it affect your proposal?
+Legal checks and searches over access rights must be made 
+prior to developing a plot of land. If access rights exist on a 
+site they must be respected and kept fully open. They can also 
+become important design guides and constraints that inform and 
+shape your decisions.
+Tip links with 87, 88, 89, 91, 96 and 99.
+100 SITE ANALYSIS ESSENTIALS: AN ARCHITECT’S GUIDE INTERFACE 233234
+CASE STUDY 6
+ROYAL HORTICULTURAL 
+SOCIETY VISITOR 
+CENTRE
+HODDER + PARTNERS
+What you can see
+This is a new visitor centre in the grounds of Worsley New 
+Hall in Salford, adjacent to the Bridgewater Canal. The client 
+wanted to bring the health and wellbeing benefits of gardening 
+to more people and the site’s close proximity to Manchester 
+was important.
+What does this mean?
+The siting of the new building (red outline) respects the 
+geometry of the original Victorian walled kitchen garden (green), 
+which is retained and now provides produce for the facility. The 
+building sits alongside an original lake, which has been relined. 
+The new Paradise Garden also picks up on the geometry of the 
+original site. Other parts of the site have poor ground conditions 
+and as such were designated for car parking.
+100 SITE ANALYSIS ESSENTIALS: AN ARCHITECT’S GUIDE INTERFACE 235
+What the architect says
+The remains of the walled garden were an important design 
+driver in the planning of the building. We wanted all the elements 
+of the complex brief to be under one roof, without the building 
+itself becoming too dominant. Our intention was that the 
+building should blur into the landscape. The Bridgewater Canal 
+(blue dotted line) was an important vista forming the southern 
+boundary to the site. The canal is elevated, and we had a rule 
+that the horizon should not be bridged. The timber building 
+employs a sustainable design strategy using a section that 
+minimises solar gain.236
+CASE STUDY 7
+URBAN RENEWAL OF 
+KLOOSTERBUUREN
+HANS VAN DER HEIJDEN
+What you can see
+This case study examines an urban renewal housing project 
+in Moerijk, north of The Hague in the Netherlands (shown in 
+yellow). Now used primarily for housing refugees, the scheme 
+retained an existing church (outlined in red), which once formed 
+part of a larger monastery on the site. The square adjacent 
+to the church provides a focus and also links with the existing 
+pedestrian routes (dotted in red).
+What does this mean?
+The urban block (outlined in blue) is one of several residential 
+blocks on the outskirts of Delft. The main vehicular routes create 
+a grid pattern around the town within which smaller blocks sit. 
+Each of these smaller blocks has a more intimate urban grain 
+reflecting its uses and movement, as well as exhibiting its own 
+special character.
+What the architect says
+Aerial photographs are useful to show the urban grain without 
+abstracting information. With this project it was important not 
+to restrict our analysis just to our own block. The site analysis 
+accompanied the briefing process and the client was kept 
+fully engaged and encouraged to take a longer-term view 
+of the site. Even though the church’s future use had not yet 
+been determined, retaining it meant that the site edges were 
+articulated and helped the client market this unique feature of the 
+site. The existing green avenues were a real asset and created 
+an important link between the architecture and the landscape.
+100 SITE ANALYSIS ESSENTIALS: AN ARCHITECT’S GUIDE INTERFACE 237238
+AFTERWORD
+A site analysis is not an end in and of itself. Rather, it is a way 
+of thinking about the problem and becoming more aware of 
+the external influences on the design. It is therefore a live 
+and developing document. Refer to it throughout your design 
+process to support your proposals and provide justification for 
+some of the key design moves you make.
+Use your site analysis to inform discussions with your client, 
+the local community and other stakeholders to help create a 
+consensus on the constraints within the project’s environment. 
+Creating a proposal that fits with these constraints and supports 
+the existing infrastructure should ensure that the scheme not 
+only complements its environment but also provides a positive 
+and sustainable contribution for many years to come.
+Sometimes there can be a difference of opinion on the merits 
+of a proposal and how it sits within its surroundings. You may be 
+asked to justify your stance. Being able to express your views 
+in an articulate and objective way without resorting to jargon is 
+important, especially when communicating with your clients and 
+the wider public.
+From your analysis it is possible to create a diagram showing 
+the key design drivers, rather than just adding more information 
+to a map. This is important so that you know what to do next 
+and so that you have a full understanding of how the analysis 
+might influence the design approach. This ‘map’ can become the 
+key diagram and contain all the information needed to describe 
+and interpret the site. Your designs can be enriched, informed 
+and shaped by the site, street and place you’re working in – 
+there are clues and inspiration all around you. Make the most 
+of this data by drawing it and turning your observations into a 
+design generator. In the Appendix we’ve included two worked 
+examples that show how you might undertake an analysis. 
+The examples do not use everything discussed in this volume 
+100 SITE ANALYSIS ESSENTIALS: AN ARCHITECT’S GUIDE AFTERWORD 239
+(such as historical studies and materiality), but instead reveal 
+how you might interpret a site to develop a design strategy and 
+outline proposal.
+The sketches and narrative contained in this book are just a 
+beginning. As architects we are always learning. Good luck with 
+your journey!240
+AppENDIx
+WORKED EXAMPLE A
+ARTS CENTRE AT REAR 
+OF BEDFORD HOUSE, 
+LIVERPOOL
+Context – density, materiality and massing
+The site (shown in red) is for a new arts centre to the south of 
+Bedford House, a 1960s three-storey office building. Surrounding 
+the site are three- and four-storey domestic buildings dating 
+from the mid-nineteenth century, as well as student housing 
+blocks from the 2000s.
+100 SITE ANALYSIS ESSENTIALS: AN ARCHITECT’S GUIDE AppENDIx 241
+Routes – vehicular
+There is a busy road to the north and a quieter road to the 
+west of the site. Access for deliveries coming from the south to 
+Bedford House must be maintained.
+Routes – pedestrian
+The site is on the southern edge of the University of Liverpool 
+with movement of students across campus and to a pub located 
+just to the south of the site.242
+Environment – climate and trees
+This is mostly an urban environment, although there is some 
+greenery in a nearby square. The site is not overshadowed 
+and is quite sunny, particularly when the sun is higher in the 
+summer months.
+Groupings and interface – edges and boundaries
+There are adjacent buildings looking onto the site to the east 
+and west. The view out from the office block to the north is 
+particularly significant.
+100 SITE ANALYSIS ESSENTIALS: AN ARCHITECT’S GUIDE AppENDIx 243
+Interface – potential active frontages
+There is potential for pleasant views out from the site to the 
+west, including a glimpse of the cathedral to the north-west. The 
+south-west corner is particularly important as the public-facing 
+site edge.
+Interface – restrictions and potential views
+Analysing the implications of interface, there is potential for views 
+to the west and south but restrictions to the north and east.244
+Opportunities – testing the constraints
+A design strategy starts to show potential for interesting things 
+happening to the south-west corner and the need for a buffer 
+zone to the north.
+Brief analysis
+Begin to explore the brief and to test out the implications of the 
+site constraints. How might the accommodation be arranged and 
+best positioned to exploit the features of the site such as the 
+climate, light and views?
+100 SITE ANALYSIS ESSENTIALS: AN ARCHITECT’S GUIDE AppENDIx 245
+Exploring
+Consider the scale of the site and the surrounding buildings. 
+Analysis of the context can begin to suggest scale, entrance 
+locations, light/shadow and building orientation.
+Testing
+Test the design ideas and consider how they relate to your site 
+analysis. How are the views, routes, shadows, entrances, scale 
+and massing starting to align? Investigate these ideas further 
+in 3D with card models, photographs and montages to see the 
+implications of various design options.246
+Preliminary proposals
+Proposals can then begin to take shape and the impact of your 
+proposal tested. Note how the existing streetscape is included; 
+always include the neighbouring buildings (even in sketch form) 
+on your proposals. A perspective sketch need only take a few 
+minutes to produce but it can very quickly reveal your design and 
+how it responds to the site.
+100 SITE ANALYSIS ESSENTIALS: AN ARCHITECT’S GUIDE AppENDIx 247
+ORKED EXAMPLE B
+HEADLE HIGH STREET 
+EDEVELOPMENT
+ontext and brief
+ development proposal to link the existing high street (shown in 
+lue) with the main road (in red) and other sites to the east.
+W
+C
+R
+C
+A
+b248
+Groupings and nodes
+The site is outlined in red with existing features shown and 
+future road improvements given in purple.
+Routes and assets
+Look in more detail at the existing buildings and other assets 
+on and around the site, as well as routes (note base map 
+transparency is increased).
+100 SITE ANALYSIS ESSENTIALS: AN ARCHITECT’S GUIDE AppENDIx 249
+Opportunities – strategic diagram
+Create a diagram to show potential connections and key nodes 
+with possible development sites (shown here in red).
+Design strategy
+Use the analysis to develop a strategy for the proposed 
+development, showing landscape and picking up on connections 
+to the high street and further developments to the east.250
+Development proposals
+A more formal drawing shows the proposed interventions (dark 
+grey), landscape and routes. This example demonstrates how 
+you might develop a massing layout and overall design strategy. 
+The next stage would be to consider the historical, social and 
+material properties of the site.
+100 SITE ANALYSIS ESSENTIALS: AN ARCHITECT’S GUIDE 252
+number of dwellings per hectare; or the ratio of a building’s 
+height to the street width.
+Desktop study: An investigation conducted using paper and 
+computer-based information.
+Development: The act of proposing and delivering a building 
+project. Sometimes used to imply commercial investment or 
+speculative construction.
+Development potential: How likely a site is to yield a profit for 
+investors risking their capital.
+Digimap®: An online map and data delivery service, available 
+by subscription to UK higher and further education 
+establishments.
+Feasibility study: A systematic review of a project’s potential 
+and the various options available to the clients.
+Frontage: The front façade of a building or street and how it 
+interacts with the streetscape.
+Greenbelt land: Land that has not been built on before or is only 
+used for agricultural purposes.
+Historical grain: How the historical plot sizes or boundaries 
+continue to inform current usage.
+Intervention: A deliberate design decision that responds to the 
+existing context.
+Local authority: District government responsible for 
+administering and enforcing certain legislation.
+Local Authority Planning: A governmental department 
+responsible for granting permission for future buildings and 
+administering policy.
+Local plan: A strategic vision for a particular district, city 
+or region, usually compiled by the local authority or 
+commissioned by them.
+Materiality: The physical properties of a material and how it 
+looks, weathers and feels.
+Microclimate: A localised climate of a specific place that differs 
+from the wider climate of the area.
+Mixed-use: A building that is used for a variety of different 
+purposes, for example, shops and cafes at ground floor with 
+residential usage above.
+100 SITE ANALYSIS ESSENTIALS: AN ARCHITECT’S GUIDE 254
+BIBLIOGRApHY
+Aldallal, Ennis, Husam Al Waer and Soumyen Bandyopadhyay, 
+Site and Composition: Design Strategies in Architecture and 
+Urbanism (Routledge, London, 2016).
+Ambrose, James and Peter Brandow, Simplified Site Design
+(John Wiley and Sons, New York 1992).
+Barrie, Thomas, Spiritual Path, Sacred Place – Myth, Ritual 
+and Meaning in Architecture (Shambhala Publications, 
+Boston, 1996).
+Benjamin, Walter, The Arcades Project (Belknap/Harvard 
+University, Cambridge, Mass, 2002).
+Clayton, George T., The Site Plan in Architectural Working 
+Drawings (Stipes Publishing Co., Champaign, Illinois, 1973).
+Crowe, Norman A., Nature and the Idea of a Man-Made World: An 
+Investigation into the Evolutionary Roots of Form and Order in 
+the Built Environment (The MIT Press, Cambridge, Mass, 1995).
+Cullen, Gordon, The Concise Townscape (Routledge, 
+Oxford, 1961).
+Farrall, Peter, Feasibility Studies: An Architect’s Guide (RIBA 
+Publishing, London, 2023).
+Gehl, Jah, Life Between Buildings: Using Public Space, (Island 
+Press, Washington D.C., 2011).
+Jacobs, Jane, The Death and Life of Great American Cities
+(Random House, New York, 1961).
+Koolhaus, Rem, Delirious New York: A Retroactive Manifesto for 
+Manhattan (Uitgeverij 010, Rotterdam, 1994).
+La Gro, James A., Site Analysis: Linking Program and Concept 
+in Land Planning and Design (John Wiley and Sons, New 
+Jersey, 2001).
+Lynch, Kevin and Gary Hack, Site Planning (MIT Press, 
+Cambridge, Mass, 1984).
+Lynch, Kevin, The Image of the City (MIT Press, Cambridge, 
+Mass, 1960).
+100 SITE ANALYSIS ESSENTIALS: AN ARCHITECT’S GUIDE BIBLIOGRApHY 255
+Massey, Doreen, World City (Polity, Cambridge, 2007).
+Norberg-Schulz, Christian, Architecture: Presence, Language, 
+Place (Skira, Lausanne, 2001).
+Norberg-Schulz, Christian, Genius Loci: Towards a 
+Phenomenology of Architecture (Rizzoli, New York, 1984).
+Pallasmaa, Juhani, The Eyes of the Skin: Architecture and the 
+Senses (John Wiley and Sons, New Jersey, 2005).
+Rasmussen, Steen Eiler, Experiencing Architecture (MIT Press, 
+Cambridge, Mass, 1962).
+Rossi, Aldo, The Architecture of the City (Oppositions Books, 
+MIT Press, Cambridge, Mass, 1984).
+Rowe, Colin and Fred Koetter, Collage City (MIT Press, 
+Cambridge, Mass, 1978).
+Russ, Thomas H., Site Planning and Design Handbook (McGraw 
+Hill, New York, 2002).
+Venturi, Robert, Learning from Las Vegas: The Forgotten 
+Symbolism of Architectural Form (MIT Press, Cambridge, 
+Mass, 1977).
+White, Edward, Diagramming Information for Architectural Design
+(Architectural Media, South Melbourne, 1983).256
+INDEx
+access rights 232–3
+access to site 204, 214
+accessibility
+15-minute city 190
+transport infrastructure 
+112–13, 188
+adjacent properties 204,
+206–7, 220–1, 226–9
+Aeltc Community Tennis 
+Centre 180–1
+affordable housing 32
+air quality 162–5
+airports 112, 116–17
+alternative routes 108–9
+architectural style 16, 52, 
+54–7
+artificial lighting 158–9
+Bedford House, Liverpool, 
+arts centre 240–6
+Bodleian Library, Weston 
+Library 98–9
+boundaries 72, 74, 202–3, 
+206–15
+brownfield sites 140
+building density 11, 42
+building materials 11, 52, 
+172–3
+building reuse 186, 192
+building style see
+architectural style
+bus routes 104–5, 114–15
+busy times 118–21, 162, 164
+carbon footprint 172
+census data 10, 30, 32
+change of use 36, 182, 
+186 (see also historical 
+evolution)
+Cheadle High Street 
+redevelopment 247–50
+cityscape 22, 86, 154, 222 
+(see also streetscape; 
+townscape)
+civic space 152–3
+climate 124–5
+coastal sites 134–5
+communications 
+infrastructure 156–7
+communities see
+neighbourhoods
+community engagement 
+10, 26
+community garden 200–1
+competing visions 46
+computer models 94–5
+conservation areas 62–3
+contamination 140
+context 9–97
+economic 10–11, 24
+historical 10, 14–23, 78, 
+192, 212
+invisible city 88–96
+materiality and style 52–7
+physical infrastructure 
+64–87
+political 58–63
+routes 100–21
+social and cultural 10,
+24–9
+covenants 230
+cultural context 10, 24–9
+cycle routes 104–5, 166–7
+daylight 128, 228
+demographics 38–9, 44
+density 11, 42
+deprived areas 38–9
+desire lines 110–11
+development potential 210
+devolved administrations 59
+Digimap® 210
+digital models 94–5
+districts 24, 30–1, 74–5, 80–1
+drainage 180–1
+drawings 4, 5, 6
+ecological surveys 146
+economic context 10–11, 24
+economic sustainability 48
+electricity distribution 156–7
+energy conservation 170
+environment 124–79
+climate 128–35
+man-made features 152–61
+natural features 142–51
+phenomenology 174–9
+street hierarchies 166–8
+sustainability 170–2
+timeframe 162–5
+topographical 136–41
+environmental assessment 
+146
+environmental improvements 
+50
+equipment for site visits 5
+events 28, 118, 164
+façade lighting 158–9
+festivals 28, 118, 164
+flood risk 148
+footpaths 108–11, 232 (see 
+also pedestrian routes)
+funicular 170–1
+gardens 150–1, 200–1, 234–5
+ground conditions 140–1
+groupings and usage 182–99
+around the site 188–95
+site usage 184–6
+wider area 196–9
+habitats 146–7, 181
+Hazelwood School 7–8
+hidden paths 108–9
+historical connotations 178–9
+historical context 10, 14–23, 
+78, 192, 212
+historical evolution 20–1,
+66–7, 186, 192
+historical grain 22, 72–3, 78
+Hodder + Partners 234–5
+household composition 44
+housing tenure 32
+infrastructure improvements 
+50–1
+interface 202–33
+access 230–3
+distances 226–7
+neighbouring properties 
+226–9
+site boundary 202–3,
+206–15
+views into the site 216–21
+views out from the site 
+222–5
+invisible city 12, 88–96
+key axes and monuments 
+224–5
+key facilities 190–1
+Kloosterbuuren urban 
+renewal 236–7
+land ownership 40
+land use 183 (see also site 
+usage)
+land values 36–7
+landlords 40
+landscapes 150, 174–7 (see 
+also parks)
+Langstaff Day Architects 
+180–1
+legal restrictions 214, 230
+lighting 158–9
+literary references 96
+local materials 52, 172–3
+local styles 16, 54–7
+man-made features 126,
+152–61
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+100 SITE ANALYSIS ESSENTIALS: AN ARCHITECT’S GUIDE  
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 258
+IMAGE CREDITS
+All images Peter Farrall and Iain Jackson. Case Studies and 
+Worked Examples redrawn by Farrall and Jackson from 
+architects’ original drawings with permission.
+100 SITE ANALYSIS ESSENTIALS: AN ARCHITECT’S GUIDE 
