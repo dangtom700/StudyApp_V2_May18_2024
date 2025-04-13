@@ -47,21 +47,29 @@ namespace TRANSFORMER {
         return tokens.size();
     }
 
-    // Parse a given JSON file and return the contents as a map
     std::map<std::string, int> json_to_map(const std::filesystem::path& json_file) {
         std::map<std::string, int> result;
         std::ifstream file(json_file);
         if (!file.is_open()) {
             throw std::runtime_error("Could not open JSON file: " + json_file.string());
         }
-
-        json j;
-        file >> j;
-
-        for (auto it = j.begin(); it != j.end(); ++it) {
-            result[it.key()] = it.value().get<int>();
+    
+        if (file.peek() == std::ifstream::traits_type::eof()) {
+            std::cerr << "Warning: JSON file is empty: " << json_file << std::endl;
+            return {};
         }
-
+    
+        try {
+            json j;
+            file >> j;
+            for (auto it = j.begin(); it != j.end(); ++it) {
+                result[it.key()] = it.value().get<int>();
+            }
+        } catch (const json::parse_error& e) {
+            std::cerr << "Parse error in file " << json_file << ": " << e.what() << std::endl;
+            return {};  // fail gracefully
+        }
+    
         return result;
     }
 

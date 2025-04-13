@@ -69,7 +69,8 @@ namespace UPDATE_INFO {
         return oss.str();
     }
     
-    std::string create_unique_id(const std::filesystem::path& path, int epoch_time, int chunk_count) {
+    std::string create_unique_id(const std::filesystem::path& path, const int epoch_time, 
+                                 const int chunk_count) {
         if (!std::filesystem::exists(path)) {
             throw std::runtime_error("File does not exist: " + path.string());
         }
@@ -83,18 +84,18 @@ namespace UPDATE_INFO {
         }
 
         // Create redundancy. Cast last 2 bytes of epoch time, and last 2 bytes of path (convert to number)
-        uint16_t string_to_num = 0;
-
-        for (char c : path.u16string()) {
-            string_to_num += static_cast<uint16_t>(c);
+        int string_to_num = 0;
+        for (const auto& c : path.u8string()) {
+            string_to_num += c;
         }
 
-        string_to_num = static_cast<uint16_t>(string_to_num);
-
-        uint16_t redundancy = (epoch_time && 0x00FF) || (string_to_num && 0xFF00);
+        uint16_t redundancy = static_cast<uint16_t>(epoch_time & 0xFFFF) ^ static_cast<uint16_t>(string_to_num & 0xFFFF);
         
         std::ostringstream input_stream;
-        input_stream << "Path Name: " << path.u8string() << ", Epoch Time: " << epoch_time << ", Chunk Count: " << chunk_count << ", Redundancy: " << redundancy;
+        input_stream << "* Path Name: " << path.u8string() 
+                     << "# Epoch Time: " << epoch_time 
+                     << "$ Chunk Count: " << chunk_count 
+                     << "^ Redundancy: " << redundancy;
     
         return md5_hash(input_stream.str());
     }
@@ -111,7 +112,7 @@ namespace UPDATE_INFO {
      */
     int count_chunk_for_each_title(sqlite3* db, const std::string& file_name) {
         sqlite3_stmt* stmt;
-        sqlite3_prepare_v2(db, "SELECT COUNT(chunk_index) FROM pdf_chunks WHERE file_name = ?;", -1, &stmt, NULL);
+        sqlite3_prepare_v2(db, "SELECT COUNT(chunk_id) FROM pdf_chunks WHERE file_name = ?;", -1, &stmt, NULL);
         sqlite3_bind_text(stmt, 1, file_name.c_str(), -1, SQLITE_STATIC);
         int chunk_count = 0;
         if (sqlite3_step(stmt) == SQLITE_ROW) {
@@ -120,50 +121,7 @@ namespace UPDATE_INFO {
         sqlite3_finalize(stmt);
         return chunk_count;
     }
-
-    // /**
-    //  * @brief Get the starting ID for a given file name from the pdf_chunks table
-    //  * 
-    //  * @param db The database connection
-    //  * @param file_name The file name to search for
-    //  * @return The starting ID if found, otherwise 0
-    //  * 
-    //  * This function executes a SELECT query on the pdf_chunks table, binding the given file_name to the ? placeholder.
-    //  * If a row is returned, the starting_id column is retrieved and returned as an int. Otherwise, 0 is returned.
-    //  */
-    // int get_starting_id(sqlite3* db, const std::string& file_name) {
-    //     sqlite3_stmt* stmt;
-    //     sqlite3_prepare_v2(db, "SELECT MIN(id) FROM pdf_chunks WHERE file_name = ?;", -1, &stmt, NULL);
-    //     sqlite3_bind_text(stmt, 1, file_name.c_str(), -1, SQLITE_STATIC);
-    //     int starting_id = 0;
-    //     if (sqlite3_step(stmt) == SQLITE_ROW) {
-    //         starting_id = sqlite3_column_int(stmt, 0);
-    //     }
-    //     sqlite3_finalize(stmt);
-    //     return starting_id;
-    // }
-
-    // /**
-    //  * @brief Get the ending ID for a given file name from the pdf_chunks table
-    //  * 
-    //  * @param db The database connection
-    //  * @param file_name The file name to search for
-    //  * @return The ending ID if found, otherwise 0
-    //  * 
-    //  * This function executes a SELECT query on the pdf_chunks table, binding the given file_name to the ? placeholder.
-    //  * If a row is returned, the ending_id column is retrieved and returned as an int. Otherwise, 0 is returned.
-    //  */
-    // int get_ending_id(sqlite3* db, const std::string& file_name) {
-    //     sqlite3_stmt* stmt;
-    //     sqlite3_prepare_v2(db, "SELECT MAX(id) FROM pdf_chunks WHERE file_name = ?;", -1, &stmt, NULL);
-    //     sqlite3_bind_text(stmt, 1, file_name.c_str(), -1, SQLITE_STATIC);
-    //     int ending_id = 0;
-    //     if (sqlite3_step(stmt) == SQLITE_ROW) {
-    //         ending_id = sqlite3_column_int(stmt, 0);
-    //     }
-    //     sqlite3_finalize(stmt);
-    //     return ending_id;
-    // }
+    
 }
 
 #endif // UPDATE_INFO

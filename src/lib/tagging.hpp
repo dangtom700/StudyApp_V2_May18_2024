@@ -100,64 +100,77 @@ namespace Tagging{
         sqlite3_close(db);
     }
 
-    void compute_and_store_distances(
-        const std::vector<std::string>& unique_titles,
+    void compute_chunk(size_t start, size_t end, const std::vector<std::string>& titles,
         const std::unordered_map<std::string, std::unordered_map<std::string, float>>& data,
-        const std::filesystem::path& output_filename) {
-    
-        std::ofstream csv_file(output_filename);
+        int thread_id, const std::filesystem::path& output_dir) {
+
+        std::string filename = (output_dir / ("item_matrix_part_" + std::to_string(thread_id) + ".csv")).string();
+        std::ofstream csv_file(filename);
         if (!csv_file.is_open()) {
-            std::cerr << "Error: Could not open file " << output_filename << " for writing." << std::endl;
+            std::cerr << "Thread " << thread_id << " failed to open file: " << filename << std::endl;
             return;
         }
-    
-        csv_file << "Source,Target,Distance\n"; // Write CSV header
-    
-        std::vector<std::tuple<std::string, std::string, float>> db_data; // Buffer for batched DB inserts
-    
-        for (size_t i = 0; i < unique_titles.size(); ++i) {
-            for (size_t j = 0; j < unique_titles.size(); ++j) {
-                if (i == j) continue; // Skip self-comparisons
-    
+
+        csv_file << "Source,Target,Distance\n";
+
+        for (size_t i = start; i < end; ++i) {
+            for (size_t j = 0; j < titles.size(); ++j) {
+                if (i == j) continue;
+
                 float total_distance = 0.0f;
-    
-                auto it1 = data.find(unique_titles[i]);
-                auto it2 = data.find(unique_titles[j]);
-    
-                // Skip missing entries
+
+                const auto& it1 = data.find(titles[i]);
+                const auto& it2 = data.find(titles[j]);
                 if (it1 == data.end() || it2 == data.end()) continue;
-    
+
                 const auto& source_data = it1->second;
                 const auto& target_data = it2->second;
-    
-                for (const auto& [token, distance] : source_data) {
-                    auto it = target_data.find(token);
-                    float target_distance = (it != target_data.end()) ? it->second : 0.0f;
-                    total_distance += distance + target_distance;
+
+                for (const auto& [token, dist] : source_data) {
+                    float other_dist = target_data.count(token) ? target_data.at(token) : 0.0f;
+                    total_distance += dist + other_dist;
                 }
-    
-                // Write to CSV file
-                csv_file << unique_titles[i] << "," << unique_titles[j] << "," << total_distance << "\n";
-    
-                // Store in batch for DB insert
-                db_data.emplace_back(unique_titles[i], unique_titles[j], total_distance);
-    
-                // Insert into DB every 1000 records (batch insert)
-                if (db_data.size() >= 1000) {
-                    insert_item_matrix(db_data);
-                    db_data.clear();
-                }
+
+            csv_file << titles[i] << "," << titles[j] << "," << total_distance << "\n";
             }
         }
-    
-        // Insert any remaining data
-        if (!db_data.empty()) {
-            insert_item_matrix(db_data);
-        }
-    
-        csv_file.close();
-    }    
 
+        csv_file.close();
+    }
+
+    void bulk_insert_from_csv(const std::filesystem::path& csv_file) {
+        std::ifstream file(csv_file);
+        if (!file.is_open()) {
+            std::cerr << "Could not open CSV file for DB insert: " << csv_file << std::endl;
+            return;
+        }
+
+        std::string line;
+        std::getline(file, line); // skip header
+
+        std::vector<std::tuple<std::string, std::string, float>> batch;
+        while (std::getline(file, line)) {
+            std::stringstream ss(line);
+            std::string source, target, dist_str;
+            std::getline(ss, source, ',');
+            std::getline(ss, target, ',');
+            std::getline(ss, dist_str, ',');
+
+            batch.emplace_back(source, target, std::stof(dist_str));
+
+            if (batch.size() >= 1000) {
+                insert_item_matrix(batch);
+                batch.clear();
+            }
+        }
+
+        if (!batch.empty()) {
+            insert_item_matrix(batch);
+        }
+
+        file.close();
+    }
+    
     void encrypted_file_name_list(sqlite3* db, std::vector<std::string>& titles) {
         /* This function modifies the `titles` vector:
          * - Replaces each title with its corresponding ID from the database, prefixed with "title_".
@@ -196,7 +209,6 @@ namespace Tagging{
         // Replace original titles with the updated ones
         titles = std::move(updated_titles);
     }
-    
 
     // Function to read numeric data from CSV
     std::vector<std::vector<float>> get_numeric_data_from_csv(const std::string& filename) {

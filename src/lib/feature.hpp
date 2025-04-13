@@ -8,6 +8,8 @@
 #include <memory> // For smart pointers
 #include <sqlite3.h>
 #include <unordered_map>
+#include <mutex>
+#include <thread>
 
 #include "utilities.hpp"
 #include "env.hpp"
@@ -217,7 +219,8 @@ namespace FEATURE {
                     file_name TEXT NOT NULL,
                     file_path TEXT NOT NULL,
                     epoch_time INTEGER NOT NULL,
-                    chunk_count INTEGER NOT NULL
+                    chunk_count INTEGER NOT NULL,
+                    UNIQUE (file_name, epoch_time)
                 );
             )";
             execute_sql(db, create_table_sql);
@@ -244,13 +247,12 @@ namespace FEATURE {
             // Process the file
             DataInfo entry = {
                 .file_name = file.stem().generic_string(),
-                .file_path = UTILITIES_HPP::Basic::convertToBackslash(file.generic_string()),
+                .file_path = file.generic_string(),
                 .epoch_time = UPDATE_INFO::get_epoch_time(file),
-                .chunk_count = UPDATE_INFO::count_chunk_for_each_title(db, entry.file_path)
+                .chunk_count = UPDATE_INFO::count_chunk_for_each_title(db, entry.file_name+".txt")
             };
 
             entry.id = UPDATE_INFO::create_unique_id(entry.file_path, entry.epoch_time, entry.chunk_count);
-
             // Export data info if needed
             if (is_dumped) UTILITIES_HPP::Basic::data_info_dump(entry);
 
@@ -414,20 +416,53 @@ namespace FEATURE {
         }
     }
 
-    void mappingItemMatrix(const std::filesystem::path& output_filename = ENV_HPP::item_matrix) {
+    void mappingItemMatrix(const std::filesystem::path& output_dir = "data/item_matrix") {
+        // Open DB and fetch data
         sqlite3* db;
         if (sqlite3_open(ENV_HPP::database_path.string().c_str(), &db) != SQLITE_OK) {
-            std::cerr << "Error opening database: " << sqlite3_errmsg(db) << std::endl;
+            std::cerr << "DB open failed: " << sqlite3_errmsg(db) << std::endl;
             return;
         }
-
-        std::vector<std::string> unique_titles = Tagging::fetch_unique_titles(db);
+        
+        std::cout << "Fetching data..." << std::endl;
+        std::vector<std::string> titles = Tagging::fetch_unique_titles(db);
         std::unordered_map<std::string, std::unordered_map<std::string, float>> data;
         Tagging::fetch_all_data(db, data);
 
-        sqlite3_close(db);
+        // -------------------------------------------------------------
+        std::cout << "Number of titles: " << titles.size() << std::endl;
+        std::cout << "Number of data: " << data.size() << std::endl;
+        // -------------------------------------------------------------
 
-        Tagging::compute_and_store_distances(unique_titles, data, output_filename);
+        sqlite3_close(db);
+    
+        // Create output directory if not exist
+        std::filesystem::create_directories(output_dir);
+    
+        // Split work into threads
+        size_t num_threads = std::thread::hardware_concurrency();
+        size_t chunk_size = (titles.size() + num_threads - 1) / num_threads;
+
+        // -------------------------------------------------------------
+        std::cout << "Number of threads: " << num_threads << std::endl;
+        std::cout << "Chunk size: " << chunk_size << std::endl;
+        // -------------------------------------------------------------
+    
+        std::vector<std::thread> threads;
+        for (size_t t = 0; t < num_threads; ++t) {
+            size_t start = t * chunk_size;
+            size_t end = std::min(start + chunk_size, titles.size());
+            threads.emplace_back(Tagging::compute_chunk, start, end, std::ref(titles), std::ref(data), t, std::ref(output_dir));
+        }
+    
+        for (auto& thread : threads) thread.join();
+    
+        // Insert into DB from each CSV file
+        for (size_t t = 0; t < num_threads; ++t) {
+            std::filesystem::path part_file = output_dir / ("item_matrix_part_" + std::to_string(t) + ".csv");
+            std::cout << "Part file: " << part_file << std::endl;
+            Tagging::bulk_insert_from_csv(part_file);
+        }
     }
 
     std::vector<std::filesystem::path> skim_files(std::vector<std::filesystem::path>& files, const std::string& extension) {

@@ -423,5 +423,13 @@ def extract_text(SOURCE_FOLDER, CHUNK_SIZE=512, DB_PATH=chunk_database_path):
             for future in cf.as_completed(futures):
                 future.result()  # This will raise exceptions if any occur inside threads
 
-    # Step 3: Insert into database
-    insert_chunks_into_db(DATASET_FOLDER, DB_PATH)
+        # Step 3: Insert into database
+        insert_chunks_into_db(DATASET_FOLDER, DB_PATH)
+
+    # Check if all files have been processed
+    completed_files = set(os.listdir(DATASET_FOLDER))
+    if len(completed_files) == len(ready_files):
+        print("[INFO] All files have been processed.")
+    else:
+        print(f"[INFO] {len(ready_files) - len(completed_files)} files have not been processed.")
+        

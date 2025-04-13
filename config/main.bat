@@ -49,12 +49,12 @@ rem Function to execute tasks based on input flags
 echo Starting task execution...
 
 set "showComponents=0"
-@REM set "extractText=1"
+set "extractText=0"
 set "updateDatabaseInformation=0"
 set "processWordFreq=0"
 set "computeRelationalDistance=0"
 set "mappingItemMatrix=0"
-set "promptReference=0"
+set "promptReference=1"
 set "createRoutes=0"
 set "updateLogging=0"
 
@@ -62,7 +62,7 @@ rem Process flags
 :process_flags
 for %%A in (%*) do (
     if "%%A"=="--showComponents" set showComponents=1
-    @REM if "%%A"=="--extractText" set extractText=1
+    if "%%A"=="--extractText" set extractText=1
     if "%%A"=="--updateDatabaseInformation" set updateDatabaseInformation=1
     if "%%A"=="--processWordFreq" set processWordFreq=1
     if "%%A"=="--computeRelationalDistance" set computeRelationalDistance=1
@@ -85,17 +85,17 @@ if %showComponents%==1 (
     )
 )
 
-@REM rem Extract Text
-@REM if %extractText%==1 (
-@REM     echo Starting "Extract Text from PDF files" using Python...
-@REM     python src/main.py --extractText
-@REM     if %errorlevel% neq 0 (
-@REM         echo Error executing "Extract Text from PDF files".
-@REM         goto end
-@REM     ) else (
-@REM         echo "Extract Text from PDF files" completed successfully.
-@REM     )
-@REM )
+rem Extract Text
+if %extractText%==1 (
+    echo Starting "Extract Text from PDF files" using Python...
+    python src/main.py --extractText
+    if %errorlevel% neq 0 (
+        echo Error executing "Extract Text from PDF files".
+        goto end
+    ) else (
+        echo "Extract Text from PDF files" completed successfully.
+    )
+)
 
 rem Update Database Information
 if %updateDatabaseInformation%==1 (

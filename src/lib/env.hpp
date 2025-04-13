@@ -24,8 +24,8 @@ namespace ENV_HPP {
     std::filesystem::path item_matrix = data_root / ("item_matrix.csv");
     std::filesystem::path route_list = data_root / ("route_list.csv");
 
-    const int max_length = 14;
-    const int min_value = 3;
+    const int max_length = 18;
+    const int min_value = 1;
 }
 
 #endif // ENV_HPP

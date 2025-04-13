@@ -30,12 +30,6 @@ struct DataInfo {
 
 namespace UTILITIES_HPP {
     namespace Basic {
-        
-        std::string convertToBackslash(const std::string& path) {
-            std::string modified_path = path;
-            std::replace(modified_path.begin(), modified_path.end(), '/', '\\');
-            return modified_path;
-        }
 
         // List the files in the given directory and return them in a vector
         std::vector<std::filesystem::path> list_directory(const std::filesystem::path& path, bool show_index = false) {
