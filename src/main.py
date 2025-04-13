@@ -1,6 +1,7 @@
 import argparse
 import modules.path as path
 import modules.word_freq as word_freq
+import modules.tf_idf as tf_idf
 
 def app():
 
@@ -13,7 +14,7 @@ def app():
     parser.add_argument("--extractText", action= 'store_true', help= 'Extract text from PDF files and store in database')
     parser.add_argument("--processWordFreq", action= 'store_true', help="Create index tables and analyze word frequencies all in one")
     parser.add_argument("--tokenizePrompt", action= 'store_true', help="Prompt to find references in full database based on context of search")
-    parser.add_argument("--getDataset", action= 'store_true', help="Get dataset from database")
+    parser.add_argument("--computeTFIDF", action= 'store_true', help="Compute TF-IDF of all tokens in database")
 
     args = parser.parse_args()
 
@@ -56,11 +57,11 @@ def app():
         word_freq.promptFindingReference()
         print("Finished tokenizing prompt.")
 
-    if args.getDataset: # function is functioning properly
-        
-        print("Getting dataset from database...")
-        word_freq.get_dataset()
-        print("Finished getting dataset.")
+    if args.computeTFIDF:
+
+        print("Computing TF-IDF...")
+        tf_idf.computeTFIDF()
+        print("Finished computing TF-IDF.")
 
 if __name__ == "__main__":
     app()

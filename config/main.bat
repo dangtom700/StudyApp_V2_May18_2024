@@ -52,9 +52,10 @@ set "showComponents=0"
 set "extractText=0"
 set "updateDatabaseInformation=0"
 set "processWordFreq=0"
+set "computeTFIDF=1"
 set "computeRelationalDistance=0"
 set "mappingItemMatrix=0"
-set "promptReference=1"
+set "promptReference=0"
 set "createRoutes=0"
 set "updateLogging=0"
 
@@ -65,6 +66,7 @@ for %%A in (%*) do (
     if "%%A"=="--extractText" set extractText=1
     if "%%A"=="--updateDatabaseInformation" set updateDatabaseInformation=1
     if "%%A"=="--processWordFreq" set processWordFreq=1
+    if "%%A"=="--computeTFIDF" set computeTFIDF=1
     if "%%A"=="--computeRelationalDistance" set computeRelationalDistance=1
     if "%%A"=="--mappingItemMatrix" set mappingItemMatrix=1
     if "%%A"=="--promptReference" set promptReference=1
@@ -118,6 +120,18 @@ if %processWordFreq%==1 (
         goto end
     ) else (
         echo "Process Word Frequencies" completed successfully.
+    )
+)
+
+rem PCompute TF-IDF
+if %computeTFIDF%==1 (
+    echo Starting "Computing Term Frequency - Inverse Document Frequency" using Python...
+    python src/main.py --computeTFIDF
+    if %errorlevel% neq 0 (
+        echo Error executing "Computing Term Frequency - Inverse Document Frequency".
+        goto end
+    ) else (
+        echo "Computing Term Frequency - Inverse Document Frequency" completed successfully.
     )
 )
 

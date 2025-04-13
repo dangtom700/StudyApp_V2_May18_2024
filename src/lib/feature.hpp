@@ -408,6 +408,7 @@ namespace FEATURE {
             for (uint16_t i = 0; i < top_n_value && i < RESULT.size(); i++) {
                 output_file << "ID: " << std::get<0>(RESULT[i]) << std::endl
                 << "Distance: " << std::get<2>(RESULT[i]) << std::endl
+                << "Rank: " << i + 1 << std::endl
                 << "Name: " << std::get<1>(RESULT[i]) << std::endl
                 << "-----------------------------------------------------------------" << std::endl;
             }
