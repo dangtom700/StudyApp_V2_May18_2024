@@ -11,7 +11,6 @@ from concurrent.futures import ThreadPoolExecutor
 from json import dump
 import string
 from functools import partial
-import csv
 
 # One-time compiled regex pattern
 REPEATED_CHAR_PATTERN = re.compile(r"([a-zA-Z])\1{2,}")
@@ -104,7 +103,7 @@ def clean_text(text: str):
     filtered_tokens = defaultdict(int)
 
     # Process tokens
-    for token in tokens[1:-2]:  # Exclude the first and last token
+    for token in tokens:  # Exclude the first and last token
         if token.isalpha() and token not in stop_words and not has_repeats_regex(token):
             root_word = stemmer.stem(token)
             filtered_tokens[root_word] += 1
@@ -157,24 +156,12 @@ def retrieve_token_list(title_id, database):
 
     clean_text_dict = defaultdict(int)
     try:
-        cursor.execute("SELECT chunk_count, starting_id FROM file_info WHERE file_name = ?", (title_id,))
-        result = cursor.fetchone()
-
-        if not result:
-            print(f"Warning: No data found for title ID: {title_id}")
-            return clean_text_dict
-
-        chunk_count, start_id = result
-        if chunk_count is None or start_id is None:
-            print(f"Invalid data for title ID: {title_id} (chunk_count={chunk_count}, starting_id={start_id})")
-            return clean_text_dict
-
-        cursor.execute("""
-            SELECT chunk_text FROM pdf_chunks
-            LIMIT ? OFFSET ?""", (chunk_count, start_id))
+        # Retrieve chunks for the title
+        cursor.execute("SELECT (chunk_text) FROM pdf_chunks WHERE file_name = ?", (title_id+".txt",))
+        chunks = cursor.fetchall()
 
         # Process each chunk one at a time to minimize memory usage
-        for chunk in cursor:
+        for chunk in chunks:
             chunk_result = clean_text(chunk[0])
             for word, freq in chunk_result.items():
                 clean_text_dict[word] += freq
@@ -196,8 +183,6 @@ def process_chunks_in_batches(database, pdf_titles, fetched_result):
     It also keeps track of the global word frequencies and stores them in a single JSON file after all titles have been processed.
     """
     
-    conn = sqlite3.connect(database)
-    cursor = conn.cursor()
     global_word_freq = defaultdict(int)
 
     # Ensure the directory exists
@@ -207,7 +192,7 @@ def process_chunks_in_batches(database, pdf_titles, fetched_result):
     retrieve_func = partial(retrieve_token_list, database=database)
 
     # Process title IDs in parallel (each thread gets its own connection)
-    with ThreadPoolExecutor(max_workers=4) as executor:
+    with ThreadPoolExecutor() as executor:
         for title_id, word_freq in zip(pdf_titles, executor.map(retrieve_func, pdf_titles)):
             # Update global word frequencies
             for word, freq in word_freq.items():
@@ -219,9 +204,6 @@ def process_chunks_in_batches(database, pdf_titles, fetched_result):
                 dump(word_freq, f, ensure_ascii=False, indent=4)
 
     print("All titles processed and word frequencies stored in individual JSON files.")
-
-    conn.commit()
-    conn.close()
 
     json_global_path = os.path.join(os.getcwd(), 'data', 'global_word_freq.json')
     with open(json_global_path, 'w', encoding='utf-8') as f:
@@ -292,6 +274,9 @@ def process_word_frequencies_in_batches(reset_state=False, folder_path=token_jso
     conn.commit()
     conn.close()
 
+# _________________________________________________________________________________
+# _________________________________________________________________________________
+
 def promptFindingReference() -> None:
     """Reads in a prompt from a text file, cleans the text, and stores the cleaned
     prompt in a JSON file. The prompt is cleaned by removing punctuation, converting
@@ -333,83 +318,110 @@ def promptFindingReference() -> None:
     with open(buffer_json_path, "w") as f:
         dump(cleaned_prompt, f, ensure_ascii=False, indent=4)
 
+# _________________________________________________________________________________
+# _________________________________________________________________________________
 
-def get_dataset():
-    """Retrieves the dataset from the database and writes it to the dataset file.
+import concurrent.futures as cf
 
-    This function retrieves the text chunks from the database in batches and writes them to the dataset file. The dataset file is cleared before writing to it.
+def text_to_chunks(text, chunk_size):
+    """Split text into chunks of approximately `chunk_size` words."""
+    words = text.split()
+    return [' '.join(words[i:i+chunk_size]) for i in range(0, len(words), chunk_size)]
 
-    :return: None
-    """
-    conn = sqlite3.connect(chunk_database_path)
+def clean_text_for_extracted_data(text):
+    """Remove non-word characters and reduce multiple spaces."""
+    return re.sub(r'\s+', ' ', re.sub(r'\W+', ' ', text)).strip()
+
+def save_chunks_to_file(file_path, chunks):
+    """Save each chunk to a new line in a file."""
+    with open(file_path, "w", encoding="utf-8") as f:
+        for chunk in chunks:
+            f.write(chunk + "\n")
+
+def process_file(file, source_folder, chunk_size, dataset_folder):
+    """Read and chunk a file, saving the output to dataset_folder."""
+    if not file.endswith(".txt"):
+        return
+
+    print(f"[INFO] Processing {file}...")
+
+    try:
+        with open(os.path.join(source_folder, file), "r", encoding="utf-8") as f:
+            raw_text = f.read()
+
+        cleaned_text = clean_text_for_extracted_data(raw_text)
+        chunks = text_to_chunks(cleaned_text, chunk_size)
+
+        output_path = os.path.join(dataset_folder, file)
+        save_chunks_to_file(output_path, chunks)
+
+        print(f"[INFO] Completed {file} with {len(chunks)} chunks.")
+    except Exception as e:
+        print(f"[ERROR] Failed to process {file}: {e}")
+
+def insert_chunks_into_db(dataset_folder, db_path):
+    """Insert chunked data from dataset_folder into the SQLite database."""
+    print("[INFO] Inserting chunks into database...")
+    conn = sqlite3.connect(db_path)
     cursor = conn.cursor()
-    num_chunks = conn.execute("SELECT MAX(id) FROM pdf_chunks").fetchone()[0]
-    BATCH = 100
-    start = 0
 
-    # Clear the dataset file
-    if os.path.exists(dataset_path):
-        os.remove(dataset_path)
-    
-    while start < num_chunks:
-        end = min(start + BATCH, num_chunks)
-        cursor.execute("SELECT chunk_text FROM pdf_chunks WHERE id BETWEEN ? AND ?", (start, end))
-        chunks = cursor.fetchall()
+    for file in os.listdir(dataset_folder):
+        file_path = os.path.join(dataset_folder, file)
+        try:
+            with open(file_path, "r", encoding="utf-8") as f:
+                lines = f.readlines()
 
-        # Append to the dataset file
-        with open(dataset_path, "a", encoding="utf-8") as f:
-            for chunk in chunks:
-                # Clean the text before writing to file
-                result = ultra_clean_token(chunk)
-                f.write(result)
-        start = end + 1
+            for chunk_id, chunk_text in enumerate(lines):
+                cursor.execute("""
+                    INSERT OR IGNORE INTO pdf_chunks (file_name, chunk_id, chunk_text)
+                    VALUES (?, ?, ?)
+                """, (file, chunk_id, chunk_text.strip()))
+        except Exception as e:
+            print(f"[ERROR] Failed to insert chunks from {file}: {e}")
+
+    conn.commit()
     conn.close()
+    print("[INFO] Database insertion completed.")
 
 def extract_text(SOURCE_FOLDER, CHUNK_SIZE=512, DB_PATH=chunk_database_path):
     """
-    Instruction: Using Power Automate to extract text and store in a SOURCE_FOLDER
-
-    Args:
-        SOURCE_FOLDER (str): Path to the folder containing the extracted txt files.
-        CHUNK_SIZE (int, optional): The size of each chunk in words. Defaults to 512.
-        DB_PATH (str, optional): The path to the database file. Defaults to chunk_database_path.
+    Processes .txt files in SOURCE_FOLDER by chunking their text and storing the results
+    in a SQLite database at DB_PATH.
     """
-    def text_to_chunks(text, chunk_size):
-        words = text.split()
-        return [' '.join(words[i:i+chunk_size]) for i in range(0, len(words), chunk_size)]
+    DATASET_FOLDER = "dataset"
+    os.makedirs(DATASET_FOLDER, exist_ok=True)
 
-    os.makedirs("dataset", exist_ok=True)
-
+    # Step 1: Setup Database
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
-    cursor.execute("""CREATE TABLE IF NOT EXISTS pdf_chunks (
-        file_name TEXT,
-        chunk_id INTEGER,
-        chunk_text TEXT,
-        PRIMARY KEY (file_name, chunk_id)
-    )""")
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS pdf_chunks (
+            file_name TEXT,
+            chunk_id INTEGER,
+            chunk_text TEXT,
+            PRIMARY KEY (file_name, chunk_id)
+        )
+    """)
     conn.commit()
     conn.close()
 
-    for file in os.listdir(SOURCE_FOLDER):
-        if not file.endswith(".txt"):
-            continue
-        
-        with open(os.path.join(SOURCE_FOLDER, file), "r", encoding="utf-8") as f:
-            text = f.readlines()
-        
-        text = " ".join(text)
-        text = clean_text(text)
+    # Step 2: Process new files
+    ready_files = [f for f in os.listdir(SOURCE_FOLDER) if f.endswith(".txt")]
+    completed_files = set(os.listdir(DATASET_FOLDER))
+    new_files = [f for f in ready_files if f not in completed_files]
 
-        chunks = text_to_chunks(text, CHUNK_SIZE)
-        # Text dump
-        with open(os.path.join("dataset", file), "w", encoding="utf-8") as f:
-            for chunk in chunks:
-                f.write(chunk)
+    if not new_files:
+        print("[INFO] No new files to process.")
+    else:
+        print(f"[INFO] Found {len(new_files)} new files to process.")
 
-        for i, chunk in enumerate(chunks):
-            conn = sqlite3.connect(DB_PATH)
-            cursor = conn.cursor()
-            cursor.execute("INSERT INTO pdf_chunks (file_name, chunk_id, chunk_text) VALUES (?, ?, ?)", (file, i, chunk))
-            conn.commit()
-            conn.close()        
+        with cf.ThreadPoolExecutor() as executor:
+            futures = [
+                executor.submit(process_file, f, SOURCE_FOLDER, CHUNK_SIZE, DATASET_FOLDER)
+                for f in new_files
+            ]
+            for future in cf.as_completed(futures):
+                future.result()  # This will raise exceptions if any occur inside threads
+
+    # Step 3: Insert into database
+    insert_chunks_into_db(DATASET_FOLDER, DB_PATH)

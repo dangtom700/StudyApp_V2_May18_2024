@@ -41,13 +41,13 @@ def app():
         chunk_size = 512
         # extract_text
         print("Extracting text from PDF files...")
-        word_freq.extract_text(CHUNK_SIZE=chunk_size, SOURCE_FOLDER=path.pdf_path, DB_PATH=path.chunk_database_path)
+        word_freq.extract_text(CHUNK_SIZE=chunk_size, SOURCE_FOLDER="dataset2", DB_PATH=path.chunk_database_path)
         print("Finished extracting text from PDF files.")
     
     if args.processWordFreq:
 
         print("Processing word frequencies...")
-        word_freq.process_word_frequencies_in_batches(reset_state = True)
+        word_freq.process_word_frequencies_in_batches()
         print("Finished processing word frequencies.")
 
     if args.tokenizePrompt: # function is functioning properly
