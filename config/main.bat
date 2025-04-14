@@ -44,6 +44,9 @@ if %errorlevel% neq 0 (
 )
 echo Compilation successful.
 
+rem Activating Conda environment
+call conda activate StudyAssistant
+
 rem Function to execute tasks based on input flags
 :execute_tasks
 echo Starting task execution...
@@ -52,12 +55,12 @@ set "showComponents=0"
 set "extractText=0"
 set "updateDatabaseInformation=0"
 set "processWordFreq=0"
-set "computeTFIDF=1"
+set "computeTFIDF=0"
 set "computeRelationalDistance=0"
 set "mappingItemMatrix=0"
-set "promptReference=0"
+set "ideate=0"
+set "promptReference=1"
 set "createRoutes=0"
-set "updateLogging=0"
 
 rem Process flags
 :process_flags
@@ -69,9 +72,9 @@ for %%A in (%*) do (
     if "%%A"=="--computeTFIDF" set computeTFIDF=1
     if "%%A"=="--computeRelationalDistance" set computeRelationalDistance=1
     if "%%A"=="--mappingItemMatrix" set mappingItemMatrix=1
+    if "%%A"=="--ideate" set ideate=1
     if "%%A"=="--promptReference" set promptReference=1
     if "%%A"=="--createRoutes" set createRoutes=1
-    if "%%A"=="--updateLogging" set updateLogging=1
 )
 
 rem Show Components
@@ -123,7 +126,7 @@ if %processWordFreq%==1 (
     )
 )
 
-rem PCompute TF-IDF
+rem Compute TF-IDF
 if %computeTFIDF%==1 (
     echo Starting "Computing Term Frequency - Inverse Document Frequency" using Python...
     python src/main.py --computeTFIDF
@@ -159,6 +162,19 @@ if %mappingItemMatrix%==1 (
     )
 )
 
+rem Ideate prompts with multiple LLMs
+if %ideate%==1 (
+    echo Initialize LLMs for ideation...
+    call conda activate langlangchain
+    python ideation.py
+    call conda activate StudyAssistant
+    if %errorlevel% neq 0 (
+        echo Error executing "Ideation with multiple LLMs".
+    ) else (
+        echo "Ideation with multiple LLMs" completed successfully.
+    )
+)
+
 rem Prompting for references
 if %promptReference%==1 (
     echo Finding references in database...
@@ -179,17 +195,6 @@ if %createRoutes%==1 (
         echo Error executing "Create Route".
     ) else (
         echo "Create Route" completed successfully.
-    )
-)
-
-rem Update Logging
-if %updateLogging%==1 (
-    echo Updating log data using Python...
-    python src/main.py --updateLogging
-    if %errorlevel% neq 0 (
-        echo Error executing "Update Logging".
-    ) else (
-        echo "Update Logging" completed successfully.
     )
 )
 
