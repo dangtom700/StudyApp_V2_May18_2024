@@ -286,7 +286,7 @@ def promptFindingReference() -> None:
     buffer.json file."""
     def clean_prompt(text: str):
         # Remove punctuation and convert to lowercase
-        text = re.sub(r'[^\w\s]', '', text).lower()
+        text = re.sub(r'[^\w\s]', ' ', text).lower()
         text = ultra_clean_token(text)
         # Tokenize text
         tokens = nltk.word_tokenize(text)

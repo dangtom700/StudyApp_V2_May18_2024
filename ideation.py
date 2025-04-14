@@ -46,6 +46,12 @@ for name in model_names:
 # Start minimal log
 log_file = "PROMPT.txt"
 
+# Clear memory files
+for name in model_names:
+    memory_path = f"data\\memory_{name.replace(':', '_')}.json"
+    with open(memory_path, "w", encoding="utf-8") as f:
+        f.write("[]")
+
 # Clear log
 with open(log_file, "w", encoding="utf-8") as f:
     f.write("")
@@ -72,3 +78,9 @@ while user_input != "exit":
             f.write(f"\n{response}\n\n--------------------------------------------------------------------\n\n")
 
     user_input = input("You: ").strip()
+
+# Clear memory files
+for name in model_names:
+    memory_path = f"data\\memory_{name.replace(':', '_')}.json"
+    with open(memory_path, "w", encoding="utf-8") as f:
+        f.write("[]")
