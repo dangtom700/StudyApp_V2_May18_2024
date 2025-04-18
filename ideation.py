@@ -1,86 +1,144 @@
+import gradio as gr
+import json
+import os
 from langchain_ollama import OllamaLLM
-from langchain_core.runnables.history import RunnableWithMessageHistory
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
-from langchain_core.runnables import RunnableMap
 from langchain_community.chat_message_histories import FileChatMessageHistory
+from langchain_core.runnables.history import RunnableWithMessageHistory
 import subprocess
 
-# Define model names
 model_names = [
-    "llama3:latest",
-    "phi3:mini",
-    "gemma:latest",
-    "mistral:latest",
-    "gemma3:1b",
-    "llama3.2:latest"
+    "llama3:latest", "llama3.2:latest", "phi3.5:latest",
+    "gemma:latest", "deepseek-r1:8b", "granite3.3:8b"
 ]
 
-# Set up models + memory-backed chains
-models = {}
-for name in model_names:
-    llm = OllamaLLM(model=name)
+SESSION_ID = "default"
+LOG_FILE = "PROMPT.txt"
+FAV_FILE = "data\\fav.txt"
+os.makedirs("data", exist_ok=True)
 
+# Chain builder
+def build_chain(name):
+    llm = OllamaLLM(model=name)
     prompt = ChatPromptTemplate.from_messages([
-        ("system", "You're a helpful assistant."),
+        ("system", "You're helping me to brainstorm new ideas."),
         MessagesPlaceholder(variable_name="history"),
         ("human", "{input}")
     ])
-
-    # Create prompt + model chain
     chain_with_prompt = prompt | llm
-
-    # Each model has its own memory file
-    memory_path = f"data\\memory_{name.replace(':', '_')}.json"
+    memory_path = f"data/memory_{name.replace(':', '_')}.json"
+    if not os.path.exists(memory_path): open(memory_path, "w").write("[]")
     message_history = FileChatMessageHistory(memory_path)
-
-    # Create message-history-wrapped runnable
     chain = RunnableWithMessageHistory(
         chain_with_prompt,
         lambda session_id: message_history,
         input_messages_key="input",
         history_messages_key="history"
     )
+    return chain, memory_path, message_history
 
-    models[name] = chain
+# Purge memory
+def purge_memory(name):
+    memory_path = f"data/memory_{name.replace(':', '_')}.json"
+    if os.path.exists(memory_path): os.remove(memory_path)
+for name in model_names: purge_memory(name)
 
-# Start minimal log
-log_file = "PROMPT.txt"
+# Init chains
+chains = {name: build_chain(name) for name in model_names}
 
-# Clear memory files
-for name in model_names:
-    memory_path = f"data\\memory_{name.replace(':', '_')}.json"
-    with open(memory_path, "w", encoding="utf-8") as f:
-        f.write("[]")
+def stop_model(name): subprocess.run(["ollama", "stop", name])
 
-# Clear log
-with open(log_file, "w", encoding="utf-8") as f:
-    f.write("")
-
-user_input = input("Question: ").strip()
-
-while user_input != "exit":
-
-    # Run each model
-    with open(log_file, "a", encoding="utf-8") as f:
-        f.write(f"\nQuestion: {user_input}\n")
-
-        for model_name, chain in models.items():
-            print(f"\n{model_name} responding...")
+# Core logic for querying all models
+def query_all_models(user_input):
+    results = {}
+    with open(LOG_FILE, "a", encoding="utf-8") as log:
+        log.write(f"\nYou: {user_input}\n")
+        for name, (chain, memory_path, history) in chains.items():
             try:
-                response = chain.invoke(
-                    {"input": user_input},
-                    config={"configurable": {"session_id": "default"}}
-                )
+                response = chain.invoke({"input": user_input}, config={"configurable": {"session_id": SESSION_ID}})
+                if "deepseek" in name.lower():
+                    # Replace <think> tags with markdown-friendly formatting
+                    response = response.replace("<think>", "### Thinking\n").replace("</think>", "\n---\n### Result\n")
             except Exception as e:
-                response = f"[Error from {model_name}]: {str(e)}"
-            # Terminate the running model using ollama-cli
-            subprocess.run(["ollama", "stop", model_name])
-            f.write(f"\n{response}\n\n--------------------------------------------------------------------\n\n")
+                response = f"[Error from {name}]: {e}"
 
-    user_input = input("You: ").strip()
+            stop_model(name)
+            log.write(f"{name}: {response}\n")
+            results[name] = {
+                "response": response,
+                "memory": json.dumps(json.load(open(memory_path, "r")), indent=2),
+                "memory_path": memory_path
+            }
+    return results
 
-# Clear memory files
-for name in model_names:
-    memory_path = f"data\\memory_{name.replace(':', '_')}.json"
-    with open(memory_path, "w", encoding="utf-8") as f:
-        f.write("[]")
+
+# App UI
+with gr.Blocks() as demo:
+    gr.Markdown("# 🔍 Multi-LLM Ideation Comparator")
+
+    user_input = gr.Textbox(label="Your prompt")
+    submit_btn = gr.Button("Submit")
+
+    status = gr.Textbox(visible=False)
+    model_outputs = {}
+
+    with gr.Tabs():
+        for name in model_names:
+            with gr.Tab(label=name):
+                chat_out = gr.Markdown(label="Response")
+                mem_edit = gr.Textbox(label="Edit Memory (JSON)", lines=8)
+                save_btn = gr.Button("💾 Save Memory")
+                fav_btn = gr.Button("⭐ Favorite")
+                msg = gr.Textbox(visible=False)
+
+                model_outputs[name] = {
+                    "response_box": chat_out,
+                    "memory_box": mem_edit,
+                    "save_btn": save_btn,
+                    "fav_btn": fav_btn,
+                    "msg": msg,
+                }
+
+    state = gr.State({})  # holds last responses
+
+    # Submit handler
+    def handle_submit(prompt):
+        results = query_all_models(prompt)
+        return [results] + [results[name]["response"] for name in model_names] + [results[name]["memory"] for name in model_names]
+
+    submit_btn.click(
+        fn=handle_submit,
+        inputs=[user_input],
+        outputs=[state] + [model_outputs[name]["response_box"] for name in model_names] +
+                [model_outputs[name]["memory_box"] for name in model_names]
+    )
+
+    # Save memory handlers
+    for name in model_names:
+        def save_memory(json_text, name=name):
+            path = f"data/memory_{name.replace(':', '_')}.json"
+            try:
+                json.dump(json.loads(json_text), open(path, "w"))
+                return f"{name} memory saved."
+            except Exception as e:
+                return f"Error saving {name}: {e}"
+
+        model_outputs[name]["save_btn"].click(
+            fn=save_memory,
+            inputs=model_outputs[name]["memory_box"],
+            outputs=model_outputs[name]["msg"]
+        )
+
+        def favorite_fn(state, name=name):
+            data = state[name]
+            with open(FAV_FILE, "a", encoding="utf-8") as f:
+                f.write(f"\n[{name}]\nPrompt: {user_input.value}\nResponse: {data['response']}\n\n")
+            return f"Favorited {name}!"
+
+        model_outputs[name]["fav_btn"].click(
+            fn=favorite_fn,
+            inputs=[state],
+            outputs=model_outputs[name]["msg"]
+        )
+
+demo.launch()
