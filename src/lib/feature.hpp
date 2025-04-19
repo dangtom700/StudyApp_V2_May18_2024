@@ -409,7 +409,7 @@ namespace FEATURE {
                 output_file << "ID: " << std::get<0>(RESULT[i]) << std::endl
                 << "Distance: " << std::get<2>(RESULT[i]) << std::endl
                 << "Rank: " << i + 1 << std::endl
-                << "Name: " << std::get<1>(RESULT[i]) << std::endl
+                << "Name: [[" << std::get<1>(RESULT[i]) << "]]" << std::endl
                 << "-----------------------------------------------------------------" << std::endl;
             }
         } catch (const std::exception& e) {
