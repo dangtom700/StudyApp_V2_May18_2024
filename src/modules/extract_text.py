@@ -4,31 +4,10 @@ import sqlite3
 import re
 
 from modules.path import chunk_database_path
-from langchain_ollama import OllamaLLM, OllamaEmbeddings
-from langchain_core.prompts import ChatPromptTemplate
-from langchain_core.runnables.history import RunnableWithMessageHistory
-from langchain_core.documents import Document
-from langchain_community.chat_message_histories import FileChatMessageHistory
-from langchain_core.vectorstores import VectorStoreRetriever
-from langchain_core.embeddings import Embeddings
-from langchain_community.vectorstores import FAISS
 
 # --- Config ---
-MODEL_NAMES = [
-    "llama3:latest",
-    "llama3.2:latest",
-    "phi3.5:latest",
-    "gemma:latest",
-    "deepseek-r1:8b"
-]
-DATA_DIR = "data"
-LOG_FILE = "PROMPT.txt"
-SESSION_ID = "default"
-DB_PATH = chunk_database_path
-INDEX_PATH = "faiss_index"
+
 BATCH_SIZE = 100
-EMBEDDING_MODEL = "nomic-embed-text"
-MAX_THREADS = 8
 
 # -----------------------------------------------------------------------------------------------
 # -----------------------------------------------------------------------------------------------
@@ -50,20 +29,16 @@ def clean_text_for_extracted_data(text):
     """Remove non-word characters and reduce multiple spaces."""
     return re.sub(r'\s+', ' ', re.sub(r'\W+', ' ', text)).strip()
 
-def save_chunks_to_file(file_path, chunks, text_embedder: Embeddings):
+def save_chunks_to_file(file_path, chunks):
     """Save each chunk to a new line in a file."""
-    multi_embedding = text_embedder.embed_documents(chunks)
     with open(file_path, "w", encoding="utf-8") as f:
-        for chunk, embedding in zip(chunks, multi_embedding):
-            embedding = ", ".join(map(str, embedding))
-            f.write(f"{chunk} : {embedding}\n")
+        for chunk in zip(chunks):
+            f.write(f"{chunk}\n")
         
-def process_file(file, source_folder, chunk_size, dataset_folder, text_embedder):
+def process_file(file, source_folder, chunk_size, dataset_folder):
     """Read and chunk a file, saving the output to dataset_folder."""
     if not file.endswith(".txt"):
         return
-
-    print(f"[INFO] Processing {file}...")
 
     try:
         with open(os.path.join(source_folder, file), "r", encoding="utf-8") as f:
@@ -73,9 +48,8 @@ def process_file(file, source_folder, chunk_size, dataset_folder, text_embedder)
         chunks = text_to_chunks(cleaned_text, chunk_size)
 
         output_path = os.path.join(dataset_folder, file)
-        save_chunks_to_file(output_path, chunks, text_embedder)
+        save_chunks_to_file(output_path, chunks)
 
-        print(f"[INFO] Completed {file} with {len(chunks)} chunks.")
     except Exception as e:
         print(f"[ERROR] Failed to process {file}: {e}")
 
@@ -129,23 +103,20 @@ def extract_text(SOURCE_FOLDER, DEST_FOLDER, CHUNK_SIZE=512, DB_PATH=chunk_datab
     conn.commit()
     conn.close()
 
-    # Step 1.1: Create embeddings
-    text_embedder = OllamaEmbeddings(model=EMBEDDING_MODEL, 
-                                     num_thread=MAX_THREADS)
-
     # Step 2: Process new files
-    ready_files = [f for f in os.listdir(SOURCE_FOLDER) if f.endswith(".txt")]
+    ready_files = set([f for f in os.listdir(SOURCE_FOLDER) if f.endswith(".txt")])
     completed_files = set(os.listdir(DEST_FOLDER))
-    new_files = [f for f in ready_files if f not in completed_files]
+    zero_content_files = set([f for f in ready_files if os.stat(os.path.join(SOURCE_FOLDER, f)).st_size == 0])
+    new_files = ready_files - completed_files - zero_content_files
 
     if not new_files:
         print("[INFO] No new files to process.")
     else:
         print(f"[INFO] Found {len(new_files)} new files to process.")
 
-        with cf.ThreadPoolExecutor(max_workers=MAX_THREADS) as executor:
+        with cf.ThreadPoolExecutor() as executor:
             futures = [
-                executor.submit(process_file, f, SOURCE_FOLDER, CHUNK_SIZE, DEST_FOLDER, text_embedder)
+                executor.submit(process_file, f, SOURCE_FOLDER, CHUNK_SIZE, DEST_FOLDER)
                 for f in new_files
             ]
             for future in cf.as_completed(futures):

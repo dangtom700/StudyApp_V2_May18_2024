@@ -59,7 +59,7 @@ set "computeTFIDF=0"
 set "computeRelationalDistance=0"
 set "mappingItemMatrix=0"
 set "ideate=0"
-set "promptReference=1"
+set "promptReference=0"
 set "createRoutes=0"
 
 rem Process flags

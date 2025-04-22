@@ -2,6 +2,8 @@ import argparse
 import modules.path as path
 import modules.word_freq as word_freq
 import modules.tf_idf as tf_idf
+# import modules.ideation as ideation
+import modules.extract_text as extract_text
 
 def app():
 
@@ -42,7 +44,7 @@ def app():
         chunk_size = 512
         # extract_text
         print("Extracting text from PDF files...")
-        word_freq.extract_text(CHUNK_SIZE=chunk_size, SOURCE_FOLDER="dataset2", DB_PATH=path.chunk_database_path)
+        extract_text.extract_text(CHUNK_SIZE=chunk_size, SOURCE_FOLDER=path.source_data, DB_PATH=path.chunk_database_path, DEST_FOLDER=path.dest_data)
         print("Finished extracting text from PDF files.")
     
     if args.processWordFreq:
