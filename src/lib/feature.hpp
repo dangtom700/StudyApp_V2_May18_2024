@@ -31,11 +31,36 @@ namespace FEATURE {
         char* error_message = nullptr;
         int exit = sqlite3_exec(db, sql.c_str(), nullptr, nullptr, &error_message);
         if (exit != SQLITE_OK) {
-            std::cerr << "Error executing SQL: " << error_message << std::endl;
+            std::cerr << "Error executing SQL: " << error_message << std::endl
+                      << "SQL: " << sql << std::endl;
             sqlite3_free(error_message);
             throw std::runtime_error("SQL execution failed");
         }
     }
+
+    /**
+     * Prepare an SQL statement for execution.
+     *
+     * @param db The SQLite database connection.
+     * @param query The SQL query to be prepared.
+     * @return A prepared sqlite3_stmt object if successful, otherwise nullptr on failure.
+     * 
+     * This function prepares an SQL statement for execution by compiling the query 
+     * into a byte-code program that can be executed. If the preparation fails, it 
+     * outputs an error message to the standard error and returns nullptr.
+     */
+    sqlite3_stmt* prepareStatement(sqlite3* db, const std::string& query, const std::string& content) {
+        sqlite3_stmt* stmt = nullptr;
+        int rc = sqlite3_prepare_v2(db, query.c_str(), -1, &stmt, nullptr);
+        if (rc != SQLITE_OK) {
+            std::cerr << "Error preparing statement: " << sqlite3_errmsg(db) << std::endl
+                      << "SQL: " << query << std::endl
+                      << "Content: " << content << std::endl;
+            return nullptr;
+        }
+        return stmt;
+    }
+    
 
     /**
      * Compute the relational distance of each token in the given map of strings to
@@ -291,20 +316,13 @@ namespace FEATURE {
     }
 
 
-    /**
-     * @brief Process the prompt and compute the relational distance of the tokens in the JSON file to the titles in the database
-     * 
-     * This function will process the prompt and compute the relational distance of the tokens in the JSON file to the titles in the database.
-     * The relational distance is computed using the Euclidean distance between each token in the JSON file and the tokens in the title.
-     * The function will also print the first n results in descending order of relational distance.
-     * If an error occurs, an error message will be printed to the console.
-     */
+    
     void processPrompt(const int& top_n) {
         try {
             // Transform the JSON file into a map of processed tokens
             std::map<std::string, int> tokens = TRANSFORMER::json_to_map(ENV_HPP::buffer_json_path);
             int distance = TRANSFORMER::Pythagoras(tokens);
-            std::vector<std::tuple<std::string, int, double>> filtered_tokens = TRANSFORMER::token_filter(tokens, 16, 1, distance);
+            std::vector<std::tuple<std::string, int, double>> filtered_tokens = TRANSFORMER::token_filter(tokens, 16, 4, distance);
 
             // Open database connection
             sqlite3* db;
@@ -324,10 +342,9 @@ namespace FEATURE {
 
             // Step 1: Load all the file_info data into memory
             std::string sql = "SELECT id, file_name FROM file_info;";
-            sqlite3_stmt* stmt;
-            exit = sqlite3_prepare_v2(db, sql.c_str(), -1, &stmt, nullptr);
-            if (exit != SQLITE_OK) {
-                std::cerr << "Error preparing statement (file_info): " << sqlite3_errmsg(db) << std::endl;
+            sqlite3_stmt* stmt = prepareStatement(db, sql, "Error preparing statement (file_info)");
+            if (!stmt) {
+                sqlite3_finalize(stmt);
                 sqlite3_close(db);
                 return;
             }
@@ -343,11 +360,10 @@ namespace FEATURE {
             if (!token_in_clause.empty()) token_in_clause.pop_back();
 
             std::string relation_distance_sql = "SELECT file_name, Token, Relational_distance FROM relation_distance WHERE Token IN (" + token_in_clause + ");";
-            sqlite3_stmt* relation_stmt;
-            exit = sqlite3_prepare_v2(db, relation_distance_sql.c_str(), -1, &relation_stmt, nullptr);
-            if (exit != SQLITE_OK) {
-                std::cerr << "Error preparing statement (relation_distance): " << sqlite3_errmsg(db) << std::endl;
+            sqlite3_stmt* relation_stmt = prepareStatement(db, relation_distance_sql, "Error preparing statement (relation_distance)");
+            if (!relation_stmt) {
                 sqlite3_finalize(stmt);
+                sqlite3_finalize(relation_stmt);
                 sqlite3_close(db);
                 return;
             }
@@ -362,6 +378,27 @@ namespace FEATURE {
             sqlite3_finalize(relation_stmt); // Finalize statement after processing
 
             // Step 3: Process the file_info data and calculate distances using the map
+            std::string tfidf_sql ="SELECT tf_idf FROM tf_idf WHERE word = ?;";
+            sqlite3_stmt* tfidf_stmt = prepareStatement(db, tfidf_sql, "Error preparing statement (tf_idf)");
+            if (!tfidf_stmt) {
+                sqlite3_finalize(stmt);
+                sqlite3_finalize(tfidf_stmt);
+                sqlite3_close(db);
+                return;
+            }
+            
+            std::map<std::string, double> tfidf_map; // Map to store TF-IDF values by token_tfidf
+            for (const auto& entry : filtered_tokens) {
+                const std::string& token = std::get<0>(entry);
+                sqlite3_reset(tfidf_stmt);
+                sqlite3_bind_text(tfidf_stmt, 1, token.c_str(), -1, SQLITE_TRANSIENT);
+                if (sqlite3_step(tfidf_stmt) == SQLITE_ROW) {
+                    double tf_idf = sqlite3_column_double(tfidf_stmt, 0);
+                    tfidf_map[token] = tf_idf;
+                }
+            }
+            sqlite3_finalize(tfidf_stmt);
+
             while (sqlite3_step(stmt) == SQLITE_ROW) {
                 const unsigned char* id_text = sqlite3_column_text(stmt, 0);
                 const unsigned char* file_name_text = sqlite3_column_text(stmt, 1);
@@ -372,25 +409,37 @@ namespace FEATURE {
 
                 std::string id = std::string(reinterpret_cast<const char*>(id_text));
                 std::string file_name = std::string(reinterpret_cast<const char*>(file_name_text));
-                double total_distance = 0;
+                double total_distance = 0.0;
+                double reward_bonus = 0.0;
 
-                // Calculate total distance using the pre-fetched relation distances
                 for (const auto& entry : filtered_tokens) {
                     const std::string& token = std::get<0>(entry);
-                    const double relational_distance_weight = std::get<2>(entry);
+                    const int token_freq = std::get<1>(entry);
+                    const double relational_distance_original = std::get<2>(entry);
 
-                    // Lookup the relation distance in the map
-                    if (relation_distance_map.count("title_" + id) && relation_distance_map["title_" + id].count(token)) {
-                        total_distance += relational_distance_weight * relation_distance_map["title_" + id][token];
+                    // Lookup the precomputed relational distance
+                    if (relation_distance_map.count(file_name) && relation_distance_map[file_name].count(token)) {
+                        total_distance += relational_distance_original;
+                    }
+
+                    // TF-IDF reward
+                    sqlite3_reset(tfidf_stmt);
+                    sqlite3_bind_text(tfidf_stmt, 1, token.c_str(), -1, SQLITE_STATIC);
+                    if (sqlite3_step(tfidf_stmt) == SQLITE_ROW) {
+                        double tf_idf = sqlite3_column_double(tfidf_stmt, 0);
+                        reward_bonus += tf_idf * token_freq;
                     }
                 }
 
-                // Add the result to the RESULT vector
+                total_distance += reward_bonus;
+
+                if (total_distance == 0.0) continue; // Ignore zero distances
                 RESULT.push_back({id, file_name, total_distance});
             }
 
             // Finalize statement and close the database
             sqlite3_finalize(stmt);
+            sqlite3_finalize(tfidf_stmt);
             sqlite3_close(db);
 
             // Sort the results by the largest relative distance
@@ -638,7 +687,137 @@ namespace FEATURE {
     
         output_file.close();
         std::cout << "Routes successfully written to " << ENV_HPP::route_list << "!\n";
-    }    
+    }
+
+    void computeTFIDF(const uint16_t& MIN_THRES_FREQ = 4,
+                      const uint16_t& BUFFER_SIZE = 1000) {
+
+        const std::string& chunk_database_path = ENV_HPP::database_path.string();
+        const std::string& GLOBAL_JSON_PATH = ENV_HPP::global_terms_path.string();
+
+        sqlite3* db;
+        if (sqlite3_open(chunk_database_path.c_str(), &db) != SQLITE_OK) {
+            std::cerr << "Can't open database\n";
+            return;
+        }
+
+        // Speed optimizations
+        execute_sql(db, "PRAGMA journal_mode=WAL;");
+        execute_sql(db, "PRAGMA synchronous = OFF;");
+
+        // Create tf_idf table
+        execute_sql(db,
+            "CREATE TABLE IF NOT EXISTS tf_idf ("
+            "word TEXT PRIMARY KEY, "
+            "freq INTEGER, "
+            "doc_count INTEGER, "
+            "tf_idf REAL)"
+        );
+
+        // Load JSON
+        std::ifstream inputFile(GLOBAL_JSON_PATH);
+        json global_word_freq;
+        inputFile >> global_word_freq;
+
+        std::map<std::string, int> filtered_words;
+        for (auto& [word, freq] : global_word_freq.items()) {
+            if (freq >= MIN_THRES_FREQ && word.length() > 1) {
+                filtered_words[word] = freq;
+            }
+        }
+
+        int sum_freq = 0;
+        for (const auto& [word, freq] : filtered_words) {
+            sum_freq += freq;
+        }
+
+        // Get doc count per token
+        std::map<std::string, int> word_doc_counts;
+        sqlite3_stmt* stmt;
+
+        std::string query = "SELECT token, COUNT(DISTINCT file_name) FROM relation_distance GROUP BY token;";
+        if (sqlite3_prepare_v2(db, query.c_str(), -1, &stmt, nullptr) == SQLITE_OK) {
+            while (sqlite3_step(stmt) == SQLITE_ROW) {
+                std::string token(reinterpret_cast<const char*>(sqlite3_column_text(stmt, 0)));
+                int count = sqlite3_column_int(stmt, 1);
+                word_doc_counts[token] = count;
+            }
+        }
+        sqlite3_finalize(stmt);
+
+        // Get total number of documents
+        int total_docs = 0;
+        query = "SELECT COUNT(DISTINCT file_name) FROM relation_distance;";
+        if (sqlite3_prepare_v2(db, query.c_str(), -1, &stmt, nullptr) == SQLITE_OK &&
+            sqlite3_step(stmt) == SQLITE_ROW) {
+            total_docs = sqlite3_column_int(stmt, 0);
+        }
+        sqlite3_finalize(stmt);
+
+        // Begin transaction
+        execute_sql(db, "BEGIN TRANSACTION;");
+        std::vector<TFIDFRecord> buffer;
+
+        for (const auto& [word, freq] : filtered_words) {
+            int doc_count = word_doc_counts[word];
+            double tf = static_cast<double>(freq) / sum_freq;
+            double idf = log10((total_docs + 1.0) / (doc_count + 1.0)) + 1.0;
+            double tf_idf = tf * idf;
+
+            buffer.push_back({word, freq, doc_count, tf_idf});
+
+            if (buffer.size() >= BUFFER_SIZE) {
+                sqlite3_stmt* insertStmt;
+                std::string sql = 
+                    "INSERT INTO tf_idf (word, freq, doc_count, tf_idf) VALUES (?, ?, ?, ?) "
+                    "ON CONFLICT(word) DO UPDATE SET "
+                    "freq=excluded.freq, doc_count=excluded.doc_count, tf_idf=excluded.tf_idf;";
+                sqlite3_prepare_v2(db, sql.c_str(), -1, &insertStmt, nullptr);
+
+                for (const auto& record : buffer) {
+                    sqlite3_bind_text(insertStmt, 1, record.word.c_str(), -1, SQLITE_TRANSIENT);
+                    sqlite3_bind_int(insertStmt, 2, record.freq);
+                    sqlite3_bind_int(insertStmt, 3, record.doc_count);
+                    sqlite3_bind_double(insertStmt, 4, record.tf_idf);
+
+                    sqlite3_step(insertStmt);
+                    sqlite3_reset(insertStmt);
+                }
+
+                sqlite3_finalize(insertStmt);
+                buffer.clear();
+            }
+        }
+
+        // Insert remaining records
+        if (!buffer.empty()) {
+            sqlite3_stmt* insertStmt;
+            std::string sql = 
+                "INSERT INTO tf_idf (word, freq, doc_count, tf_idf) VALUES (?, ?, ?, ?) "
+                "ON CONFLICT(word) DO UPDATE SET "
+                "freq=excluded.freq, doc_count=excluded.doc_count, tf_idf=excluded.tf_idf;";
+            sqlite3_prepare_v2(db, sql.c_str(), -1, &insertStmt, nullptr);
+
+            for (const auto& record : buffer) {
+                sqlite3_bind_text(insertStmt, 1, record.word.c_str(), -1, SQLITE_TRANSIENT);
+                sqlite3_bind_int(insertStmt, 2, record.freq);
+                sqlite3_bind_int(insertStmt, 3, record.doc_count);
+                sqlite3_bind_double(insertStmt, 4, record.tf_idf);
+
+                sqlite3_step(insertStmt);
+                sqlite3_reset(insertStmt);
+            }
+
+            sqlite3_finalize(insertStmt);
+        }
+
+        // Finalize
+        execute_sql(db, "COMMIT;");
+        sqlite3_close(db);
+
+        std::cout << "TF-IDF computation completed." << std::endl;
+    }
+
 }
 
 #endif // FEATURE_HPP

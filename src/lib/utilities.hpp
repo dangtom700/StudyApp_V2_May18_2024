@@ -28,6 +28,13 @@ struct DataInfo {
     int ending_id;
 };
 
+struct TFIDFRecord {
+    std::string word;
+    int freq;
+    int doc_count;
+    double tf_idf;
+};
+
 namespace UTILITIES_HPP {
     namespace Basic {
 

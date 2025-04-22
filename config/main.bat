@@ -59,7 +59,7 @@ set "computeTFIDF=0"
 set "computeRelationalDistance=0"
 set "mappingItemMatrix=0"
 set "ideate=0"
-set "promptReference=0"
+set "promptReference=1"
 set "createRoutes=0"
 
 rem Process flags
@@ -128,8 +128,8 @@ if %processWordFreq%==1 (
 
 rem Compute TF-IDF
 if %computeTFIDF%==1 (
-    echo Starting "Computing Term Frequency - Inverse Document Frequency" using Python...
-    python src/main.py --computeTFIDF
+    echo Starting "Computing Term Frequency - Inverse Document Frequency" using C++...
+    word_tokenizer --computeTFIDF
     if %errorlevel% neq 0 (
         echo Error executing "Computing Term Frequency - Inverse Document Frequency".
         goto end

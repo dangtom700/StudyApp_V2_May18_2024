@@ -70,6 +70,12 @@ void createRoutes() {
     std::cout << "Finished: Route created." << std::endl;
 }
 
+void computeTFIDF() {
+    std::cout << "Computing TF-IDF..." << std::endl;
+    FEATURE::computeTFIDF();
+    std::cout << "Finished: TF-IDF computed." << std::endl;
+}
+
 int main(int argc, char* argv[]) {
     // Check if any command-line arguments were provided
     if (argc < 2) {
@@ -84,7 +90,8 @@ int main(int argc, char* argv[]) {
         {"--updatedatabaseinformation", updateDatabaseInformation},
         {"--processprompt", processPrompt},
         {"--mappingitemmatrix", mappingItemMatrix},
-        {"--createroutes", createRoutes}
+        {"--createroutes", createRoutes},
+        {"--computetfidf", computeTFIDF}
     };
 
     // Iterate through the provided command-line arguments and execute corresponding actions
