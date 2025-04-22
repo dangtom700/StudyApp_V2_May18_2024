@@ -315,157 +315,142 @@ namespace FEATURE {
         std::cout << "Computing resource data finished" << std::endl;
     }
 
-
-    
     void processPrompt(const int& top_n) {
         try {
-            // Transform the JSON file into a map of processed tokens
+            // Step 1: Token preparation
+            std::cout << "Encoding prompt..." << std::endl;
             std::map<std::string, int> tokens = TRANSFORMER::json_to_map(ENV_HPP::buffer_json_path);
             int distance = TRANSFORMER::Pythagoras(tokens);
-            std::vector<std::tuple<std::string, int, double>> filtered_tokens = TRANSFORMER::token_filter(tokens, 16, 4, distance);
-
-            // Open database connection
+            std::vector<std::tuple<std::string, int, double>> filtered_tokens = TRANSFORMER::token_filter(tokens, 16, 1, distance);
+            tokens.clear();
+    
+            // Step 2: Open database
             sqlite3* db;
-            int exit = sqlite3_open(ENV_HPP::database_path.string().c_str(), &db);
-            if (exit != SQLITE_OK) {
+            if (sqlite3_open(ENV_HPP::database_path.string().c_str(), &db) != SQLITE_OK) {
                 std::cerr << "Error opening database: " << sqlite3_errmsg(db) << std::endl;
                 return;
             }
-
-            // Enable PRAGMAs for performance
+    
+            // SQLite PRAGMAs
             sqlite3_exec(db, "PRAGMA journal_mode=WAL;", nullptr, nullptr, nullptr);
             sqlite3_exec(db, "PRAGMA synchronous=OFF;", nullptr, nullptr, nullptr);
             sqlite3_exec(db, "PRAGMA temp_store=MEMORY;", nullptr, nullptr, nullptr);
-
-            // Prepare the result vector
-            std::vector<std::tuple<std::string, std::string, double>> RESULT;
-
-            // Step 1: Load all the file_info data into memory
-            std::string sql = "SELECT id, file_name FROM file_info;";
-            sqlite3_stmt* stmt = prepareStatement(db, sql, "Error preparing statement (file_info)");
-            if (!stmt) {
-                sqlite3_finalize(stmt);
+    
+            // Step 3: Prepare file_info reader
+            std::string file_info_sql = "SELECT id, file_name FROM file_info;";
+            sqlite3_stmt* file_stmt = prepareStatement(db, file_info_sql, "Error preparing statement (file_info)");
+            if (!file_stmt) {
                 sqlite3_close(db);
                 return;
             }
-
-            // Step 2: Load the relation_distance data for all filtered tokens in one go
-            // Create a map to store relational distances by file_name and token
+    
+            // Step 4: Load relation_distance map
+            std::cout << "Loading relation_distance map..." << std::endl;
             std::map<std::string, std::map<std::string, double>> relation_distance_map;
             std::string token_in_clause;
-            for (const auto& entry : filtered_tokens) {
-                token_in_clause += "'" + std::get<0>(entry) + "',";
-            }
-            // Remove trailing comma
+            for (const auto& [token, _, __] : filtered_tokens)
+                token_in_clause += "'" + token + "',";
             if (!token_in_clause.empty()) token_in_clause.pop_back();
-
-            std::string relation_distance_sql = "SELECT file_name, Token, Relational_distance FROM relation_distance WHERE Token IN (" + token_in_clause + ");";
-            sqlite3_stmt* relation_stmt = prepareStatement(db, relation_distance_sql, "Error preparing statement (relation_distance)");
-            if (!relation_stmt) {
-                sqlite3_finalize(stmt);
-                sqlite3_finalize(relation_stmt);
+    
+            std::string relation_sql = "SELECT file_name, Token, relational_distance FROM relation_distance WHERE Token IN (" + token_in_clause + ");";
+            sqlite3_stmt* rel_stmt = prepareStatement(db, relation_sql, "Error preparing statement (relation_distance)");
+            if (!rel_stmt) {
+                sqlite3_finalize(file_stmt);
                 sqlite3_close(db);
                 return;
             }
-
-            // Populate the relation_distance_map
-            while (sqlite3_step(relation_stmt) == SQLITE_ROW) {
-                std::string file_name = reinterpret_cast<const char*>(sqlite3_column_text(relation_stmt, 0));
-                std::string token = reinterpret_cast<const char*>(sqlite3_column_text(relation_stmt, 1));
-                double relational_distance = sqlite3_column_double(relation_stmt, 2);
-                relation_distance_map[file_name][token] = relational_distance;
+    
+            while (sqlite3_step(rel_stmt) == SQLITE_ROW) {
+                std::string rel_file = reinterpret_cast<const char*>(sqlite3_column_text(rel_stmt, 0));
+                std::string token = reinterpret_cast<const char*>(sqlite3_column_text(rel_stmt, 1));
+                double rel_dist = sqlite3_column_double(rel_stmt, 2);
+                relation_distance_map[rel_file][token] = rel_dist;
             }
-            sqlite3_finalize(relation_stmt); // Finalize statement after processing
-
-            // Step 3: Process the file_info data and calculate distances using the map
-            std::string tfidf_sql ="SELECT tf_idf FROM tf_idf WHERE word = ?;";
+            sqlite3_finalize(rel_stmt);
+    
+            // Step 5: Load TF-IDF values
+            std::cout << "Accounting for TF-IDF..." << std::endl;
+            std::string tfidf_sql = "SELECT tf_idf FROM tf_idf WHERE word = ?;";
             sqlite3_stmt* tfidf_stmt = prepareStatement(db, tfidf_sql, "Error preparing statement (tf_idf)");
             if (!tfidf_stmt) {
-                sqlite3_finalize(stmt);
-                sqlite3_finalize(tfidf_stmt);
+                sqlite3_finalize(file_stmt);
                 sqlite3_close(db);
                 return;
             }
-            
-            std::map<std::string, double> tfidf_map; // Map to store TF-IDF values by token_tfidf
-            for (const auto& entry : filtered_tokens) {
-                const std::string& token = std::get<0>(entry);
+    
+            for (auto& [token, freq, base_distance] : filtered_tokens) {
                 sqlite3_reset(tfidf_stmt);
                 sqlite3_bind_text(tfidf_stmt, 1, token.c_str(), -1, SQLITE_TRANSIENT);
                 if (sqlite3_step(tfidf_stmt) == SQLITE_ROW) {
-                    double tf_idf = sqlite3_column_double(tfidf_stmt, 0);
-                    tfidf_map[token] = tf_idf;
+                    double tfidf = sqlite3_column_double(tfidf_stmt, 0);
+                    // Adjust to 0.0 if TF-IDF value is not found
+                    if (std::isnan(tfidf)) tfidf = 0.0;
+                    // Update base_distance with addition of TF-IDF value
+                    base_distance += tfidf / freq;
                 }
             }
             sqlite3_finalize(tfidf_stmt);
-
-            while (sqlite3_step(stmt) == SQLITE_ROW) {
-                const unsigned char* id_text = sqlite3_column_text(stmt, 0);
-                const unsigned char* file_name_text = sqlite3_column_text(stmt, 1);
-
-                if (!id_text || !file_name_text) {
-                    continue; // Skip the row if either value is null
+    
+            // Step 6: Compute scores
+            std::cout << "Computing recommendations..." << std::endl;
+            std::vector<std::tuple<std::string, std::string, double>> RESULT;
+    
+            while (sqlite3_step(file_stmt) == SQLITE_ROW) {
+                std::string id(reinterpret_cast<const char*>(sqlite3_column_text(file_stmt, 0)));
+                std::string file_name(reinterpret_cast<const char*>(sqlite3_column_text(file_stmt, 1)));
+    
+                std::string rel_file_key = "title_" + id;
+                if (relation_distance_map.find(rel_file_key) == relation_distance_map.end()) continue;
+    
+                double score = 0.0;
+                const auto& token_map = relation_distance_map[rel_file_key];
+    
+                for (const auto& [token, _, base_distance] : filtered_tokens) {
+                    auto rel_it = token_map.find(token);
+                    if (rel_it == token_map.end()) continue;
+    
+                    double rel_dist = rel_it->second;
+                    score += rel_dist * base_distance;
                 }
-
-                std::string id = std::string(reinterpret_cast<const char*>(id_text));
-                std::string file_name = std::string(reinterpret_cast<const char*>(file_name_text));
-                double total_distance = 0.0;
-                double reward_bonus = 0.0;
-
-                for (const auto& entry : filtered_tokens) {
-                    const std::string& token = std::get<0>(entry);
-                    const int token_freq = std::get<1>(entry);
-                    const double relational_distance_original = std::get<2>(entry);
-
-                    // Lookup the precomputed relational distance
-                    if (relation_distance_map.count(file_name) && relation_distance_map[file_name].count(token)) {
-                        total_distance += relational_distance_original;
-                    }
-
-                    // TF-IDF reward
-                    sqlite3_reset(tfidf_stmt);
-                    sqlite3_bind_text(tfidf_stmt, 1, token.c_str(), -1, SQLITE_STATIC);
-                    if (sqlite3_step(tfidf_stmt) == SQLITE_ROW) {
-                        double tf_idf = sqlite3_column_double(tfidf_stmt, 0);
-                        reward_bonus += tf_idf * token_freq;
-                    }
+    
+                if (score > 0.0) {
+                    RESULT.emplace_back(id, file_name, score);
                 }
-
-                total_distance += reward_bonus;
-
-                if (total_distance == 0.0) continue; // Ignore zero distances
-                RESULT.push_back({id, file_name, total_distance});
+    
+                relation_distance_map.erase(rel_file_key);
             }
-
-            // Finalize statement and close the database
-            sqlite3_finalize(stmt);
-            sqlite3_finalize(tfidf_stmt);
+    
+            sqlite3_finalize(file_stmt);
             sqlite3_close(db);
 
-            // Sort the results by the largest relative distance
-            std::sort(RESULT.begin(), RESULT.end(), [](const std::tuple<std::string, std::string, double>& a, const std::tuple<std::string, std::string, double>& b) {
+            // Free up memory
+            std::cout << "Clearing memory..." << std::endl;
+            relation_distance_map.clear();
+            filtered_tokens.clear();
+    
+            // Step 7: Sort and output
+            std::cout << "Sorting and outputting results..." << std::endl;
+            std::sort(RESULT.begin(), RESULT.end(), [](const auto& a, const auto& b) {
                 return std::get<2>(a) > std::get<2>(b);
             });
-
-            // Guard the top_n value between 0 and the size of the RESULT vector
+    
             uint16_t top_n_value = std::min(static_cast<uint16_t>(RESULT.size()), static_cast<uint16_t>(top_n));
-            
-            // Print the first top results
             std::ofstream output_file(ENV_HPP::outputPrompt);
-            output_file << "Top "<< top_n_value <<" Results:" << std::endl
-                << "-----------------------------------------------------------------" << std::endl;
-            for (uint16_t i = 0; i < top_n_value && i < RESULT.size(); i++) {
-                output_file << "ID: " << std::get<0>(RESULT[i]) << std::endl
-                << "Distance: " << std::get<2>(RESULT[i]) << std::endl
-                << "Rank: " << i + 1 << std::endl
-                << "Name: [[" << std::get<1>(RESULT[i]) << "]]" << std::endl
-                << "-----------------------------------------------------------------" << std::endl;
+            output_file << "Top " << top_n_value << " Results:\n"
+                        << "-----------------------------------------------------------------\n";
+            for (uint16_t i = 0; i < top_n_value; i++) {
+                output_file << "ID: " << std::get<0>(RESULT[i]) << "\n"
+                            << "Distance: " << std::get<2>(RESULT[i]) << "\n"
+                            << "Rank: " << i + 1 << "\n"
+                            << "Name: [[" << std::get<1>(RESULT[i]) << "]]\n"
+                            << "-----------------------------------------------------------------\n";
             }
+    
         } catch (const std::exception& e) {
             std::cerr << "Error: " << e.what() << std::endl;
         }
-    }
-
+    }    
+    
     void mappingItemMatrix(const std::filesystem::path& output_dir = "data/item_matrix") {
         // Open DB and fetch data
         sqlite3* db;
