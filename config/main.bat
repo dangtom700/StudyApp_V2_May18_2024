@@ -57,8 +57,8 @@ set "updateDatabaseInformation=0"
 set "processWordFreq=0"
 set "computeTFIDF=0"
 set "computeRelationalDistance=0"
-set "mappingItemMatrix=0"
-set "ideate=0"
+set "mappingItemMatrix=0" 
+set "ideate=1"
 set "promptReference=1"
 set "createRoutes=0"
 
@@ -166,7 +166,7 @@ rem Ideate prompts with multiple LLMs
 if %ideate%==1 (
     echo Initialize LLMs for ideation...
     call conda activate langlangchain
-    python ideation.py
+    python src/ideation.py
     call conda activate StudyAssistant
     if %errorlevel% neq 0 (
         echo Error executing "Ideation with multiple LLMs".

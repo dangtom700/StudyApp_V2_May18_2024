@@ -41,7 +41,7 @@ def app():
         descriptions. They are more challenging to search but provide deeper 
         understanding.
         """
-        chunk_size = 512
+        chunk_size = 1024
         # extract_text
         print("Extracting text from PDF files...")
         extract_text.extract_text(CHUNK_SIZE=chunk_size, SOURCE_FOLDER=path.source_data, DB_PATH=path.chunk_database_path, DEST_FOLDER=path.dest_data)

@@ -325,6 +325,9 @@ namespace FEATURE {
             tokens.clear();
     
             // Step 2: Open database
+            std::ofstream output_file(ENV_HPP::outputPrompt);
+            output_file << ""; // Clear the file
+            
             sqlite3* db;
             if (sqlite3_open(ENV_HPP::database_path.string().c_str(), &db) != SQLITE_OK) {
                 std::cerr << "Error opening database: " << sqlite3_errmsg(db) << std::endl;
@@ -335,6 +338,7 @@ namespace FEATURE {
             sqlite3_exec(db, "PRAGMA journal_mode=WAL;", nullptr, nullptr, nullptr);
             sqlite3_exec(db, "PRAGMA synchronous=OFF;", nullptr, nullptr, nullptr);
             sqlite3_exec(db, "PRAGMA temp_store=MEMORY;", nullptr, nullptr, nullptr);
+            sqlite3_exec(db, "BEGIN;", nullptr, nullptr, nullptr);
     
             // Step 3: Prepare file_info reader
             std::string file_info_sql = "SELECT id, file_name FROM file_info;";
@@ -366,6 +370,7 @@ namespace FEATURE {
                 double rel_dist = sqlite3_column_double(rel_stmt, 2);
                 relation_distance_map[rel_file][token] = rel_dist;
             }
+
             sqlite3_finalize(rel_stmt);
     
             // Step 5: Load TF-IDF values
@@ -419,7 +424,8 @@ namespace FEATURE {
     
                 relation_distance_map.erase(rel_file_key);
             }
-    
+
+            sqlite3_exec(db, "COMMIT;", nullptr, nullptr, nullptr);
             sqlite3_finalize(file_stmt);
             sqlite3_close(db);
 
@@ -435,7 +441,6 @@ namespace FEATURE {
             });
     
             uint16_t top_n_value = std::min(static_cast<uint16_t>(RESULT.size()), static_cast<uint16_t>(top_n));
-            std::ofstream output_file(ENV_HPP::outputPrompt);
             output_file << "Top " << top_n_value << " Results:\n"
                         << "-----------------------------------------------------------------\n";
             for (uint16_t i = 0; i < top_n_value; i++) {

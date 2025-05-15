@@ -302,7 +302,7 @@ def promptFindingReference() -> None:
 
         return filtered_tokens
     # Read in from prompt.txt
-    with open("PROMPT.txt", "r", encoding="utf-8") as f:
+    with open("PROMPT.txt", "r", encoding="utf-8", errors="ignore") as f:
         prompt = f.readlines()
 
     prompt = " ".join(prompt)

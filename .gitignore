@@ -14,3 +14,4 @@ outputPrompt.txt
 PROMPT.txt
 models/
 logs/
+conversations/
