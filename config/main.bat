@@ -58,7 +58,7 @@ set "processWordFreq=0"
 set "computeTFIDF=0"
 set "computeRelationalDistance=0"
 set "mappingItemMatrix=0" 
-set "ideate=1"
+set "ideate=0"
 set "promptReference=1"
 set "createRoutes=0"
 
