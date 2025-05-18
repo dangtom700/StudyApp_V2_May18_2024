@@ -96,7 +96,6 @@ def extract_text(SOURCE_FOLDER, DEST_FOLDER, CHUNK_SIZE=512, DB_PATH=chunk_datab
             file_name TEXT,
             chunk_id INTEGER,
             chunk_text TEXT,
-            embedding TEXT,
             PRIMARY KEY (file_name, chunk_id)
         )
     """)
