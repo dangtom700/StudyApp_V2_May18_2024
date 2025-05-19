@@ -457,52 +457,52 @@ namespace FEATURE {
     }    
     
     void mappingItemMatrix(const std::filesystem::path& output_dir = "data/item_matrix") {
-        // Open DB and fetch data
-        sqlite3* db;
-        if (sqlite3_open(ENV_HPP::database_path.string().c_str(), &db) != SQLITE_OK) {
-            std::cerr << "DB open failed: " << sqlite3_errmsg(db) << std::endl;
-            return;
-        }
+        // // Open DB and fetch data
+        // sqlite3* db;
+        // if (sqlite3_open(ENV_HPP::database_path.string().c_str(), &db) != SQLITE_OK) {
+        //     std::cerr << "DB open failed: " << sqlite3_errmsg(db) << std::endl;
+        //     return;
+        // }
         
-        std::cout << "Fetching data..." << std::endl;
-        std::vector<std::string> titles = Tagging::fetch_unique_titles(db);
-        std::unordered_map<std::string, std::unordered_map<std::string, float>> data;
-        Tagging::fetch_all_data(db, data);
+        // std::cout << "Fetching data..." << std::endl;
+        // std::vector<std::string> titles = Tagging::fetch_unique_titles(db);
+        // std::unordered_map<std::string, std::unordered_map<std::string, float>> data;
+        // Tagging::fetch_all_data(db, data);
 
-        // -------------------------------------------------------------
-        std::cout << "Number of titles: " << titles.size() << std::endl;
-        std::cout << "Number of data: " << data.size() << std::endl;
-        // -------------------------------------------------------------
+        // // -------------------------------------------------------------
+        // std::cout << "Number of titles: " << titles.size() << std::endl;
+        // std::cout << "Number of data: " << data.size() << std::endl;
+        // // -------------------------------------------------------------
 
-        sqlite3_close(db);
+        // sqlite3_close(db);
     
-        // Create output directory if not exist
-        std::filesystem::create_directories(output_dir);
+        // // Create output directory if not exist
+        // std::filesystem::create_directories(output_dir);
     
-        // Split work into threads
-        size_t num_threads = std::thread::hardware_concurrency();
-        size_t chunk_size = (titles.size() + num_threads - 1) / num_threads;
+        // // Split work into threads
+        // size_t num_threads = std::thread::hardware_concurrency();
+        // size_t chunk_size = (titles.size() + num_threads - 1) / num_threads;
 
-        // -------------------------------------------------------------
-        std::cout << "Number of threads: " << num_threads << std::endl;
-        std::cout << "Chunk size: " << chunk_size << std::endl;
-        // -------------------------------------------------------------
+        // // -------------------------------------------------------------
+        // std::cout << "Number of threads: " << num_threads << std::endl;
+        // std::cout << "Chunk size: " << chunk_size << std::endl;
+        // // -------------------------------------------------------------
     
-        std::vector<std::thread> threads;
-        for (size_t t = 0; t < num_threads; ++t) {
-            size_t start = t * chunk_size;
-            size_t end = std::min(start + chunk_size, titles.size());
-            threads.emplace_back(Tagging::compute_chunk, start, end, std::ref(titles), std::ref(data), t, std::ref(output_dir));
-        }
+        // std::vector<std::thread> threads;
+        // for (size_t t = 0; t < num_threads; ++t) {
+        //     size_t start = t * chunk_size;
+        //     size_t end = std::min(start + chunk_size, titles.size());
+        //     threads.emplace_back(Tagging::compute_chunk, start, end, std::ref(titles), std::ref(data), t, std::ref(output_dir));
+        // }
     
-        for (auto& thread : threads) thread.join();
+        // for (auto& thread : threads) thread.join();
     
-        // Insert into DB from each CSV file
-        for (size_t t = 0; t < num_threads; ++t) {
-            std::filesystem::path part_file = output_dir / ("item_matrix_part_" + std::to_string(t) + ".csv");
-            std::cout << "Part file: " << part_file << std::endl;
-            Tagging::bulk_insert_from_csv(part_file);
-        }
+        // // Insert into DB from each CSV file
+        // for (size_t t = 0; t < num_threads; ++t) {
+        //     std::filesystem::path part_file = output_dir / ("item_matrix_part_" + std::to_string(t) + ".csv");
+        //     std::cout << "Part file: " << part_file << std::endl;
+        //     Tagging::bulk_insert_from_csv(part_file);
+        // }
     }
 
     std::vector<std::filesystem::path> skim_files(std::vector<std::filesystem::path>& files, const std::string& extension) {
@@ -567,116 +567,116 @@ namespace FEATURE {
     }
 
     void createRoutes() {
-        int search_mode = -1;
-        uint16_t num_steps = 0;
-        std::vector<std::string> input_titles;
-        std::string title;
+        // int search_mode = -1;
+        // uint16_t num_steps = 0;
+        // std::vector<std::string> input_titles;
+        // std::string title;
     
-        sqlite3* db;
-        if (sqlite3_open(ENV_HPP::database_path.string().c_str(), &db) != SQLITE_OK) {
-            std::cerr << "Error opening database: " << sqlite3_errmsg(db) << std::endl;
-            return;
-        }
+        // sqlite3* db;
+        // if (sqlite3_open(ENV_HPP::database_path.string().c_str(), &db) != SQLITE_OK) {
+        //     std::cerr << "Error opening database: " << sqlite3_errmsg(db) << std::endl;
+        //     return;
+        // }
 
-        const std::vector<std::string> unique_titles = Tagging::fetch_unique_titles(db);
-        const std::map<std::string, std::string> look_up_table = Tagging::get_look_up_table_title(db);
+        // const std::vector<std::string> unique_titles = Tagging::fetch_unique_titles(db);
+        // const std::map<std::string, std::string> look_up_table = Tagging::get_look_up_table_title(db);
     
-        std::cout << "Route mode list:\n"
-                  << "0. Every file exists in the database\n"
-                  << "1. A list of specific files\n"
-                  << "2. A specific file\n"
-                  << "3. Partial look-up (e.g., scien)\n";
+        // std::cout << "Route mode list:\n"
+        //           << "0. Every file exists in the database\n"
+        //           << "1. A list of specific files\n"
+        //           << "2. A specific file\n"
+        //           << "3. Partial look-up (e.g., scien)\n";
     
-        std::cout << "Enter your search mode: ";
-        sqlite3_stmt* stmt = nullptr;
-        if (!(std::cin >> search_mode)) {  
-            std::cerr << "Invalid input. Please enter a number between 0 and 3.\n";
-            sqlite3_close(db);
-            return;
-        }
-        std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+        // std::cout << "Enter your search mode: ";
+        // sqlite3_stmt* stmt = nullptr;
+        // if (!(std::cin >> search_mode)) {  
+        //     std::cerr << "Invalid input. Please enter a number between 0 and 3.\n";
+        //     sqlite3_close(db);
+        //     return;
+        // }
+        // std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
         
-        switch (search_mode) {
-            case 0:
-                std::cout << "Create routes for all files in database\n";
-                input_titles = Tagging::fetch_unique_titles(db);
-                break;
-            case 1:
-                while (true) {
-                    std::cout << "Enter the file name you are looking for (Press q to exit): ";
-                    std::getline(std::cin, title);
-                    if (title == "q") break;
-                    if (!title.empty()) {
-                        input_titles.push_back(title);
-                    }
-                }
-                break;
-            case 2:
-                std::cout << "Enter the file name you are looking for: ";
-                std::getline(std::cin, title);
-                if (!title.empty()) {
-                    input_titles.push_back(title);
-                }
-                break;
-            case 3:
-                std::cout << "Enter the partial text to search: ";
-                std::getline(std::cin, title);
-                {
-                    std::string query = "SELECT DISTINCT file_name FROM file_info WHERE file_name LIKE ?;";
-                    std::string search_pattern = "%" + title + "%";
+        // switch (search_mode) {
+        //     case 0:
+        //         std::cout << "Create routes for all files in database\n";
+        //         input_titles = Tagging::fetch_unique_titles(db);
+        //         break;
+        //     case 1:
+        //         while (true) {
+        //             std::cout << "Enter the file name you are looking for (Press q to exit): ";
+        //             std::getline(std::cin, title);
+        //             if (title == "q") break;
+        //             if (!title.empty()) {
+        //                 input_titles.push_back(title);
+        //             }
+        //         }
+        //         break;
+        //     case 2:
+        //         std::cout << "Enter the file name you are looking for: ";
+        //         std::getline(std::cin, title);
+        //         if (!title.empty()) {
+        //             input_titles.push_back(title);
+        //         }
+        //         break;
+        //     case 3:
+        //         std::cout << "Enter the partial text to search: ";
+        //         std::getline(std::cin, title);
+        //         {
+        //             std::string query = "SELECT DISTINCT file_name FROM file_info WHERE file_name LIKE ?;";
+        //             std::string search_pattern = "%" + title + "%";
         
-                    if (sqlite3_prepare_v2(db, query.c_str(), -1, &stmt, nullptr) == SQLITE_OK) {
-                        sqlite3_bind_text(stmt, 1, search_pattern.c_str(), -1, SQLITE_TRANSIENT);
-                        while (sqlite3_step(stmt) == SQLITE_ROW) {
-                            input_titles.emplace_back(reinterpret_cast<const char*>(sqlite3_column_text(stmt, 0)));
-                        }
-                    } else {
-                        std::cerr << "SQL Error: " << sqlite3_errmsg(db) << std::endl;
-                    }
-                }
-                break;
-            default:
-                std::cerr << "Invalid search mode selected. Exiting.\n";
-                sqlite3_close(db);
-                return;
-        }
-        // Finalize statement if used
-        if (stmt) {
-            sqlite3_finalize(stmt);
-        }
+        //             if (sqlite3_prepare_v2(db, query.c_str(), -1, &stmt, nullptr) == SQLITE_OK) {
+        //                 sqlite3_bind_text(stmt, 1, search_pattern.c_str(), -1, SQLITE_TRANSIENT);
+        //                 while (sqlite3_step(stmt) == SQLITE_ROW) {
+        //                     input_titles.emplace_back(reinterpret_cast<const char*>(sqlite3_column_text(stmt, 0)));
+        //                 }
+        //             } else {
+        //                 std::cerr << "SQL Error: " << sqlite3_errmsg(db) << std::endl;
+        //             }
+        //         }
+        //         break;
+        //     default:
+        //         std::cerr << "Invalid search mode selected. Exiting.\n";
+        //         sqlite3_close(db);
+        //         return;
+        // }
+        // // Finalize statement if used
+        // if (stmt) {
+        //     sqlite3_finalize(stmt);
+        // }
     
-        if (input_titles.empty()) {
-            std::cerr << "No matching files found. Exiting.\n";
-            sqlite3_close(db);
-            return;
-        }
+        // if (input_titles.empty()) {
+        //     std::cerr << "No matching files found. Exiting.\n";
+        //     sqlite3_close(db);
+        //     return;
+        // }
     
-        if (search_mode != 0) Tagging::encrypted_file_name_list(db, input_titles);
+        // if (search_mode != 0) Tagging::encrypted_file_name_list(db, input_titles);
     
-        // Close database connection
-        sqlite3_close(db);
+        // // Close database connection
+        // sqlite3_close(db);
 
-        // Get number of step node
-        std::cout << "Enter the number of steps to create route: ";
-        std::cin >> num_steps;
-        std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
-        num_steps = std::min(num_steps, static_cast<uint16_t>(unique_titles.size()));
-        std::cout << "Number of steps selected: " << num_steps <<std::endl;
+        // // Get number of step node
+        // std::cout << "Enter the number of steps to create route: ";
+        // std::cin >> num_steps;
+        // std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+        // num_steps = std::min(num_steps, static_cast<uint16_t>(unique_titles.size()));
+        // std::cout << "Number of steps selected: " << num_steps <<std::endl;
 
-        // Open output file for writing
-        std::ofstream output_file(ENV_HPP::route_list);
-        if (!output_file.is_open()) {
-            std::cerr << "Error: Could not open " << ENV_HPP::route_list << " for writing.\n";
-            return;
-        }
+        // // Open output file for writing
+        // std::ofstream output_file(ENV_HPP::route_list);
+        // if (!output_file.is_open()) {
+        //     std::cerr << "Error: Could not open " << ENV_HPP::route_list << " for writing.\n";
+        //     return;
+        // }
     
-        // Generate routes
-        for (const auto& title : input_titles) {
-            Tagging::create_route(title, num_steps, unique_titles, look_up_table, output_file);
-        }
+        // // Generate routes
+        // for (const auto& title : input_titles) {
+        //     Tagging::create_route(title, num_steps, unique_titles, look_up_table, output_file);
+        // }
     
-        output_file.close();
-        std::cout << "Routes successfully written to " << ENV_HPP::route_list << "!\n";
+        // output_file.close();
+        // std::cout << "Routes successfully written to " << ENV_HPP::route_list << "!\n";
     }
 
     void computeTFIDF(const uint16_t& MIN_THRES_FREQ = 4,
