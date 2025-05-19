@@ -134,9 +134,7 @@ namespace UTILITIES_HPP {
                  << info.file_name << ", "
                  << info.file_path << ", "
                  << info.epoch_time << ", "
-                 << info.chunk_count << ", "
-                 << info.starting_id << ", "
-                 << info.ending_id
+                 << info.chunk_count
                  << std::endl;
         }
 
