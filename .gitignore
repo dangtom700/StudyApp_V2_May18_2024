@@ -15,3 +15,5 @@ PROMPT.txt
 models/
 logs/
 conversations/
+assign_topics.ipynb
+analysis/
