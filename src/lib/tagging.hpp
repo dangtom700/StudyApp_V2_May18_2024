@@ -13,278 +13,169 @@
 #include "utilities.hpp"
 
 namespace Tagging{
-    // Fetch unique titles
-    std::vector<std::string> fetch_unique_titles(sqlite3* db) {
-        std::vector<std::string> unique_titles;
-        sqlite3_stmt* stmt;
-        const char* query = "SELECT DISTINCT file_name FROM file_token";
-
-        if (sqlite3_prepare_v2(db, query, -1, &stmt, nullptr) == SQLITE_OK) {
-            while (sqlite3_step(stmt) == SQLITE_ROW) {
-                unique_titles.emplace_back(reinterpret_cast<const char*>(sqlite3_column_text(stmt, 0)));
-            }
-        } else {
-            std::cerr << "Error preparing statement: " << sqlite3_errmsg(db) << std::endl;
+    void execute_sql(sqlite3* db, const std::string& sql) {
+        char* error_message = nullptr;
+        int exit = sqlite3_exec(db, sql.c_str(), nullptr, nullptr, &error_message);
+        if (exit != SQLITE_OK) {
+            std::cerr << "Error executing SQL: " << error_message << std::endl
+                    << "SQL: " << sql << std::endl;
+            sqlite3_free(error_message);
+            throw std::runtime_error("SQL execution failed");
         }
-
-        sqlite3_finalize(stmt);
-        return unique_titles;
     }
 
-    // Fetch data in chunks for efficiency
-    void fetch_all_data(sqlite3* db, std::unordered_map<std::string, std::unordered_map<std::string, float>>& data) {
-        sqlite3_stmt* stmt;
-        const char* query = "SELECT file_name, token, relational_distance FROM relation_distance";
+    sqlite3_stmt* prepareStatement(sqlite3* db, const std::string& query) {
+        sqlite3_stmt* stmt = nullptr;
+        int rc = sqlite3_prepare_v2(db, query.c_str(), -1, &stmt, nullptr);
+        if (rc != SQLITE_OK) {
+            std::cerr << "Error preparing statement: " << sqlite3_errmsg(db) << std::endl
+                    << "SQL: " << query << std::endl;
+            return nullptr;
+        }
+        return stmt;
+}
 
-        if (sqlite3_prepare_v2(db, query, -1, &stmt, nullptr) == SQLITE_OK) {
-            while (sqlite3_step(stmt) == SQLITE_ROW) {
-                std::string file_name(reinterpret_cast<const char*>(sqlite3_column_text(stmt, 0)));
-                std::string token(reinterpret_cast<const char*>(sqlite3_column_text(stmt, 1)));
-                float distance = static_cast<float>(sqlite3_column_double(stmt, 2));
+    std::map<std::string, std::string> collect_unique_id(sqlite3* db) {
+        std::map<std::string, std::string> unique_ids;
+        std::string sql = "SELECT id, file_name FROM file_info WHERE chunk_count > 0";
+        sqlite3_stmt* stmt = prepareStatement(db, sql);
+        if (!stmt) return unique_ids;
 
-                data[file_name][token] = distance;
+        while (sqlite3_step(stmt) == SQLITE_ROW) {
+            const unsigned char* id_txt = sqlite3_column_text(stmt, 0);
+            const unsigned char* name_txt = sqlite3_column_text(stmt, 1);
+            if (id_txt && name_txt) {
+                std::string key = reinterpret_cast<const char*>(id_txt);
+                std::string value = reinterpret_cast<const char*>(name_txt);
+                unique_ids["title_" + key] = value;
             }
-        } else {
-            std::cerr << "Error preparing statement: " << sqlite3_errmsg(db) << std::endl;
+        }
+        sqlite3_finalize(stmt);
+        return unique_ids;
+    }
+
+    std::vector<std::tuple<std::string, int, double>> load_token_map(sqlite3* db, const std::string& id) {
+        std::vector<std::tuple<std::string, int, double>> filtered_tokens;
+        std::string sql = "SELECT Token, frequency, relational_distance FROM relation_distance WHERE id = ?";
+        sqlite3_stmt* stmt = prepareStatement(db, sql);
+        if (!stmt) return filtered_tokens;
+
+        if (sqlite3_bind_text(stmt, 1, id.c_str(), -1, SQLITE_TRANSIENT) != SQLITE_OK) {
+            sqlite3_finalize(stmt);
+            return filtered_tokens;
         }
 
+        while (sqlite3_step(stmt) == SQLITE_ROW) {
+            const unsigned char* token_txt = sqlite3_column_text(stmt, 0);
+            if (!token_txt) continue;
+            std::string token = reinterpret_cast<const char*>(token_txt);
+            int freq = sqlite3_column_int(stmt, 1);
+            double base_distance = sqlite3_column_double(stmt, 2);
+            filtered_tokens.emplace_back(token, freq, base_distance);
+        }
+        sqlite3_finalize(stmt);
+        return filtered_tokens;
+    }
+
+    std::map<std::string, std::map<std::string, double>> load_related_tokens(sqlite3* db, const std::vector<std::tuple<std::string, int, double>>& filtered_tokens) {
+        std::map<std::string, std::map<std::string, double>> relation_distance_map;
+        if (filtered_tokens.empty()) return relation_distance_map;
+
+        std::string token_in_clause;
+        for (const auto& [token, _, __] : filtered_tokens)
+            token_in_clause += "'" + token + "',";
+        token_in_clause.pop_back(); // remove last comma
+
+        std::string sql = "SELECT file_name, Token, relational_distance FROM relation_distance WHERE Token IN (" + token_in_clause + ")";
+        sqlite3_stmt* stmt = prepareStatement(db, sql);
+        if (!stmt) return relation_distance_map;
+
+        while (sqlite3_step(stmt) == SQLITE_ROW) {
+            const unsigned char* file_txt = sqlite3_column_text(stmt, 0);
+            const unsigned char* token_txt = sqlite3_column_text(stmt, 1);
+            if (!file_txt || !token_txt) continue;
+            std::string rel_file = reinterpret_cast<const char*>(file_txt);
+            std::string token = reinterpret_cast<const char*>(token_txt);
+            double rel_dist = sqlite3_column_double(stmt, 2);
+            relation_distance_map[rel_file][token] = rel_dist;
+        }
+        sqlite3_finalize(stmt);
+        return relation_distance_map;
+    }
+
+    void apply_tfidf(sqlite3* db, std::vector<std::tuple<std::string, int, double>>& filtered_tokens) {
+        std::string sql = "SELECT tf_idf FROM tf_idf WHERE word = ?";
+        sqlite3_stmt* stmt = prepareStatement(db, sql);
+        if (!stmt) return;
+
+        for (auto& [token, freq, base_distance] : filtered_tokens) {
+            sqlite3_reset(stmt);
+            if (sqlite3_bind_text(stmt, 1, token.c_str(), -1, SQLITE_TRANSIENT) != SQLITE_OK) continue;
+            if (sqlite3_step(stmt) == SQLITE_ROW) {
+                double tfidf = sqlite3_column_double(stmt, 0);
+                if (std::isnan(tfidf)) tfidf = 0.0;
+                base_distance += tfidf / freq;
+            }
+        }
         sqlite3_finalize(stmt);
     }
 
-    // Optimized database insert function (batch insert)
-    void insert_item_matrix(const std::vector<std::tuple<std::string, std::string, float>>& data) {
-        sqlite3* db;
-        if (sqlite3_open(ENV_HPP::database_path.string().c_str(), &db) != SQLITE_OK) {
-            std::cerr << "Error opening database: " << sqlite3_errmsg(db) << std::endl;
-            return;
+    std::vector<std::tuple<std::string, std::string, double>> compute_recommendations(
+        std::vector<std::tuple<std::string, int, double>>& filtered_tokens,
+        std::map<std::string, std::map<std::string, double>>& relation_distance_map,
+        const std::string& source_id) {
+
+        std::vector<std::tuple<std::string, std::string, double>> RESULT;
+        std::string rel_file_key = "title_" + source_id;
+        if (relation_distance_map.find(rel_file_key) == relation_distance_map.end()) return RESULT;
+
+        // const auto& token_map = relation_distance_map[rel_file_key];
+        for (const auto& [file_name, token_data] : relation_distance_map) {
+            if (file_name == rel_file_key) continue;
+            double score = 0.0;
+            for (const auto& [token, _, base_distance] : filtered_tokens) {
+                auto it = token_data.find(token);
+                if (it != token_data.end()) {
+                    score += it->second * base_distance;
+                }
+            }
+            if (score > 0.0)
+                RESULT.emplace_back(file_name, file_name, score);
         }
 
-        std::string create_table_sql = R"(
-            CREATE TABLE IF NOT EXISTS item_matrix (
-                source TEXT,
-                target TEXT,
-                distance REAL,
-                PRIMARY KEY (source, target)
-            );
-        )";
+        std::sort(RESULT.begin(), RESULT.end(), [](const auto& a, const auto& b) {
+            return std::get<2>(a) > std::get<2>(b);
+        });
+        return RESULT;
+    }
 
-        char* error_msg = nullptr;
-        if (sqlite3_exec(db, create_table_sql.c_str(), nullptr, nullptr, &error_msg) != SQLITE_OK) {
-            std::cerr << "Error creating table: " << error_msg << std::endl;
-            sqlite3_free(error_msg);
-            sqlite3_close(db);
-            return;
-        }
+    void insert_item_matrix(
+        std::vector<std::tuple<std::string, std::string, double>>& RESULT,
+        sqlite3* db,
+        const std::pair<std::string, std::string>& origin) {
 
-        sqlite3_exec(db, "BEGIN TRANSACTION;", nullptr, nullptr, nullptr);
+        std::string insert_sql = "INSERT INTO item_matrix (target_id, target_name, source_id, source_name, distance, rank) VALUES (?, ?, ?, ?, ?, ?);";
+        sqlite3_stmt* stmt = prepareStatement(db, insert_sql);
+        if (!stmt) return;
 
-        std::string insert_sql = "INSERT OR REPLACE INTO item_matrix (source, target, distance) VALUES (?, ?, ?);";
-        sqlite3_stmt* stmt;
-        if (sqlite3_prepare_v2(db, insert_sql.c_str(), -1, &stmt, nullptr) != SQLITE_OK) {
-            std::cerr << "Error preparing insert statement: " << sqlite3_errmsg(db) << std::endl;
-            sqlite3_close(db);
-            return;
-        }
-
-        for (const auto& [source, target, distance] : data) {
-            sqlite3_bind_text(stmt, 1, source.c_str(), -1, SQLITE_TRANSIENT);
-            sqlite3_bind_text(stmt, 2, target.c_str(), -1, SQLITE_TRANSIENT);
-            sqlite3_bind_double(stmt, 3, distance);
-
+        const auto& [source_id, source_name] = origin;
+        for (size_t rank = 1; rank <= RESULT.size(); ++rank) {
+            const auto& [target_id, target_name, distance] = RESULT[rank - 1];
+            sqlite3_bind_text(stmt, 1, target_id.c_str(), -1, SQLITE_TRANSIENT);
+            sqlite3_bind_text(stmt, 2, target_name.c_str(), -1, SQLITE_TRANSIENT);
+            sqlite3_bind_text(stmt, 3, source_id.c_str(), -1, SQLITE_TRANSIENT);
+            sqlite3_bind_text(stmt, 4, source_name.c_str(), -1, SQLITE_TRANSIENT);
+            sqlite3_bind_double(stmt, 5, distance);
+            sqlite3_bind_int(stmt, 6, rank);
             sqlite3_step(stmt);
             sqlite3_reset(stmt);
         }
-
         sqlite3_finalize(stmt);
-        sqlite3_exec(db, "COMMIT;", nullptr, nullptr, nullptr);
-        sqlite3_close(db);
     }
 
-    void compute_chunk(size_t start, size_t end, const std::vector<std::string>& titles,
-        const std::unordered_map<std::string, std::unordered_map<std::string, float>>& data,
-        int thread_id, const std::filesystem::path& output_dir) {
-
-        std::string filename = (output_dir / ("item_matrix_part_" + std::to_string(thread_id) + ".csv")).string();
-        std::ofstream csv_file(filename);
-        if (!csv_file.is_open()) {
-            std::cerr << "Thread " << thread_id << " failed to open file: " << filename << std::endl;
-            return;
-        }
-
-        csv_file << "Source,Target,Distance\n";
-
-        for (size_t i = start; i < end; ++i) {
-            for (size_t j = 0; j < titles.size(); ++j) {
-                if (i == j) continue;
-
-                float total_distance = 0.0f;
-
-                const auto& it1 = data.find(titles[i]);
-                const auto& it2 = data.find(titles[j]);
-                if (it1 == data.end() || it2 == data.end()) continue;
-
-                const auto& source_data = it1->second;
-                const auto& target_data = it2->second;
-
-                for (const auto& [token, dist] : source_data) {
-                    float other_dist = target_data.count(token) ? target_data.at(token) : 0.0f;
-                    total_distance += dist + other_dist;
-                }
-
-            csv_file << titles[i] << "," << titles[j] << "," << total_distance << "\n";
-            }
-        }
-
-        csv_file.close();
-    }
-
-    void bulk_insert_from_csv(const std::filesystem::path& csv_file) {
-        std::ifstream file(csv_file);
-        if (!file.is_open()) {
-            std::cerr << "Could not open CSV file for DB insert: " << csv_file << std::endl;
-            return;
-        }
-
-        std::string line;
-        std::getline(file, line); // skip header
-
-        std::vector<std::tuple<std::string, std::string, float>> batch;
-        while (std::getline(file, line)) {
-            std::stringstream ss(line);
-            std::string source, target, dist_str;
-            std::getline(ss, source, ',');
-            std::getline(ss, target, ',');
-            std::getline(ss, dist_str, ',');
-
-            batch.emplace_back(source, target, std::stof(dist_str));
-
-            if (batch.size() >= 1000) {
-                insert_item_matrix(batch);
-                batch.clear();
-            }
-        }
-
-        if (!batch.empty()) {
-            insert_item_matrix(batch);
-        }
-
-        file.close();
-    }
-    
-    void encrypted_file_name_list(sqlite3* db, std::vector<std::string>& titles) {
-        /* This function modifies the `titles` vector:
-         * - Replaces each title with its corresponding ID from the database, prefixed with "title_".
-         * - If a title is not found, it is removed from the vector.
-         */
-    
-        const std::string query = "SELECT id FROM file_info WHERE file_name = ?";
-        sqlite3_stmt* stmt = nullptr;
-        std::vector<std::string> updated_titles; // Temporary vector to store valid encrypted titles
-    
-        // Prepare the statement once
-        if (sqlite3_prepare_v2(db, query.c_str(), -1, &stmt, nullptr) != SQLITE_OK) {
-            std::cerr << "SQL Error: " << sqlite3_errmsg(db) << std::endl;
-            return;
-        }
-    
-        for (const std::string& title : titles) {
-            sqlite3_reset(stmt);  // Reset the prepared statement for reuse
-            sqlite3_clear_bindings(stmt);
-    
-            // Bind the title to the query
-            if (sqlite3_bind_text(stmt, 1, title.c_str(), -1, SQLITE_TRANSIENT) != SQLITE_OK) {
-                std::cerr << "Binding Error: " << sqlite3_errmsg(db) << std::endl;
-                continue;
-            }
-    
-            // Execute query
-            if (sqlite3_step(stmt) == SQLITE_ROW) {
-                std::string id = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 0));
-                updated_titles.push_back("title_" + id);
-            }
-        }
-    
-        sqlite3_finalize(stmt); // Finalize the statement
-    
-        // Replace original titles with the updated ones
-        titles = std::move(updated_titles);
-    }
-
-    // Function to read numeric data from CSV
-    std::vector<std::vector<float>> get_numeric_data_from_csv(const std::string& filename) {
-        std::vector<std::vector<float>> item_matrix;
-        std::ifstream csv_file(filename);
-        if (!csv_file.is_open()) {
-            std::cerr << "Error: Could not open file " << filename << " for reading.\n";
-            return item_matrix;
-        }
-
-        std::string line;
-        std::getline(csv_file, line); // Skip the header row
-
-        while (std::getline(csv_file, line)) {
-            std::vector<float> row;
-            std::istringstream token_stream(line);
-            std::string token;
-
-            std::getline(token_stream, token, ','); // Skip first column
-
-            while (std::getline(token_stream, token, ',')) {
-                try {
-                    row.push_back(std::stof(token));
-                } catch (...) {
-                    row.push_back(0.0f); // Default to 0 if conversion fails
-                }
-            }
-            item_matrix.push_back(row);
-        }
-
-        csv_file.close();
-        return item_matrix;
-    }
-
-    // Function to read headers from CSV
-    std::vector<std::string> get_headers_from_csv(const std::string& filename) {
-        std::vector<std::string> headers;
-        std::ifstream csv_file(filename);
-        if (!csv_file.is_open()) {
-            std::cerr << "Error: Could not open file " << filename << " for reading.\n";
-            return headers;
-        }
-
-        std::string line;
-        std::getline(csv_file, line);
-        std::istringstream token_stream(line);
-        std::string token;
-
-        std::getline(token_stream, token, ','); // Skip first column
-
-        while (std::getline(token_stream, token, ',')) {
-            headers.push_back(token);
-        }
-
-        csv_file.close();
-        return headers;
-    }
-
-    std::map<std::string, std::string> get_look_up_table_title(sqlite3* db){
-        std::map<std::string, std::string> result;
-        const char* query = "SELECT id, file_name FROM file_info";
-        sqlite3_stmt* stmt;
-        std::string encrypted_key, decrypted_key;
-
-        if (sqlite3_prepare_v2(db, query, -1, &stmt, nullptr) == SQLITE_OK) {
-            while (sqlite3_step(stmt) == SQLITE_ROW) {
-                encrypted_key = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 0));
-                decrypted_key = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 1));
-                result[encrypted_key] = decrypted_key;
-            }
-        } else {
-            std::cerr << "Error preparing statement: " << sqlite3_errmsg(db) << std::endl;
-        }
-
-        sqlite3_finalize(stmt);
-        return result;
+    void reset_item_matrix(sqlite3* db) {
+        execute_sql(db, "DROP TABLE IF EXISTS item_matrix;");
+        execute_sql(db, "CREATE TABLE item_matrix (target_id TEXT, target_name TEXT, source_id TEXT, source_name TEXT, distance REAL, rank INTEGER);");
     }
 
     // Function to create a route and write it to a file
