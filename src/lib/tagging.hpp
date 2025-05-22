@@ -35,6 +35,18 @@ namespace Tagging{
         return stmt;
 }
 
+    /**
+     * Collects unique IDs and their associated file names from the database.
+     *
+     * @param db The SQLite database connection.
+     * @return A map containing unique IDs as keys (prefixed with "title_") 
+     *         and their corresponding file names as values.
+     *
+     * This function queries the file_info table for entries where the 
+     * chunk_count is greater than 0, retrieves the ID and file name for 
+     * each entry, and stores them in a map with the ID prefixed by "title_".
+     * If the statement cannot be prepared, an empty map is returned.
+     */
     std::map<std::string, std::string> collect_unique_id(sqlite3* db) {
         std::map<std::string, std::string> unique_ids;
         std::string sql = "SELECT id, file_name FROM file_info WHERE chunk_count > 0";
@@ -54,6 +66,18 @@ namespace Tagging{
         return unique_ids;
     }
 
+    /**
+     * Load tokens and their attributes from the database for a given file.
+     *
+     * @param db The SQLite database connection.
+     * @param id The identifier of the file whose tokens are to be retrieved.
+     * @return A vector of tuples, each containing a token, its frequency, and its relational distance.
+     *
+     * This function queries the relation_distance table to retrieve tokens, their frequencies,
+     * and relational distances for the specified file. The results are stored in a vector
+     * of tuples and returned. If the statement preparation or execution fails, an empty
+     * vector is returned.
+     */
     std::vector<std::tuple<std::string, int, double>> load_token_map(sqlite3* db, const std::string& id) {
         std::vector<std::tuple<std::string, int, double>> filtered_tokens;
         std::string sql = "SELECT Token, frequency, relational_distance FROM relation_distance WHERE file_name = ?";
@@ -77,6 +101,22 @@ namespace Tagging{
         return filtered_tokens;
     }
 
+    /**
+     * Load the relational distances of tokens related to the given tokens for
+     * all files in the database.
+     *
+     * @param db The SQLite database connection.
+     * @param filtered_tokens A vector of tuples containing the tokens and their
+     *                        attributes to be used for filtering.
+     * @param unique_ids A map of unique IDs to file names.
+     * @return A map of file names to maps of tokens to their relational distances.
+     *
+     * This function queries the relation_distance table to retrieve the relational
+     * distances of tokens related to the tokens in the given vector. The results
+     * are stored in a map of file names to maps of tokens to their relational
+     * distances and returned. If the statement preparation or execution fails, an
+     * empty map is returned.
+     */
     std::map<std::string, std::map<std::string, double>> load_related_tokens(
         sqlite3* db, 
         const std::vector<std::tuple<std::string, int, double>>& filtered_tokens,
@@ -112,6 +152,17 @@ namespace Tagging{
         return relation_distance_map;
     }
 
+    /**
+     * @brief Applies TF-IDF to a given vector of filtered tokens.
+     *
+     * Applies TF-IDF to a given vector of filtered tokens. The TF-IDF values are
+     * retrieved from the tf_idf table in the database and added to the base
+     * distance of each token. The results are stored in the vector itself.
+     *
+     * @param db The SQLite database connection.
+     * @param filtered_tokens The vector of filtered tokens to which TF-IDF is to be
+     * applied.
+     */
     void apply_tfidf(sqlite3* db, std::vector<std::tuple<std::string, int, double>>& filtered_tokens) {
         std::string sql = "SELECT tf_idf FROM tf_idf WHERE word = ?";
         sqlite3_stmt* stmt = prepareStatement(db, sql);
@@ -129,6 +180,23 @@ namespace Tagging{
         sqlite3_finalize(stmt);
     }
 
+    /**
+     * Computes recommendations for a given source file based on the filtered tokens
+     * and relational distance map.
+     *
+     * The recommendations are computed by summing the product of the relational
+     * distance and the base distance of each token across all files in the
+     * relational distance map. The results are sorted in descending order of
+     * score.
+     *
+     * @param filtered_tokens The filtered tokens to which relational distance is to
+     * be applied.
+     * @param relation_distance_map The relational distance map.
+     * @param unique_ids The map of unique ids.
+     * @param source_id The source file id.
+     * @return A vector of tuples, each containing the file name, unique id, and
+     * score of the recommended file.
+     */
     std::vector<std::tuple<std::string, std::string, double>> compute_recommendations(
         std::vector<std::tuple<std::string, int, double>>& filtered_tokens,
         std::map<std::string, std::map<std::string, double>>& relation_distance_map,
@@ -153,44 +221,70 @@ namespace Tagging{
                 RESULT.emplace_back(file_name, unique_ids[file_name], score);
         }
 
-        std::sort(RESULT.begin(), RESULT.end(), [](const auto& a, const auto& b) {
-            return std::get<2>(a) > std::get<2>(b);
-        });
         return RESULT;
     }
 
+    /**
+     * Inserts the given vector of recommendations into the item_matrix table in the
+     * database. The recommendations are sorted by rank, which is computed from the
+     * index of each element in the vector.
+     *
+     * @param RESULT The vector of recommendations to be inserted.
+     * @param db The SQLite database connection.
+     * @param origin A pair of strings containing the source file ID and name.
+     */
     void insert_item_matrix(
         std::vector<std::tuple<std::string, std::string, double>>& RESULT,
         sqlite3* db,
         const std::pair<std::string, std::string>& origin) {
 
-        std::string insert_sql = "INSERT INTO item_matrix (target_id, target_name, source_id, source_name, distance, rank) VALUES (?, ?, ?, ?, ?, ?);";
+        std::string insert_sql = "INSERT INTO item_matrix (target_id, target_name, source_id, source_name, distance) VALUES (?, ?, ?, ?, ?);";
         sqlite3_stmt* stmt = prepareStatement(db, insert_sql);
         if (!stmt) return;
 
         const auto& [source_id, source_name] = origin;
-        for (size_t rank = 1; rank <= RESULT.size(); ++rank) {
-            const auto& [target_id, target_name, distance] = RESULT[rank - 1];
+        for (const auto& [target_id, target_name, distance] : RESULT) {
             sqlite3_bind_text(stmt, 1, target_id.c_str(), -1, SQLITE_TRANSIENT);
             sqlite3_bind_text(stmt, 2, target_name.c_str(), -1, SQLITE_TRANSIENT);
             sqlite3_bind_text(stmt, 3, source_id.c_str(), -1, SQLITE_TRANSIENT);
             sqlite3_bind_text(stmt, 4, source_name.c_str(), -1, SQLITE_TRANSIENT);
             sqlite3_bind_double(stmt, 5, distance);
-            sqlite3_bind_int(stmt, 6, rank);
             sqlite3_step(stmt);
             sqlite3_reset(stmt);
         }
         sqlite3_finalize(stmt);
     }
 
+    /**
+     * Resets the item_matrix table in the database. If the table already exists, it is
+     * dropped and recreated. The table has the following columns:
+     *
+     * - target_id: The ID of the target item.
+     * - target_name: The name of the target item.
+     * - source_id: The ID of the source item.
+     * - source_name: The name of the source item.
+     * - distance: The distance between the source and target items.
+     * - rank: The rank of the target item relative to the source item.
+     *
+     * @param db The SQLite database connection.
+     */
     void reset_item_matrix(sqlite3* db) {
         execute_sql(db, "DROP TABLE IF EXISTS item_matrix;");
-        execute_sql(db, "CREATE TABLE item_matrix (target_id TEXT, target_name TEXT, source_id TEXT, source_name TEXT, distance REAL, rank INTEGER);");
+        execute_sql(db, "CREATE TABLE item_matrix (target_id TEXT, target_name TEXT, source_id TEXT, source_name TEXT, distance REAL);");
     }
 
+    /**
+     * Remove entries from the map, found in item_matrix
+     * This function retrieves all the source_id from the item_matrix table and removes
+     * the corresponding entries from the given map.
+     *
+     * @param db The SQLite database connection.
+     * @param unique_ids A map containing the unique IDs as keys and their names as values.
+     * @return void
+     */
     void add_item_matrix(sqlite3* db, std::map<std::string, std::string>& unique_ids){
         // Remove entries from the map, found in item_matrix
-        std::string sql = "SELECT source_id FROM item_matrix;";
+        std::string sql = "SELECT DISTINCT source_id FROM item_matrix;";
         sqlite3_stmt* stmt = prepareStatement(db, sql);
         if (!stmt) return;
 
@@ -201,7 +295,6 @@ namespace Tagging{
         sqlite3_finalize(stmt);
     }
 
-    // Function to create a route and write it to a file
     void create_route(const std::string& start, const uint16_t num_steps,
                       const std::vector<std::string> unique_titles,
                       const std::map<std::string, std::string> look_up_table,
@@ -221,12 +314,13 @@ namespace Tagging{
             return;
         }
     
-        int curr_index = it - unique_titles.begin();
-        std::vector<bool> visited(unique_titles.size(), false);
-    
         // Prepare SQL statement for fetching relational distances
         sqlite3_stmt* stmt;
-        const char* query = "SELECT target, distance FROM item_matrix WHERE source = ?";
+        const char* query = R"(
+            SELECT target_name
+            FROM item_matrix
+            WHERE source_id = ? AND distance = (SELECT MAX(distance) FROM item_matrix WHERE source_id = ?)
+        )";
     
         if (sqlite3_prepare_v2(db, query, -1, &stmt, nullptr) != SQLITE_OK) {
             std::cerr << "Error preparing statement: " << sqlite3_errmsg(db) << std::endl;
@@ -236,59 +330,58 @@ namespace Tagging{
     
         // Initialize a map to store relational distances
         std::map<std::string, float> target_and_relation_distance;
-        for (const std::string& title : unique_titles) {
-            target_and_relation_distance[title] = 0.0f;
-        }
-    
-        output_file << look_up_table.at(start.substr(6)) << ",";
-        visited[curr_index] = true;
-    
-        for (int step = 0; step < num_steps; step++) {
-    
-            // Reset the distance map for the current node
-            for (auto& pair : target_and_relation_distance) {
-                pair.second = 0.0f;
-            }
-    
-            // Bind the current title and fetch relational distances
+        std::vector<std::string> visited;
+        visited.reserve(unique_titles.size());
+        std::string curr_file = start;
+
+        // Find the node with the highest relational distance
+        output_file << "Start: " << (look_up_table.count(curr_file) ? look_up_table.at(curr_file) : "[UNKNOWN]");
+
+        while (true) {
+            std::vector<std::string> max_distance_titles;
+            max_distance_titles.clear();
+
             sqlite3_reset(stmt);
             sqlite3_clear_bindings(stmt);
-            sqlite3_bind_text(stmt, 1, unique_titles[curr_index].c_str(), -1, SQLITE_TRANSIENT);
-    
+            sqlite3_bind_text(stmt, 1, curr_file.c_str(), -1, SQLITE_TRANSIENT);
+            sqlite3_bind_text(stmt, 2, curr_file.c_str(), -1, SQLITE_TRANSIENT);
+
             while (sqlite3_step(stmt) == SQLITE_ROW) {
-                std::string target = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 0));
-                float distance = static_cast<float>(sqlite3_column_double(stmt, 1));
-                target_and_relation_distance[target] = distance;
+                std::string target_name = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 0));
+                max_distance_titles.push_back(target_name);
             }
-    
-            // Find the next node with the highest relational distance that hasn't been visited
-            float max_value = 0.0f;
-            int next_index = -1;
-    
-            for (size_t i = 0; i < unique_titles.size(); i++) {
-                if (!visited[i] && target_and_relation_distance[unique_titles[i]] > max_value) {
-                    max_value = target_and_relation_distance[unique_titles[i]];
-                    next_index = i;
-                }
-            }
-    
-            // If no valid next node is found, terminate the route early
-            if (next_index == -1) {
-                std::cout << "No more valid next nodes. Ending search.\n";
+
+            if (max_distance_titles.empty()) {
+                output_file << " -> None\nThere is no further route from this node.\n";
                 break;
             }
-    
-            // Move to the next node
-            curr_index = next_index;
-            visited[curr_index] = true;
-    
-            // Write the selected node to the output file
-            output_file << look_up_table.at(unique_titles[curr_index].substr(6)) << "," << max_value << ",";
+
+            if (max_distance_titles.size() > 1) {
+                output_file << " -> (Multiple Choices)\n";
+                for (const std::string& title : max_distance_titles) {
+                    output_file << "-> " << (look_up_table.count(title) ? look_up_table.at(title) : "[UNKNOWN]") << "\n";
+                }
+                output_file << "Path is diverged.\n";
+                break;
+            }
+
+            std::string next_title = max_distance_titles[0];
+
+            bool is_in_unique = std::find(unique_titles.begin(), unique_titles.end(), next_title) != unique_titles.end();
+            bool is_visited = std::find(visited.begin(), visited.end(), next_title) != visited.end();
+
+            if (is_in_unique && !is_visited) {
+                visited.push_back(next_title);
+                curr_file = next_title;
+                output_file << " -> " << (look_up_table.count(curr_file) ? look_up_table.at(curr_file) : "[UNKNOWN]");
+            } else {
+                output_file << " -> " << (look_up_table.count(next_title) ? look_up_table.at(next_title) : "[UNKNOWN]");
+                output_file << "\nLoop detected or unreachable node.\n";
+                break;
+            }
         }
-    
-        output_file << "END\n";
-    
-        // Finalize the statement and close the database
+
+        output_file << "\nEND.\n";
         sqlite3_finalize(stmt);
         sqlite3_close(db);
     }    

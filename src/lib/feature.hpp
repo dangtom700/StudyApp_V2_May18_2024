@@ -315,6 +315,20 @@ namespace FEATURE {
         std::cout << "Computing resource data finished" << std::endl;
     }
 
+    /**
+     * Process the prompt in the buffer.json file and computes the top N most related
+     * documents to the prompt. The results are stored in the outputPrompt.txt file.
+     * The output format is as follows:
+     * Top N Results:
+     * -----------------------------------------------------------------
+     * ID: <id>
+     * Distance: <distance>
+     * Rank: <rank>
+     * Name: [[<name>]]
+     * -----------------------------------------------------------------
+     *
+     * @param top_n The number of top results to output
+    */
     void processPrompt(const int& top_n) {
         try {
             // Step 1: Token preparation
@@ -456,6 +470,11 @@ namespace FEATURE {
         }
     }    
     
+    /**
+     * Map item matrix.
+     *
+     * @param reset_table If true, the item matrix will be reset before adding new data.
+     */
     void mappingItemMatrix(bool reset_table = true) {
         sqlite3* db;
         if (sqlite3_open(ENV_HPP::database_path.string().c_str(), &db) != SQLITE_OK) {
@@ -487,16 +506,24 @@ namespace FEATURE {
 
             Tagging::apply_tfidf(db, filtered_tokens);
             auto relation_distance_map = Tagging::load_related_tokens(db, filtered_tokens, unique_ids);
-            printf("relation_distance_map size: %zu\n", relation_distance_map.size());
             auto results = Tagging::compute_recommendations(filtered_tokens, relation_distance_map, unique_ids, id);
-            printf("results size: %zu\n", results.size());
             Tagging::insert_item_matrix(results, db, id_pair);
-            printf("inserted %zu results\n", results.size());
         }
 
         sqlite3_close(db);
     }
 
+    /**
+     * Skim a list of files and return a new list containing only the files that are
+     * not present in the database.
+     *
+     * @param files The list of files to be skimmed.
+     * @param extension The extension of the files to be skimmed. Supported values
+     *                  are ".pdf" and ".json". If any other value is provided, the
+     *                  original list is returned.
+     * @return A new list containing only the files that are not present in the
+     * database.
+     */
     std::vector<std::filesystem::path> skim_files(std::vector<std::filesystem::path>& files, const std::string& extension) {
         // Step 1: Open the database connection
         sqlite3* db;
@@ -558,6 +585,27 @@ namespace FEATURE {
         return files; // Return the filtered list
     }
 
+    /**
+     * Creates routes for all files in the database or a specific set of files.
+     *
+     * This function asks the user for input to determine how to create the routes.
+     * The user can choose to create routes for all files in the database, a specific
+     * file, or a list of specific files. The user can also enter a partial name to
+     * search for, and the function will create routes for all files that match the
+     * search pattern.
+     *
+     * The function then asks the user to enter the number of steps to take in each
+     * route and writes the generated routes to a file.
+     *
+     * @param search_mode The search mode to use. 0 means create routes for all files
+     *                     in the database, 1 means create routes for a list of specific
+     *                     files, 2 means create routes for a specific file, and 3 means
+     *                     search for a partial name.
+     * @param num_steps The number of steps to take in each route.
+     * @param look_up_table A map containing the titles of all files in the database
+     *                      and their corresponding IDs.
+     * @param output_file The file to write the generated routes to.
+     */
     void createRoutes() {
         int search_mode = -1;
         uint16_t num_steps = 0;
@@ -683,6 +731,22 @@ namespace FEATURE {
         std::cout << "Routes successfully written to " << ENV_HPP::route_list << "!\n";
     }
 
+    /**
+     * Computes TF-IDF values for all words in the database.
+     *
+     * TF-IDF (Term Frequency-Inverse Document Frequency) is a measure of how important a word is in a document.
+     * It takes into account the frequency of the word in the current document and the frequency of the word in all
+     * documents in the database.
+     *
+     * The function does the following steps:
+     * 1. Loads the JSON file containing the global word frequencies.
+     * 2. Filters out words with a frequency less than MIN_THRES_FREQ.
+     * 3. Computes the TF-IDF value for each filtered word.
+     * 4. Stores the TF-IDF values in the database.
+     *
+     * @param MIN_THRES_FREQ The minimum frequency of a word to be included in the computation.
+     * @param BUFFER_SIZE The number of records to process at once. This is used to speed up the computation.
+     */
     void computeTFIDF(const uint16_t& MIN_THRES_FREQ = 4,
                       const uint16_t& BUFFER_SIZE = 1000) {
 
