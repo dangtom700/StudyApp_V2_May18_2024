@@ -56,7 +56,7 @@ namespace Tagging{
 
     std::vector<std::tuple<std::string, int, double>> load_token_map(sqlite3* db, const std::string& id) {
         std::vector<std::tuple<std::string, int, double>> filtered_tokens;
-        std::string sql = "SELECT Token, frequency, relational_distance FROM relation_distance WHERE id = ?";
+        std::string sql = "SELECT Token, frequency, relational_distance FROM relation_distance WHERE file_name = ?";
         sqlite3_stmt* stmt = prepareStatement(db, sql);
         if (!stmt) return filtered_tokens;
 
@@ -77,16 +77,25 @@ namespace Tagging{
         return filtered_tokens;
     }
 
-    std::map<std::string, std::map<std::string, double>> load_related_tokens(sqlite3* db, const std::vector<std::tuple<std::string, int, double>>& filtered_tokens) {
+    std::map<std::string, std::map<std::string, double>> load_related_tokens(
+        sqlite3* db, 
+        const std::vector<std::tuple<std::string, int, double>>& filtered_tokens,
+        const std::map<std::string, std::string>& unique_ids
+    ) {
         std::map<std::string, std::map<std::string, double>> relation_distance_map;
         if (filtered_tokens.empty()) return relation_distance_map;
 
         std::string token_in_clause;
         for (const auto& [token, _, __] : filtered_tokens)
             token_in_clause += "'" + token + "',";
-        token_in_clause.pop_back(); // remove last comma
+        if (!token_in_clause.empty()) token_in_clause.pop_back(); // remove last comma
 
-        std::string sql = "SELECT file_name, Token, relational_distance FROM relation_distance WHERE Token IN (" + token_in_clause + ")";
+        std::string file_name_clause;
+        for (const auto& [key, _] : unique_ids)
+            file_name_clause += "'" + key + "',";
+        if (!file_name_clause.empty()) file_name_clause.pop_back(); // remove last comma
+
+        std::string sql = "SELECT file_name, Token, relational_distance FROM relation_distance WHERE Token IN (" + token_in_clause + ") AND file_name IN (" + file_name_clause + ");";
         sqlite3_stmt* stmt = prepareStatement(db, sql);
         if (!stmt) return relation_distance_map;
 
@@ -123,10 +132,11 @@ namespace Tagging{
     std::vector<std::tuple<std::string, std::string, double>> compute_recommendations(
         std::vector<std::tuple<std::string, int, double>>& filtered_tokens,
         std::map<std::string, std::map<std::string, double>>& relation_distance_map,
+        std::map<std::string, std::string>& unique_ids,
         const std::string& source_id) {
 
         std::vector<std::tuple<std::string, std::string, double>> RESULT;
-        std::string rel_file_key = "title_" + source_id;
+        std::string rel_file_key = source_id;
         if (relation_distance_map.find(rel_file_key) == relation_distance_map.end()) return RESULT;
 
         // const auto& token_map = relation_distance_map[rel_file_key];
@@ -140,7 +150,7 @@ namespace Tagging{
                 }
             }
             if (score > 0.0)
-                RESULT.emplace_back(file_name, file_name, score);
+                RESULT.emplace_back(file_name, unique_ids[file_name], score);
         }
 
         std::sort(RESULT.begin(), RESULT.end(), [](const auto& a, const auto& b) {
@@ -176,6 +186,19 @@ namespace Tagging{
     void reset_item_matrix(sqlite3* db) {
         execute_sql(db, "DROP TABLE IF EXISTS item_matrix;");
         execute_sql(db, "CREATE TABLE item_matrix (target_id TEXT, target_name TEXT, source_id TEXT, source_name TEXT, distance REAL, rank INTEGER);");
+    }
+
+    void add_item_matrix(sqlite3* db, std::map<std::string, std::string>& unique_ids){
+        // Remove entries from the map, found in item_matrix
+        std::string sql = "SELECT source_id FROM item_matrix;";
+        sqlite3_stmt* stmt = prepareStatement(db, sql);
+        if (!stmt) return;
+
+        while (sqlite3_step(stmt) == SQLITE_ROW) {
+            std::string source_id = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 0));
+            unique_ids.erase(source_id);
+        }
+        sqlite3_finalize(stmt);
     }
 
     // Function to create a route and write it to a file

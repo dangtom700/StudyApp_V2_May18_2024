@@ -456,7 +456,7 @@ namespace FEATURE {
         }
     }    
     
-    void mappingItemMatrix() {
+    void mappingItemMatrix(bool reset_table = true) {
         sqlite3* db;
         if (sqlite3_open(ENV_HPP::database_path.string().c_str(), &db) != SQLITE_OK) {
             std::cerr << "Error opening database." << std::endl;
@@ -467,9 +467,17 @@ namespace FEATURE {
         execute_sql(db, "PRAGMA synchronous=OFF;");
         execute_sql(db, "PRAGMA temp_store=MEMORY;");
 
-        Tagging::reset_item_matrix(db);
-
         auto unique_ids = Tagging::collect_unique_id(db);
+        if (unique_ids.empty()){
+            std::cerr << "No unique ids found." << std::endl;
+            return;
+        } else {
+            std::cout << "Found " << unique_ids.size() << " unique ids." << std::endl;
+        }
+        
+        if (reset_table) Tagging::reset_item_matrix(db);
+        else Tagging::add_item_matrix(db, unique_ids);
+
         for (const auto& id_pair : unique_ids) {
             const std::string& id = id_pair.first;
             printf("Processing file: %s\n", id_pair.second.c_str());
@@ -478,9 +486,12 @@ namespace FEATURE {
             if (filtered_tokens.empty()) continue;
 
             Tagging::apply_tfidf(db, filtered_tokens);
-            auto relation_distance_map = Tagging::load_related_tokens(db, filtered_tokens);
-            auto results = Tagging::compute_recommendations(filtered_tokens, relation_distance_map, id);
+            auto relation_distance_map = Tagging::load_related_tokens(db, filtered_tokens, unique_ids);
+            printf("relation_distance_map size: %zu\n", relation_distance_map.size());
+            auto results = Tagging::compute_recommendations(filtered_tokens, relation_distance_map, unique_ids, id);
+            printf("results size: %zu\n", results.size());
             Tagging::insert_item_matrix(results, db, id_pair);
+            printf("inserted %zu results\n", results.size());
         }
 
         sqlite3_close(db);
