@@ -295,6 +295,17 @@ namespace Tagging{
         sqlite3_finalize(stmt);
     }
 
+    /**
+     * Creates a route from the given start node, visiting nodes with the highest relational
+     * distance in each step. The route is written to the given output file.
+     *
+     * @param start The start node of the route.
+     * @param num_steps The number of steps to take in the route.
+     * @param unique_titles A vector of all unique titles in the database.
+     * @param look_up_table A map containing the titles of all files in the database
+     *                      and their corresponding IDs.
+     * @param output_file The file to write the generated route to.
+     */
     void create_route(const std::string& start, const uint16_t num_steps,
                       const std::vector<std::string> unique_titles,
                       const std::map<std::string, std::string> look_up_table,
