@@ -80,7 +80,7 @@ namespace Tagging{
      */
     std::vector<std::tuple<std::string, int, double>> load_token_map(sqlite3* db, const std::string& id) {
         std::vector<std::tuple<std::string, int, double>> filtered_tokens;
-        std::string sql = "SELECT Token, frequency, relational_distance FROM relation_distance WHERE file_name = ?";
+        std::string sql = "SELECT Token, frequency, relational_distance FROM relation_distance WHERE file_name = ? AND frequency > 3";
         sqlite3_stmt* stmt = prepareStatement(db, sql);
         if (!stmt) return filtered_tokens;
 

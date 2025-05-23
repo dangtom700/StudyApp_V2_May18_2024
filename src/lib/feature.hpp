@@ -475,7 +475,7 @@ namespace FEATURE {
      *
      * @param reset_table If true, the item matrix will be reset before adding new data.
      */
-    void mappingItemMatrix(bool reset_table = true) {
+    void mappingItemMatrix(bool reset_table = false) {
         sqlite3* db;
         if (sqlite3_open(ENV_HPP::database_path.string().c_str(), &db) != SQLITE_OK) {
             std::cerr << "Error opening database." << std::endl;
