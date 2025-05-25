@@ -57,12 +57,8 @@ set "updateDatabaseInformation=0"
 set "processWordFreq=0"
 set "computeTFIDF=0"
 set "computeRelationalDistance=0"
-
-REM Do not use this feature, until this comment is removed
-set "mappingItemMatrix=0" 
-REM ------------------------------------------------------
-
-set "ideate=0"
+set "mappingItemMatrix=0"
+set "ideate=1"
 set "promptReference=1"
 set "createRoutes=0"
 
