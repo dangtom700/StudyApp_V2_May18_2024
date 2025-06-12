@@ -26,13 +26,13 @@ def text_to_chunks(text, chunk_size):
     return [' '.join(words[i:i+chunk_size]) for i in range(0, len(words), chunk_size)]
 
 def clean_text_for_extracted_data(text):
-    """Remove non-word characters and reduce multiple spaces."""
-    return re.sub(r'\s+', ' ', re.sub(r'\W+', ' ', text)).strip()
+    """ Only keep A-Z, a-z, 0-9, and spaces. """
+    return re.sub(r'[^A-Za-z0-9\s]', '', text)
 
 def save_chunks_to_file(file_path, chunks):
     """Save each chunk to a new line in a file."""
     with open(file_path, "w", encoding="utf-8") as f:
-        for chunk in zip(chunks):
+        for chunk in chunks:
             f.write(f"{chunk}\n")
         
 def process_file(file, source_folder, chunk_size, dataset_folder):
@@ -69,9 +69,11 @@ def insert_chunks_into_db(dataset_folder, db_path):
                 cursor.execute("""
                     INSERT OR IGNORE INTO pdf_chunks (file_name, chunk_id, chunk_text)
                     VALUES (?, ?, ?)
-                """, (file, chunk_id, chunk_text.strip()))
+                """, (file, chunk_id, chunk_text))
         except Exception as e:
             print(f"[ERROR] Failed to insert chunks from {file}: {e}")
+
+        os.remove(file_path)
 
     conn.commit()
     conn.close()
@@ -100,13 +102,20 @@ def extract_text(SOURCE_FOLDER, DEST_FOLDER, CHUNK_SIZE=512, DB_PATH=chunk_datab
         )
     """)
     conn.commit()
-    conn.close()
 
     # Step 2: Process new files
-    ready_files = set([f for f in os.listdir(SOURCE_FOLDER) if f.endswith(".txt")])
-    completed_files = set(os.listdir(DEST_FOLDER))
-    zero_content_files = set([f for f in ready_files if os.stat(os.path.join(SOURCE_FOLDER, f)).st_size == 0])
-    new_files = ready_files - completed_files - zero_content_files
+    raw_files = set([f for f in os.listdir(SOURCE_FOLDER) if f.endswith(".txt")])
+    zero_byte_files = set([f for f in os.listdir(SOURCE_FOLDER) if os.path.getsize(os.path.join(SOURCE_FOLDER, f)) == 0])
+    completed_files = cursor.execute("SELECT DISTINCT file_name FROM pdf_chunks").fetchall()
+    completed_files = set([f[0] for f in completed_files])
+    new_files = raw_files - completed_files - zero_byte_files
+    
+    num_raw_files = len(raw_files)
+    num_zero = len(zero_byte_files)
+
+    del raw_files
+    del zero_byte_files
+    del completed_files
 
     if not new_files:
         print("[INFO] No new files to process.")
@@ -125,8 +134,6 @@ def extract_text(SOURCE_FOLDER, DEST_FOLDER, CHUNK_SIZE=512, DB_PATH=chunk_datab
         insert_chunks_into_db(DEST_FOLDER, DB_PATH)
 
     # Check if all files have been processed
-    completed_files = set(os.listdir(DEST_FOLDER))
-    if len(completed_files) == len(ready_files):
-        print("[INFO] All files have been processed.")
-    else:
-        print(f"[INFO] {len(ready_files) - len(completed_files)} files have not been processed.")
+    num_completed = cursor.execute("SELECT COUNT(DISTINCT file_name) FROM pdf_chunks").fetchone()[0]
+    print(f"[INFO] {num_completed}/{num_raw_files - num_zero} files have not been processed.")
+    conn.close()

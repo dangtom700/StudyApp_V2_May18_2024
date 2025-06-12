@@ -1,41 +1,33 @@
 @echo off
 
-REM.
-REM ==== Program Description ====
+REM ========================================
+REM Program Description
 REM This program is part of the study logging and database project.
 REM It has features implemented in both C++ and Python.
-REM.
+REM 
 REM C++ Features:
-REM     1. Compute Relational Distance: Computes the Euclidean distance between tokens in a JSON file.
-REM     (Command: --computeRelationalDistance)
-REM     2. Update Database Information: Updates the database with resources such as PDFs.
-REM     (Command: --updateDatabaseInformation)
-REM     3. Mapping item matrix of all items' relational distance
-REM     (Command: --mappingItemMatrix)
-REM.
+REM     1. --computeRelationalDistance
+REM     2. --updateDatabaseInformation
+REM     3. --mappingItemMatrix
+REM 
 REM Python Features:
-REM     1. Extract Text from PDF files: Extracts and stores text from PDFs in the database.
-REM     (Command: --extractText)
-REM     2. Process Word Frequencies: Analyzes word frequencies and creates index tables.
-REM     (Command: --processWordFreq)
-REM     3. Get Dataset: Retrieves the dataset from the database.
-REM     (Command: --getDataset)
-REM.
-REM Merged Features:
-REM     1. Enter a paragraph styled prompt to search for references in the database.
-REM     (Command: --promptReference) Note: --tokenizePrompt (Python) --processPrompt (C++)
-REM.
-REM The program allows users to select and execute one or multiple features.
-REM ===============================
-REM.
+REM     1. --extractText
+REM     2. --processWordFreq
+REM     3. --getDataset
+REM 
+REM Merged Feature:
+REM     1. --promptReference
+REM 
+REM Run with command-line flags to select features.
+REM ========================================
 
 rem Clear terminal
 cls
 
-rem Setting the start time for overall program execution
+rem Record start time
 set start_time=%time%
 
-rem Booting up the program
+rem Compile C++ code
 echo Compiling C++ code...
 g++ src/main.cpp -o word_tokenizer -I./src -lm -l sqlite3 -lssl -lcrypto -Wall -Werror
 if %errorlevel% neq 0 (
@@ -44,22 +36,22 @@ if %errorlevel% neq 0 (
 )
 echo Compilation successful.
 
-rem Activating Conda environment
+rem Activate Conda environment
 call conda activate StudyAssistant
 
-rem Function to execute tasks based on input flags
+rem Function to execute tasks based on flags
 :execute_tasks
 echo Starting task execution...
 
 set "showComponents=0"
 set "extractText=0"
-set "updateDatabaseInformation=0"
+set "updateDatabaseInformation=1"
 set "processWordFreq=0"
 set "computeTFIDF=0"
 set "computeRelationalDistance=0"
 set "mappingItemMatrix=0"
-set "ideate=1"
-set "promptReference=1"
+set "ideate=0"
+set "promptReference=0"
 set "createRoutes=0"
 
 rem Process flags
@@ -83,134 +75,132 @@ if %showComponents%==1 (
     python src/main.py --displayHelp
     word_tokenizer --displayHelp
     if %errorlevel% neq 0 (
-        echo Error executing "Show Components".
+        echo Error executing Show Components.
         goto end
     ) else (
-        echo "Show Components" completed successfully.
+        echo Show Components completed successfully.
     )
 )
 
 rem Extract Text
 if %extractText%==1 (
-    echo Starting "Extract Text from PDF files" using Python...
+    echo Starting Extract Text from PDF files using Python...
     python src/main.py --extractText
     if %errorlevel% neq 0 (
-        echo Error executing "Extract Text from PDF files".
+        echo Error executing Extract Text from PDF files.
         goto end
     ) else (
-        echo "Extract Text from PDF files" completed successfully.
+        echo Extract Text from PDF files completed successfully.
     )
 )
 
 rem Update Database Information
 if %updateDatabaseInformation%==1 (
-    echo Starting "Update Database Information" using C++...
+    echo Starting Update Database Information using C++...
     word_tokenizer --updateDatabaseInformation
     if %errorlevel% neq 0 (
-        echo Error executing "Update Database Information".
+        echo Error executing Update Database Information.
         goto end
     ) else (
-        echo "Update Database Information" completed successfully.
+        echo Update Database Information completed successfully.
     )
 )
 
 rem Process Word Frequencies
 if %processWordFreq%==1 (
-    echo Starting "Process Word Frequencies" using Python...
+    echo Starting Process Word Frequencies using Python...
     python src/main.py --processWordFreq
     if %errorlevel% neq 0 (
-        echo Error executing "Process Word Frequencies".
+        echo Error executing Process Word Frequencies.
         goto end
     ) else (
-        echo "Process Word Frequencies" completed successfully.
+        echo Process Word Frequencies completed successfully.
     )
 )
 
 rem Compute TF-IDF
 if %computeTFIDF%==1 (
-    echo Starting "Computing Term Frequency - Inverse Document Frequency" using C++...
+    echo Starting Computing TF-IDF using C++...
     word_tokenizer --computeTFIDF
     if %errorlevel% neq 0 (
-        echo Error executing "Computing Term Frequency - Inverse Document Frequency".
+        echo Error executing Computing TF-IDF.
         goto end
     ) else (
-        echo "Computing Term Frequency - Inverse Document Frequency" completed successfully.
+        echo Computing TF-IDF completed successfully.
     )
 )
 
 rem Compute Relational Distance
 if %computeRelationalDistance%==1 (
-    echo Starting "Compute Relational Distance" using C++...
+    echo Starting Compute Relational Distance using C++...
     word_tokenizer --computeRelationalDistance
     if %errorlevel% neq 0 (
-        echo Error executing "Compute Relational Distance".
+        echo Error executing Compute Relational Distance.
         goto end
     ) else (
-        echo "Compute Relational Distance" completed successfully.
+        echo Compute Relational Distance completed successfully.
     )
 )
 
-rem Mapping Item Matrix of Relational Distance
+rem Mapping Item Matrix
 if %mappingItemMatrix%==1 (
-    echo Starting "Mapping Item Matrix" using C++...
+    echo Starting Mapping Item Matrix using C++...
     word_tokenizer --mappingItemMatrix
     if %errorlevel% neq 0 (
-        echo Error executing "Mapping Item Matrix".
+        echo Error executing Mapping Item Matrix.
         goto end
     ) else (
-        echo "Mapping Item Matrix" completed successfully.
+        echo Mapping Item Matrix completed successfully.
     )
 )
 
-rem Ideate prompts with multiple LLMs
+rem Ideation using LLMs
 if %ideate%==1 (
-    echo Initialize LLMs for ideation...
+    echo Initializing LLMs for ideation...
     call conda activate langlangchain
     python src/ideation.py
     call conda activate StudyAssistant
     if %errorlevel% neq 0 (
-        echo Error executing "Ideation with multiple LLMs".
+        echo Error executing Ideation with LLMs.
     ) else (
-        echo "Ideation with multiple LLMs" completed successfully.
+        echo Ideation with LLMs completed successfully.
     )
 )
 
-rem Prompting for references
+rem Prompt Reference
 if %promptReference%==1 (
     echo Finding references in database...
     python src/main.py --tokenizePrompt
     word_tokenizer --processPrompt
     if %errorlevel% neq 0 (
-        echo Error executing "Find References in Database".
+        echo Error executing Find References in Database.
     ) else (
-        echo "Find References in Database" completed successfully.
+        echo Find References in Database completed successfully.
     )
 )
 
-rem Create Route
+rem Create Routes
 if %createRoutes%==1 (
     echo Creating routes using C++...
     word_tokenizer --createRoutes
     if %errorlevel% neq 0 (
-        echo Error executing "Create Route".
+        echo Error executing Create Route.
     ) else (
-        echo "Create Route" completed successfully.
+        echo Create Route completed successfully.
     )
 )
 
 :end
 
-rem Calculate total execution time
+rem Print elapsed time
 call :print_time "Total execution time: " %start_time%
 echo Program finished.
-
 goto :eof
 
 rem Function to calculate and print elapsed time
 :print_time
     setlocal enabledelayedexpansion
     set end_time=%time%
-    rem Extract hours, minutes, and seconds from start and end time
     for /f "tokens=1-3 delims=:. " %%a in ("%2") do (
         set start_h=%%a
         set start_m=%%b
@@ -221,21 +211,15 @@ rem Function to calculate and print elapsed time
         set end_m=%%b
         set end_s=%%c
     )
-
-    rem Convert to seconds for easier calculation
     set /a start_total_seconds=(1%start_h%*3600 + 1%start_m%*60 + 1%start_s%) %% 86400
     set /a end_total_seconds=(1%end_h%*3600 + 1%end_m%*60 + 1%end_s%) %% 86400
     set /a elapsed_seconds=end_total_seconds - start_total_seconds
-
     if !elapsed_seconds! lss 0 (
         set /a elapsed_seconds+=86400
     )
-
-    rem Calculate hours, minutes, and seconds from elapsed time
     set /a elapsed_h=elapsed_seconds / 3600
     set /a elapsed_m=(elapsed_seconds %% 3600) / 60
     set /a elapsed_s=elapsed_seconds %% 60
-
     echo %1 !elapsed_h! hours !elapsed_m! minutes !elapsed_s! seconds
     endlocal
     exit /b
