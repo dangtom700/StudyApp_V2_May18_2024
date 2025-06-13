@@ -106,7 +106,7 @@ namespace FEATURE {
                     DROP TABLE IF EXISTS relation_distance;
                     CREATE TABLE IF NOT EXISTS relation_distance (
                         file_name TEXT,
-                        Token TEXT,
+                        token TEXT,
                         frequency INTEGER,
                         relational_distance REAL,
                         PRIMARY KEY (file_name, Token)
@@ -481,6 +481,10 @@ namespace FEATURE {
             std::cerr << "Error opening database." << std::endl;
             return;
         }
+
+        // Create a table to store the item matrix
+        execute_sql(db, "CREATE TABLE IF NOT EXISTS item_matrix "
+                        "(target_id TEXT, target_name TEXT, source_id TEXT, source_name TEXT, distance REAL);");
 
         execute_sql(db, "PRAGMA journal_mode=WAL;");
         execute_sql(db, "PRAGMA synchronous=OFF;");
