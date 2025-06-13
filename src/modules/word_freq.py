@@ -194,6 +194,9 @@ def process_chunks_in_batches(database, pdf_titles, fetched_result):
     # Process title IDs in parallel (each thread gets its own connection)
     with ThreadPoolExecutor() as executor:
         for title_id, word_freq in zip(pdf_titles, executor.map(retrieve_func, pdf_titles)):
+            if word_freq is None or len(word_freq) == 0:
+                continue
+            
             # Update global word frequencies
             for word, freq in word_freq.items():
                 global_word_freq[word] += freq
@@ -246,6 +249,9 @@ def process_word_frequencies_in_batches(reset_state=False, folder_path=token_jso
     cursor = conn.cursor()
 
     print("Starting batch processing of chunks...")
+
+    os.makedirs(folder_path, exist_ok=True)
+
     if reset_state:
         if os.path.exists(folder_path):
             rmtree(folder_path)
@@ -255,12 +261,19 @@ def process_word_frequencies_in_batches(reset_state=False, folder_path=token_jso
         process_chunks_in_batches(database=chunk_database_path, pdf_titles=pdf_titles, fetched_result=fetched_result)
     else:
         # Retrieve title IDs from the database
-        titleID_db = cursor.execute("SELECT id FROM file_info").fetchall()
+        titleID_db = cursor.execute("SELECT id FROM file_info WHERE chunk_count > 0").fetchall()
         titleID_db = set([title[0] for title in titleID_db])
         # Retrieve title IDs from JSON files
         titleID_json = set(get_title_ids_from_json(folder_path))
+        # Retrieve title IDs from the complete table of database
+        cursor.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='file_token'")
+        if cursor.fetchone():
+            titleID_complete = cursor.execute("SELECT DISTINCT file_name FROM file_token").fetchall()
+        else:
+            titleID_complete = []
+        titleID_complete = set([title[0] for title in titleID_complete])
         # Find the difference between the two sets
-        titleID_diff = titleID_db.difference(titleID_json)
+        titleID_diff = titleID_db - titleID_json - titleID_complete
         # If there are any missing title IDs, process them
         if titleID_diff:
             titleID_diff = list(titleID_diff)
