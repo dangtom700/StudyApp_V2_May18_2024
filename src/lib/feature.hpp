@@ -187,6 +187,9 @@ namespace FEATURE {
                 if (show_progress) {
                     std::cout << "Processed: " << file << std::endl;
                 }
+
+                // Remove the file from the directory
+                std::filesystem::remove(file);
             }
 
             // Commit the transaction to apply all inserts

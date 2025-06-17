@@ -45,7 +45,7 @@ echo Starting task execution...
 
 set "showComponents=0"
 set "extractText=0"
-set "updateDatabaseInformation=1"
+set "updateDatabaseInformation=0"
 set "processWordFreq=0"
 set "computeTFIDF=0"
 set "computeRelationalDistance=0"
