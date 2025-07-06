@@ -517,6 +517,11 @@ namespace FEATURE {
             Tagging::insert_item_matrix(results, db, id_pair);
 
             printf("Processed (%d): %s\n",count, id_pair.second.c_str());
+
+            // Free up memory
+            relation_distance_map.clear();
+            filtered_tokens.clear();
+            results.clear();
         }
 
         sqlite3_close(db);
