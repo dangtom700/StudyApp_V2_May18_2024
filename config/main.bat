@@ -50,7 +50,6 @@ set "processWordFreq=0"
 set "computeTFIDF=0"
 set "computeRelationalDistance=0"
 set "mappingItemMatrix=1"
-set "ideate=0"
 set "promptReference=0"
 set "createRoutes=0"
 
@@ -151,19 +150,6 @@ if %mappingItemMatrix%==1 (
         goto end
     ) else (
         echo Mapping Item Matrix completed successfully.
-    )
-)
-
-rem Ideation using LLMs
-if %ideate%==1 (
-    echo Initializing LLMs for ideation...
-    call conda activate langlangchain
-    python src/ideation.py
-    call conda activate StudyAssistant
-    if %errorlevel% neq 0 (
-        echo Error executing Ideation with LLMs.
-    ) else (
-        echo Ideation with LLMs completed successfully.
     )
 )
 
