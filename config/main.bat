@@ -49,6 +49,7 @@ set "updateDatabaseInformation=0"
 set "processWordFreq=0"
 set "computeTFIDF=0"
 set "computeRelationalDistance=0"
+set "ideation=0"
 set "promptReference=1"
 
 rem Process flags
@@ -60,6 +61,7 @@ for %%A in (%*) do (
     if "%%A"=="--processWordFreq" set processWordFreq=1
     if "%%A"=="--computeTFIDF" set computeTFIDF=1
     if "%%A"=="--computeRelationalDistance" set computeRelationalDistance=1
+    if "%%A"=="--ideation" set ideation=1
     if "%%A"=="--promptReference" set promptReference=1
 )
 
@@ -133,6 +135,17 @@ if %computeRelationalDistance%==1 (
         goto end
     ) else (
         echo Compute Relational Distance completed successfully.
+    )
+)
+
+rem Ideation
+if %ideation%==1 (
+    echo Starting Ideation using Python...
+    python src/ideation.py
+    if %errorlevel% neq 0 (
+        echo Error executing Ideation.
+    ) else (
+        echo Ideation completed successfully.
     )
 )
 
