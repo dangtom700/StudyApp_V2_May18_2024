@@ -49,9 +49,7 @@ set "updateDatabaseInformation=0"
 set "processWordFreq=0"
 set "computeTFIDF=0"
 set "computeRelationalDistance=0"
-set "mappingItemMatrix=1"
 set "promptReference=0"
-set "createRoutes=0"
 
 rem Process flags
 :process_flags
@@ -62,10 +60,7 @@ for %%A in (%*) do (
     if "%%A"=="--processWordFreq" set processWordFreq=1
     if "%%A"=="--computeTFIDF" set computeTFIDF=1
     if "%%A"=="--computeRelationalDistance" set computeRelationalDistance=1
-    if "%%A"=="--mappingItemMatrix" set mappingItemMatrix=1
-    if "%%A"=="--ideate" set ideate=1
     if "%%A"=="--promptReference" set promptReference=1
-    if "%%A"=="--createRoutes" set createRoutes=1
 )
 
 rem Show Components
@@ -141,18 +136,6 @@ if %computeRelationalDistance%==1 (
     )
 )
 
-rem Mapping Item Matrix
-if %mappingItemMatrix%==1 (
-    echo Starting Mapping Item Matrix using C++...
-    word_tokenizer --mappingItemMatrix
-    if %errorlevel% neq 0 (
-        echo Error executing Mapping Item Matrix.
-        goto end
-    ) else (
-        echo Mapping Item Matrix completed successfully.
-    )
-)
-
 rem Prompt Reference
 if %promptReference%==1 (
     echo Finding references in database...
@@ -162,17 +145,6 @@ if %promptReference%==1 (
         echo Error executing Find References in Database.
     ) else (
         echo Find References in Database completed successfully.
-    )
-)
-
-rem Create Routes
-if %createRoutes%==1 (
-    echo Creating routes using C++...
-    word_tokenizer --createRoutes
-    if %errorlevel% neq 0 (
-        echo Error executing Create Route.
-    ) else (
-        echo Create Route completed successfully.
     )
 )
 

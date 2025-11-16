@@ -58,18 +58,6 @@ void processPrompt() {
     std::cout << "Finished: Prompt processed." << std::endl;
 }
 
-void mappingItemMatrix() {
-    std::cout << "Mapping item matrix..." << std::endl;
-    FEATURE::mappingItemMatrix();
-    std::cout << "Finished: Item matrix mapped." << std::endl;
-}
-
-void createRoutes() {
-    std::cout << "Creating routes of relation distance..." << std::endl;
-    FEATURE::createRoutes();
-    std::cout << "Finished: Route created." << std::endl;
-}
-
 void computeTFIDF() {
     std::cout << "Computing TF-IDF..." << std::endl;
     FEATURE::computeTFIDF();
@@ -89,8 +77,6 @@ int main(int argc, char* argv[]) {
         {"--computerelationaldistance", computeRelationalDistance},
         {"--updatedatabaseinformation", updateDatabaseInformation},
         {"--processprompt", processPrompt},
-        {"--mappingitemmatrix", mappingItemMatrix},
-        {"--createroutes", createRoutes},
         {"--computetfidf", computeTFIDF}
     };
 
