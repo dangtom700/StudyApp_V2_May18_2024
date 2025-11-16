@@ -49,7 +49,7 @@ set "updateDatabaseInformation=0"
 set "processWordFreq=0"
 set "computeTFIDF=0"
 set "computeRelationalDistance=0"
-set "promptReference=0"
+set "promptReference=1"
 
 rem Process flags
 :process_flags
