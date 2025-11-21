@@ -52,7 +52,7 @@ def stop_ollama(process: subprocess.Popen):
     print("Ollama server stopped.")
 
 
-def stream_model_response(model: str, prompt: str, ID: str) -> None:
+def stream_model_response(model: str, prompt: str, ID: str, num:int) -> None:
     """
     Save model response to a txt file.
     """
@@ -65,8 +65,8 @@ def stream_model_response(model: str, prompt: str, ID: str) -> None:
             stream=False,
         )
 
-        with open("conversation/" + ID + ".txt", "a", encoding="utf-8") as f:
-            f.write(f"\n=== Response from model: {model} ===\n")
+        with open("conversation/" + ID + ".md", "a", encoding="utf-8") as f:
+            f.write(f"\n=== Response  ===\n\n")
             f.write(f"{response['message']['content']}\n\n")
 
     except Exception as e:
@@ -75,6 +75,7 @@ def stream_model_response(model: str, prompt: str, ID: str) -> None:
 
 def main() -> None:
     print("Multi-model Ollama Chat — type 'exit' to quit.\n")
+    prompts = []
 
     # Start Ollama server
     ollama_process = start_ollama()
@@ -86,18 +87,14 @@ def main() -> None:
             if not os.path.exists("conversation/" + ID_session + ".txt"):
                 open("conversation/" + ID_session + ".txt", "w").close()
 
-        while True:
-            prompt = input("Enter your prompt: ")
-
-            if prompt.lower().strip() == "exit":
-                print("Exiting...")
-                break
-
+        for prompt in prompts:
+            print(f"\nUser Prompt: {prompt}")
             with open("conversation/" + ID_session + ".txt", "a", encoding="utf-8") as f:
                 f.write(f"User: {prompt}\n")
 
-            for model in MODELS:
-                stream_model_response(model, prompt, ID_session)
+            for index in range(len(MODELS)):
+                model = MODELS[index]
+                stream_model_response(model, prompt, ID_session, index+1)
 
     except KeyboardInterrupt:
         print("\nInterrupted by user.")
