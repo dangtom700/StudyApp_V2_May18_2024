@@ -17,6 +17,7 @@ def app():
     parser.add_argument("--processWordFreq", action= 'store_true', help="Create index tables and analyze word frequencies all in one")
     parser.add_argument("--tokenizePrompt", action= 'store_true', help="Prompt to find references in full database based on context of search")
     parser.add_argument("--computeTFIDF", action= 'store_true', help="Compute TF-IDF of all tokens in database")
+    parser.add_argument("--recommendationList", action= 'store_true', help="Generate recommendation list based on cosine similarity search")
 
     args = parser.parse_args()
 
@@ -64,6 +65,11 @@ def app():
         print("Computing TF-IDF...")
         tf_idf.computeTFIDF()
         print("Finished computing TF-IDF.")
+
+    if args.recommendationList: # function is functioning properly
+        print("Generating recommendation list...")
+        word_freq.generate_recommendation_list()
+        print("Finished generating recommendation list.")
 
 if __name__ == "__main__":
     app()

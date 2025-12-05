@@ -21,8 +21,8 @@ REM
 REM Run with command-line flags to select features.
 REM ========================================
 
-rem Clear terminal
-cls
+@REM rem Clear terminal
+@REM cls
 
 rem Record start time
 set start_time=%time%
@@ -51,6 +51,7 @@ set "computeTFIDF=0"
 set "computeRelationalDistance=0"
 set "ideation=0"
 set "promptReference=1"
+set "recommendationList=0"
 
 rem Process flags
 :process_flags
@@ -63,6 +64,7 @@ for %%A in (%*) do (
     if "%%A"=="--computeRelationalDistance" set computeRelationalDistance=1
     if "%%A"=="--ideation" set ideation=1
     if "%%A"=="--promptReference" set promptReference=1
+    if "%%A"=="--recommendationList" set recommendationList=1
 )
 
 rem Show Components
@@ -158,6 +160,17 @@ if %promptReference%==1 (
         echo Error executing Find References in Database.
     ) else (
         echo Find References in Database completed successfully.
+    )
+)
+
+rem Recommendation List
+if %recommendationList%==1 (
+    echo Generating Recommendation List using Python...
+    python src/main.py --recommendationList
+    if %errorlevel% neq 0 (
+        echo Error executing Generating Recommendation List.
+    ) else (
+        echo Generating Recommendation List completed successfully.
     )
 )
 
