@@ -56,7 +56,7 @@ def stream_model_response(model: str, prompt: str, ID: str, num:int) -> None:
     """
     Save model response to a txt file.
     """
-    print(f"\n=== Response from model: {model} ===")
+    print(f"=== Response from model: {model} ===")
 
     try:
         response = ollama.chat(
@@ -72,54 +72,58 @@ def stream_model_response(model: str, prompt: str, ID: str, num:int) -> None:
     except Exception as e:
         print(f"[Error] Model '{model}' failed: {e}")
 
-def upadte_script(prompt: str) -> None:
-    # Remove a prompt from the script after it has been used
-    with open(__file__, "r", encoding="utf-8") as f:
+def update_script(used_prompt: str) -> None:
+    """
+    Remove a specific prompt from the 'prompts' list inside this script.
+    Safely rewrites the current file.
+    """
+
+    script_path = os.path.abspath(__file__)
+
+    with open(script_path, "r", encoding="utf-8") as f:
         lines = f.readlines()
-    with open(__file__, "w", encoding="utf-8") as f:
-        inside_prompts = False
-        for line in lines:
-            if line.strip().startswith("prompts: List[str] = ["):
-                inside_prompts = True
-                f.write(line)
+
+    new_lines = []
+    inside_prompt_block = False
+
+    for line in lines:
+        stripped = line.strip()
+
+        # Detect start of prompts list
+        if stripped.startswith("prompts: List[str] = ["):
+            inside_prompt_block = True
+            new_lines.append(line)
+            continue
+
+        # Detect end of prompts list
+        if inside_prompt_block and stripped.startswith("]"):
+            inside_prompt_block = False
+            new_lines.append(line)
+            continue
+
+        # If inside list, skip the used prompt
+        if inside_prompt_block:
+            # A prompt line should look like: "    \"text here\","
+            if used_prompt in stripped.strip('",'):
+                # Skip this line (remove prompt)
                 continue
-            if inside_prompts:
-                if line.strip() == "]":
-                    inside_prompts = False
-                    f.write(line)
-                    continue
-                if line.strip().startswith(f'"{prompt}"'):
-                    continue  # Skip this prompt
-            f.write(line)
+
+        # Default: keep line
+        new_lines.append(line)
+
+    # Write updated script
+    with open(script_path, "w", encoding="utf-8") as f:
+        f.writelines(new_lines)
 
 def main() -> None:
     print("Multi-model Ollama Chat — type 'exit' to quit.\n")
     prompts: List[str] = [
-        "Contrast the core philosophical and spatial principles of Ebenezer Howard's Garden City Movement with Le Corbusier's Radiant City (Ville Radieuse). What is the lasting legacy of each today? How have these ideas influenced contemporary urban planning and design?",
-        "What was the Sanitary Movement of the 19th century, and how did its focus on public health and infrastructure fundamentally change the role of city government in planning?",
-        "Explain Jane Jacobs' central thesis in The Death and Life of Great American Cities. What are \"eyes on the street,\" and why are they critical to her concept of a vibrant, safe city"
-        "Who was Robert Moses, and what is his legacy regarding the impact of large-scale infrastructure policy on urban neighborhoods, specifically in New York?",
-        "Describe the principles of New Urbanism. How does this movement address issues of urban sprawl, walkability, and community design? Provide examples of New Urbanist developments.",
-        "What are the main objectives of Environmental Planning within urban contexts? How do planners integrate sustainability and ecological considerations into urban development projects?",
-        "Analyze the grid plan of Washington D.C. (L'Enfant Plan) and compare it to the orthogonal grid of a city like Barcelona's Eixample district (Cerdà Plan). How do the different grid geometries affect public space and traffic flow?",
-        "Examine Brasília, Brazil. What were the key modernist principles applied by Lúcio Costa and Oscar Niemeyer? What unintended social or functional problems arose from this planning approach?", 
-        "Describe the planning history of Singapore. What innovative planning and policy strategies has this city-state used to manage high density, transportation, and green space effectively?",
-        "Research the concept of the \"15-Minute City.\" What are its core planning metrics and goals? What are the main political or social criticisms leveled against this concept?",
-        "How does the concept of Tactical Urbanism differ from traditional, large-scale planning? Provide an example of a tactical urbanism project and its potential long-term impact on a neighborhood.",
-        "Investigate a modern, influential public space like Superkilen in Copenhagen or The Goods Line in Sydney. How does its design actively promote social interaction and cultural diversity in a way that a traditional park might not?",
-        "What is Zoning, and what are the primary legal and economic rationales behind it? Contrast Euclidean zoning (conventional) with a more modern approach like Form-Based Codes.",
-        "Explain the concept of Gentrification in the context of urban policy. How might a successful urban design project (e.g., a new park or transit line) unintentionally contribute to displacement, and what policy tools (e.g., Inclusionary Zoning) can mitigate this?",
-        "How does transportation planning—specifically the allocation of space for automobiles versus public transit/bicycles—directly impact a city's economic vitality and environmental sustainability? Use the example of a Congestion Charge policy (like in London or Singapore) to illustrate.",
-        "How does the urban geometry of a street (e.g., building height-to-street width ratio, sidewalk width) influence a person's sense of comfort and the likelihood of spontaneous social interaction (propinquity)?",
-        "Discuss the psychological concept of Biophilia in the context of urban design. How can integrating features like street trees, green roofs, and access to water alleviate stress and improve mental well-being for city residents?",
-        "What is Defensible Space Theory (Oscar Newman)? How does the architectural and site design of housing developments influence resident safety, and why is this concept controversial in modern planning?",
-        "Describe how a Geographic Information System (GIS) is used as a technical tool in urban planning. Give three specific examples of spatial analyses (e.g., buffer analysis, overlay) a planner might use GIS for.",
-        "What is the fundamental concept of Density in planning, and why is it often misunderstood by the public? Differentiate between Floor Area Ratio (FAR) and Dwelling Units per Acre (DUA).",
-        "How does the geometry of an intersection—specifically the presence or absence of \"free-flow lanes\" and the size of the corner radius—impact pedestrian safety and the walkability of a city block?"
-]
+        
+    ]
 
     # Start Ollama server
     ollama_process = start_ollama()
+    limiter = len(prompts)
 
     try:
         ID_session = input("Enter session ID (or press Enter to skip): ").strip()
@@ -128,7 +132,7 @@ def main() -> None:
             if not os.path.exists("conversation/" + ID_session + ".txt"):
                 open("conversation/" + ID_session + ".txt", "w").close()
 
-        for prompt in prompts:
+        for prompt in prompts[:limiter]: # Limit number of prompts for testing
             print(f"\nUser Prompt: {prompt}")
             with open("conversation/" + ID_session + ".txt", "a", encoding="utf-8") as f:
                 f.write(f"User: {prompt}\n")
@@ -137,7 +141,7 @@ def main() -> None:
                 model = MODELS[index]
                 stream_model_response(model, prompt, ID_session, index+1)
 
-            upadte_script(prompt)
+            update_script(prompt)
 
     except KeyboardInterrupt:
         print("\nInterrupted by user.")
