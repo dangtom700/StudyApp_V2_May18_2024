@@ -278,7 +278,7 @@ def process_word_frequencies_in_batches(reset_state=False, folder_path=token_jso
         # If there are any missing title IDs, process them
         if titleID_diff:
             titleID_diff = list(titleID_diff)
-            pdf_titles = [cursor.execute("SELECT file_name FROM file_info WHERE id = ?", (titleID,)).fetchone()[0] for titleID in titleID_diff]
+            pdf_titles = [cursor.execute("SELECT file_name FROM file_info WHERE id = ? ORDER BY chunk_count", (titleID,)).fetchone()[0] for titleID in titleID_diff]
             fetched_result = {title: titleID for title, titleID in zip(pdf_titles, titleID_diff)}
             process_chunks_in_batches(database=chunk_database_path, pdf_titles=pdf_titles, fetched_result=fetched_result)
         else:
@@ -287,63 +287,6 @@ def process_word_frequencies_in_batches(reset_state=False, folder_path=token_jso
     print("Processing word frequencies complete.")
     conn.commit()
     conn.close()
-
-def run_app():
-    run(["config\\main"], shell=True)
-    with open("outputPrompt.txt", "r", encoding="utf-8") as f:
-        output = f.readlines()
-    return output[2:]  # Skip first two lines
-
-def extract_items(output_lines: list[str], topic: str):
-    items = {}  # key = ID
-    current_item = {}
-
-    for line in output_lines:
-        line = line.strip()
-
-        if line.startswith("ID:"):
-            # If we already collected an item, store it before starting a new one
-            if current_item:
-                store_item(items, current_item, topic)
-
-            current_item = {"ID": line.split("ID:")[1].strip()}
-
-        elif line.startswith("Distance:"):
-            current_item["Distance"] = line.split("Distance:")[1].strip()
-
-        elif line.startswith("Name:"):
-            current_item["Name"] = line.split("Name:")[1].strip().strip("[]")
-
-    # Store final item
-    if current_item:
-        store_item(items, current_item, topic)
-
-    return items
-
-def store_item(all_items: dict, item: dict, topic: str):
-    item_id = item["ID"]
-
-    if item_id not in all_items:
-        all_items[item_id] = {
-            "ID": item_id,
-            "Name": item.get("Name", ""),
-            "Distance": {}
-        }
-
-    # Add topic-distance mapping
-    all_items[item_id]["Distance"][topic] = item.get("Distance", None)
-
-def write_prompt(topic_path: str, topic_name: str):
-    with open("PROMPT.txt", "a", encoding="utf-8") as pf:
-        # Repeat topic 50 times
-        for _ in range(50):
-            pf.write(f"{topic_name} ")
-        pf.write("\n")
-
-        # Append conversation text
-        with open(topic_path, "r", encoding="utf-8") as f:
-            pf.writelines(f.readlines())
-            pf.write("\n\n")
 
 # _________________________________________________________________________________
 # _________________________________________________________________________________
@@ -388,59 +331,3 @@ def promptFindingReference() -> None:
     # Dump the cleaned prompt to the buffer.json file
     with open(buffer_json_path, "w") as f:
         dump(cleaned_prompt, f, ensure_ascii=False, indent=4)
-
-def generate_recommendation_list():
-    merged = {}  # Final dictionary of all items by ID
-
-    # 1. Process each topic individually
-    topics = [t for t in os.listdir("conversation") if t.endswith(".txt")]
-
-    for topic_file in topics:
-        for second_topic in topics:
-            if topic_file == second_topic:
-                topic_name = topic_file.removesuffix(".txt").replace("_", " ")
-            else:
-                topic_name = f"{topic_file.removesuffix('.txt').replace('_', ' ')} and {second_topic.removesuffix('.txt').replace('_', ' ')}"
-
-            # Clear PROMPT.txt
-            open("PROMPT.txt", "w").close()
-
-            # Write input prompt for this topic
-            write_prompt(f"conversation/{topic_file}", topic_name)
-
-            # Run model
-            output_lines = run_app()
-
-            # Extract & merge
-            topic_items = extract_items(output_lines, topic_name)
-
-            for item_id, item in topic_items.items():
-                if item_id not in merged:
-                    merged[item_id] = item
-                else:
-                    merged[item_id]["Distance"].update(item["Distance"])
-
-    # 2. Process GENERAL run using ALL files
-    open("PROMPT.txt", "w").close()
-
-    for topic_file in topics:
-        name = topic_file.removesuffix(".txt").replace("_", " ")
-        write_prompt(f"conversation/{topic_file}", name)
-
-    # Run model
-    output_lines = run_app()
-
-    # Extract & merge
-    general_items = extract_items(output_lines, "general")
-
-    for item_id, item in general_items.items():
-        if item_id not in merged:
-            merged[item_id] = item
-        else:
-            merged[item_id]["Distance"].update(item["Distance"])
-
-    # --------------------------------------------------------
-    # Save final JSON (list of items)
-    # --------------------------------------------------------
-    with open("data/recommendations.json", "w", encoding="utf-8") as jf:
-        dump(list(merged.values()), jf, indent=4, ensure_ascii=False)
