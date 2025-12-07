@@ -29,7 +29,7 @@ set start_time=%time%
 
 rem Compile C++ code
 echo Compiling C++ code...
-g++ src/main.cpp -o word_tokenizer -I./src -lm -l sqlite3 -lssl -lcrypto -Wall -Werror
+@REM g++ src/main.cpp -o word_tokenizer -I./src -lm -l sqlite3 -lssl -lcrypto -Wall -Werror
 if %errorlevel% neq 0 (
     echo C++ compilation failed.
     goto :eof
