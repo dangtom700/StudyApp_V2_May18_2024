@@ -335,7 +335,6 @@ namespace FEATURE {
     void processPrompt(const int& top_n) {
         try {
             // Step 1: Token preparation
-            std::cout << "Encoding prompt..." << std::endl;
             std::map<std::string, int> tokens = TRANSFORMER::json_to_map(ENV_HPP::buffer_json_path);
             int distance = TRANSFORMER::Pythagoras(tokens);
             std::vector<std::tuple<std::string, int, double>> filtered_tokens = TRANSFORMER::token_filter(tokens, 16, 1, distance);
@@ -366,7 +365,6 @@ namespace FEATURE {
             }
     
             // Step 4: Load relation_distance map
-            std::cout << "Loading relation_distance map..." << std::endl;
             std::map<std::string, std::map<std::string, double>> relation_distance_map;
             std::string token_in_clause;
             for (const auto& [token, _, __] : filtered_tokens)
@@ -391,7 +389,6 @@ namespace FEATURE {
             sqlite3_finalize(rel_stmt);
     
             // Step 5: Load TF-IDF values
-            std::cout << "Accounting for TF-IDF..." << std::endl;
             std::string tfidf_sql = "SELECT tf_idf FROM tf_idf WHERE word = ?;";
             sqlite3_stmt* tfidf_stmt = prepareStatement(db, tfidf_sql, "Error preparing statement (tf_idf)");
             if (!tfidf_stmt) {
@@ -414,7 +411,6 @@ namespace FEATURE {
             sqlite3_finalize(tfidf_stmt);
     
             // Step 6: Compute scores
-            std::cout << "Computing recommendations..." << std::endl;
             std::vector<std::tuple<std::string, std::string, double>> RESULT;
     
             while (sqlite3_step(file_stmt) == SQLITE_ROW) {
@@ -447,12 +443,10 @@ namespace FEATURE {
             sqlite3_close(db);
 
             // Free up memory
-            std::cout << "Clearing memory..." << std::endl;
             relation_distance_map.clear();
             filtered_tokens.clear();
     
             // Step 7: Sort and output
-            std::cout << "Sorting and outputting results..." << std::endl;
             std::sort(RESULT.begin(), RESULT.end(), [](const auto& a, const auto& b) {
                 return std::get<2>(a) > std::get<2>(b);
             });

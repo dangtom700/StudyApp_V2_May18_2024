@@ -28,20 +28,17 @@ rem Record start time
 set start_time=%time%
 
 rem Compile C++ code
-echo Compiling C++ code...
 @REM g++ src/main.cpp -o word_tokenizer -I./src -lm -l sqlite3 -lssl -lcrypto -Wall -Werror
 if %errorlevel% neq 0 (
     echo C++ compilation failed.
     goto :eof
 )
-echo Compilation successful.
 
 rem Activate Conda environment
 call conda activate StudyAssistant
 
 rem Function to execute tasks based on flags
 :execute_tasks
-echo Starting task execution...
 
 set "showComponents=0"
 set "extractText=0"
@@ -67,7 +64,6 @@ for %%A in (%*) do (
 
 rem Show Components
 if %showComponents%==1 (
-    echo Showing Components...
     python src/main.py --displayHelp
     word_tokenizer --displayHelp
     if %errorlevel% neq 0 (
@@ -80,7 +76,6 @@ if %showComponents%==1 (
 
 rem Extract Text
 if %extractText%==1 (
-    echo Starting Extract Text from PDF files using Python...
     python src/main.py --extractText
     if %errorlevel% neq 0 (
         echo Error executing Extract Text from PDF files.
@@ -92,7 +87,6 @@ if %extractText%==1 (
 
 rem Update Database Information
 if %updateDatabaseInformation%==1 (
-    echo Starting Update Database Information using C++...
     word_tokenizer --updateDatabaseInformation
     if %errorlevel% neq 0 (
         echo Error executing Update Database Information.
@@ -104,7 +98,6 @@ if %updateDatabaseInformation%==1 (
 
 rem Process Word Frequencies
 if %processWordFreq%==1 (
-    echo Starting Process Word Frequencies using Python...
     python src/main.py --processWordFreq
     if %errorlevel% neq 0 (
         echo Error executing Process Word Frequencies.
@@ -116,7 +109,6 @@ if %processWordFreq%==1 (
 
 rem Compute TF-IDF
 if %computeTFIDF%==1 (
-    echo Starting Computing TF-IDF using C++...
     word_tokenizer --computeTFIDF
     if %errorlevel% neq 0 (
         echo Error executing Computing TF-IDF.
@@ -128,7 +120,6 @@ if %computeTFIDF%==1 (
 
 rem Compute Relational Distance
 if %computeRelationalDistance%==1 (
-    echo Starting Compute Relational Distance using C++...
     word_tokenizer --computeRelationalDistance
     if %errorlevel% neq 0 (
         echo Error executing Compute Relational Distance.
@@ -140,7 +131,6 @@ if %computeRelationalDistance%==1 (
 
 rem Ideation
 if %ideation%==1 (
-    echo Starting Ideation using Python...
     python src/ideation.py
     if %errorlevel% neq 0 (
         echo Error executing Ideation.
@@ -151,7 +141,6 @@ if %ideation%==1 (
 
 rem Prompt Reference
 if %promptReference%==1 (
-    echo Finding references in database...
     python src/main.py --tokenizePrompt
     word_tokenizer --processPrompt
     if %errorlevel% neq 0 (

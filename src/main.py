@@ -17,7 +17,6 @@ def app():
     parser.add_argument("--processWordFreq", action= 'store_true', help="Create index tables and analyze word frequencies all in one")
     parser.add_argument("--tokenizePrompt", action= 'store_true', help="Prompt to find references in full database based on context of search")
     parser.add_argument("--computeTFIDF", action= 'store_true', help="Compute TF-IDF of all tokens in database")
-    parser.add_argument("--recommendationList", action= 'store_true', help="Generate recommendation list based on cosine similarity search")
 
     args = parser.parse_args()
 
@@ -44,32 +43,16 @@ def app():
         """
         chunk_size = 1024
         # extract_text
-        print("Extracting text from PDF files...")
         extract_text.extract_text(CHUNK_SIZE=chunk_size, SOURCE_FOLDER=path.source_data, DB_PATH=path.chunk_database_path, DEST_FOLDER=path.dest_data)
-        print("Finished extracting text from PDF files.")
     
     if args.processWordFreq:
-
-        print("Processing word frequencies...")
         word_freq.process_word_frequencies_in_batches()
-        print("Finished processing word frequencies.")
 
     if args.tokenizePrompt: # function is functioning properly
-        
-        print("Tokenizing prompt...")
         word_freq.promptFindingReference()
-        print("Finished tokenizing prompt.")
 
     if args.computeTFIDF:
-
-        print("Computing TF-IDF...")
         tf_idf.computeTFIDF()
-        print("Finished computing TF-IDF.")
-
-    if args.recommendationList: # function is functioning properly
-        print("Generating recommendation list...")
-        word_freq.generate_recommendation_list()
-        print("Finished generating recommendation list.")
 
 if __name__ == "__main__":
     app()
