@@ -69,8 +69,6 @@ if %showComponents%==1 (
     if %errorlevel% neq 0 (
         echo Error executing Show Components.
         goto end
-    ) else (
-        echo Show Components completed successfully.
     )
 )
 
@@ -80,8 +78,6 @@ if %extractText%==1 (
     if %errorlevel% neq 0 (
         echo Error executing Extract Text from PDF files.
         goto end
-    ) else (
-        echo Extract Text from PDF files completed successfully.
     )
 )
 
@@ -91,8 +87,6 @@ if %updateDatabaseInformation%==1 (
     if %errorlevel% neq 0 (
         echo Error executing Update Database Information.
         goto end
-    ) else (
-        echo Update Database Information completed successfully.
     )
 )
 
@@ -102,8 +96,6 @@ if %processWordFreq%==1 (
     if %errorlevel% neq 0 (
         echo Error executing Process Word Frequencies.
         goto end
-    ) else (
-        echo Process Word Frequencies completed successfully.
     )
 )
 
@@ -113,8 +105,6 @@ if %computeTFIDF%==1 (
     if %errorlevel% neq 0 (
         echo Error executing Computing TF-IDF.
         goto end
-    ) else (
-        echo Computing TF-IDF completed successfully.
     )
 )
 
@@ -124,8 +114,6 @@ if %computeRelationalDistance%==1 (
     if %errorlevel% neq 0 (
         echo Error executing Compute Relational Distance.
         goto end
-    ) else (
-        echo Compute Relational Distance completed successfully.
     )
 )
 
@@ -134,8 +122,6 @@ if %ideation%==1 (
     python src/ideation.py
     if %errorlevel% neq 0 (
         echo Error executing Ideation.
-    ) else (
-        echo Ideation completed successfully.
     )
 )
 
@@ -145,8 +131,6 @@ if %promptReference%==1 (
     word_tokenizer --processPrompt
     if %errorlevel% neq 0 (
         echo Error executing Find References in Database.
-    ) else (
-        echo Find References in Database completed successfully.
     )
 )
 
