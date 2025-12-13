@@ -207,10 +207,13 @@ if __name__ == "__main__":
 
     # 3. Process any remaining individual topics
     files = listdir(source_data); shuffle(files)
+    files = [
+        file for file in files
+        if file.endswith(".txt")
+        and file.removesuffix(".txt") not in existing_category
+    ]
+    count = 0
     for file in files:
-        if not file.endswith(".txt") or file.removesuffix(".txt") in existing_category:
-            continue
-
         # Clear PROMPT.txt
         open("PROMPT.txt", "w").close()
         topic_name = file.removesuffix(".txt")
@@ -231,10 +234,11 @@ if __name__ == "__main__":
             else:
                 merged[item_id]["Distance"].update(item["Distance"])
 
-        print("Writing final recommendations to data/recommendations.json")
-        with open("data/recommendations.json", "w", encoding="utf-8") as jf:
-            dump(list(merged.values()), jf, indent=4, ensure_ascii=False)
-        
-        print(f"Completed topic: {topic_name}")
+        count += 1
+        if count % 100 == 0:
+            print("Writing final recommendations to data/recommendations.json")
+            with open("data/recommendations.json", "w", encoding="utf-8") as jf:
+                dump(list(merged.values()), jf, indent=4, ensure_ascii=False)
+            count = 0
     
     enable_compiler()
