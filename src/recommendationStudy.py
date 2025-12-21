@@ -5,6 +5,12 @@ from json import dump, load
 from modules.path import source_data
 from random import shuffle
 
+import numpy as np
+from multiprocessing import Pool, cpu_count
+from itertools import chain
+from collections import defaultdict
+import sqlite3
+
 def run_app():
     run(["config\\main"], shell=True)
     with open("outputPrompt.txt", "r", encoding="utf-8") as f:
@@ -138,6 +144,79 @@ def warm_up_app():
     enable_compiler()
     run_app()
 
+
+def flatten_chunk(chunk):
+    return [
+        (item["ID"], item["Name"], category, float(value))
+        for item in chunk
+        for category, value in item["Distance"].items()
+    ]
+
+
+def parallel_flatten(data, workers=None, chunk_size=5000):
+    if workers is None:
+        workers = max(cpu_count() - 1, 1)
+
+    chunks = [data[i:i + chunk_size] for i in range(0, len(data), chunk_size)]
+
+    with Pool(processes=workers) as pool:
+        results = pool.map(flatten_chunk, chunks)
+
+    return list(chain.from_iterable(results))
+
+def compute_stats_for_category(args):
+    category, rows = args
+    if not rows:
+        return (category, None, None, None, None, None, None, None, None)
+
+    # Sort descending by value (index 3)
+    rows_sorted = sorted(rows, key=lambda x: x[3], reverse=True)
+
+    best = rows_sorted[0]
+    second_best = rows_sorted[1] if len(rows_sorted) > 1 else None
+
+    vals = [float(r[3]) for r in rows_sorted]
+
+    return (
+        category,
+        min(vals),
+        max(vals),
+        float(np.mean(vals)),
+        float(np.std(vals)),
+        best[3],         # Greatest distance
+        best[1],         # Name of greatest
+        second_best[3] if second_best else None,  # 2nd greatest distance
+        second_best[1] if second_best else None   # Name of 2nd greatest
+    )
+
+
+def parallel_statistics(flattened, workers=None):
+    if workers is None:
+        workers = max(cpu_count() - 1, 1)
+
+    grouped = defaultdict(list)
+    for row in flattened:
+        grouped[row[2]].append(row)  # Category index 2
+
+    tasks = list(grouped.items())
+
+    with Pool(processes=workers) as pool:
+        return pool.map(compute_stats_for_category, tasks)
+
+def bulk_insert(cursor, table, columns, rows, batch_size=50000):
+    placeholders = ",".join(["?"] * len(columns))
+    sql = f"INSERT INTO {table} ({','.join(columns)}) VALUES ({placeholders})"
+
+    batch = []
+    for row in rows:
+        batch.append(row)
+        if len(batch) >= batch_size:
+            cursor.executemany(sql, batch)
+            batch.clear()
+
+    if batch:
+        cursor.executemany(sql, batch)
+
 if __name__ == "__main__":
     # Load existing recommendations as dict
     loaded_list = load(open("data/recommendations.json", "r", encoding="utf-8"))
@@ -240,5 +319,87 @@ if __name__ == "__main__":
             with open("data/recommendations.json", "w", encoding="utf-8") as jf:
                 dump(list(merged.values()), jf, indent=4, ensure_ascii=False)
             count = 0
+
+    #  Final writing
+    if count > 0:
+        print("Writing final recommendations to data/recommendations.json")
+        with open("data/recommendations.json", "w", encoding="utf-8") as jf:
+            dump(list(merged.values()), jf, indent=4, ensure_ascii=False)
     
     enable_compiler()
+    merged.clear() # No use of keeping in memory
+
+    with open("data/recommendations.json", "r", encoding="utf-8") as f:
+        data = load(f)
+
+    print("Flattening in parallel...")
+    flattened_data = parallel_flatten(data)
+
+    # -----------------------------------
+    # MASS-WRITE OPTIMIZED SQLITE SETUP
+    # -----------------------------------
+    conn = sqlite3.connect("data/pdf_text.db")
+    cursor = conn.cursor()
+
+    # Boost SQLite write performance
+    cursor.execute("PRAGMA journal_mode = WAL;")      # WAL mode
+    cursor.execute("PRAGMA synchronous = OFF;")       # Disable fsync for speed
+    cursor.execute("PRAGMA temp_store = MEMORY;")     # Keep temp data in RAM
+    cursor.execute("PRAGMA cache_size = -200000;")    # ~200MB cache
+
+    # Reset and recreate tables properly
+    cursor.execute("DROP TABLE IF EXISTS flattened;")
+    cursor.execute("""
+        CREATE TABLE flattened (
+            ID INTEGER,
+            Name TEXT,
+            Category TEXT,
+            Value REAL
+        );
+    """)
+
+    cursor.execute("DROP TABLE IF EXISTS category_stats;")
+    cursor.execute("""
+        CREATE TABLE category_stats (
+            Category TEXT PRIMARY KEY,
+            Min REAL,
+            Max REAL,
+            Mean REAL,
+            Std REAL,
+            BestDistance REAL,
+            Name1 TEXT,
+            SecondBestDistance REAL,
+            Name2 TEXT
+        );
+    """)
+
+    # -----------------------------------
+    # MASS-WRITE FLATTENED VALUES
+    # -----------------------------------
+    print("Writing flattened rows (fast mode)...")
+    bulk_insert(
+        cursor,
+        "flattened",
+        ["ID", "Name", "Category", "Value"],
+        flattened_data
+    )
+
+    conn.commit()
+
+    # -----------------------------------
+    # STATISTICS
+    # -----------------------------------
+    print("Computing statistics in parallel...")
+    stats = parallel_statistics(flattened_data)
+
+    print("Writing statistics (fast mode)...")
+    bulk_insert(
+        cursor,
+        "category_stats",
+        ["Category", "Min", "Max", "Mean", "Std", "BestDistance", "Name1",
+         "SecondBestDistance", "Name2"],
+        stats
+    )
+
+    conn.commit()
+    conn.close()

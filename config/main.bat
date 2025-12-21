@@ -28,7 +28,7 @@ rem Record start time
 set start_time=%time%
 
 rem Compile C++ code
-@REM g++ src/main.cpp -o word_tokenizer -I./src -lm -l sqlite3 -lssl -lcrypto -Wall -Werror
+g++ src/main.cpp -o word_tokenizer -I./src -lm -l sqlite3 -lssl -lcrypto -Wall -Werror
 if %errorlevel% neq 0 (
     echo C++ compilation failed.
     goto :eof
@@ -41,13 +41,13 @@ rem Function to execute tasks based on flags
 :execute_tasks
 
 set "showComponents=0"
-set "extractText=0"
-set "updateDatabaseInformation=0"
-set "processWordFreq=0"
-set "computeTFIDF=0"
-set "computeRelationalDistance=0"
+set "extractText=1"
+set "updateDatabaseInformation=1"
+set "processWordFreq=1"
+set "computeTFIDF=1"
+set "computeRelationalDistance=1"
 set "ideation=0"
-set "promptReference=1"
+set "promptReference=0"
 
 rem Process flags
 :process_flags

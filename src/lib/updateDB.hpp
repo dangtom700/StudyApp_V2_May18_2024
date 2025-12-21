@@ -69,33 +69,13 @@ namespace UPDATE_INFO {
         return oss.str();
     }
     
-    std::string create_unique_id(const std::filesystem::path& path, const int epoch_time, 
-                                 const int chunk_count) {
+    std::string create_unique_id(const std::filesystem::path& path) {
         if (!std::filesystem::exists(path)) {
             throw std::runtime_error("File does not exist: " + path.string());
         }
-
-        if (epoch_time == -1) {
-            throw std::runtime_error("Error getting epoch time for file: " + path.string());
-        }
-
-        if (chunk_count == -1) {
-            throw std::runtime_error("Error getting chunk count for file: " + path.string());
-        }
-
-        // Create redundancy. Cast last 2 bytes of epoch time, and last 2 bytes of path (convert to number)
-        int string_to_num = 0;
-        for (const auto& c : path.u8string()) {
-            string_to_num += c;
-        }
-
-        uint16_t redundancy = static_cast<uint16_t>(epoch_time & 0xFFFF) ^ static_cast<uint16_t>(string_to_num & 0xFFFF);
         
         std::ostringstream input_stream;
-        input_stream << "* Path Name: " << path.u8string() 
-                     << "# Epoch Time: " << epoch_time 
-                     << "$ Chunk Count: " << chunk_count 
-                     << "^ Redundancy: " << redundancy;
+        input_stream << "XOX - Path Name: " << path.u8string() << " End of File Path.";
     
         return md5_hash(input_stream.str());
     }

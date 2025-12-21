@@ -135,5 +135,5 @@ def extract_text(SOURCE_FOLDER, DEST_FOLDER, CHUNK_SIZE=512, DB_PATH=chunk_datab
 
     # Check if all files have been processed
     num_completed = cursor.execute("SELECT COUNT(DISTINCT file_name) FROM pdf_chunks").fetchone()[0]
-    print(f"[INFO] {num_completed}/{num_raw_files - num_zero} files have not been processed.")
+    print(f"[INFO] {num_completed}/{num_raw_files - num_zero} files processed.")
     conn.close()

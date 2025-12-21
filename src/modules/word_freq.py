@@ -252,8 +252,11 @@ def process_word_frequencies_in_batches(reset_state=False, folder_path=token_jso
     print("Starting batch processing of chunks...")
 
     os.makedirs(folder_path, exist_ok=True)
+    # Check if file_token table exists -> bool
+    cursor.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='file_token';")
+    table_exists = cursor.fetchone() is not None
 
-    if reset_state:
+    if reset_state and not table_exists:
         if os.path.exists(folder_path):
             rmtree(folder_path)
         os.makedirs(folder_path)
@@ -266,15 +269,16 @@ def process_word_frequencies_in_batches(reset_state=False, folder_path=token_jso
         titleID_db = set([title[0] for title in titleID_db])
         # Retrieve title IDs from JSON files
         titleID_json = set(get_title_ids_from_json(folder_path))
-        # Retrieve title IDs from the complete table of database
-        cursor.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='file_token'")
-        if cursor.fetchone():
-            titleID_complete = cursor.execute("SELECT DISTINCT file_name FROM file_token").fetchall()
+        if table_exists:
+            # Retrieve completed title IDs from the database
+            titleID_complete = cursor.execute("SELECT file_name FROM file_token").fetchall()
+            titleID_complete = set([title[0].removeprefix("title_") for title in titleID_complete])
         else:
-            titleID_complete = []
-        titleID_complete = set([title[0] for title in titleID_complete])
+            titleID_complete = set()
         # Find the difference between the two sets
-        titleID_diff = titleID_db - titleID_json - titleID_complete
+        titleID_diff = titleID_db.difference(titleID_json).difference(titleID_complete)
+        print(f"{len(titleID_db)} title IDs in database, {len(titleID_json)} title IDs in JSON files, {len(titleID_complete)} completed title IDs.")
+        print(f"Found {len(titleID_diff)} missing title IDs to process.")
         # If there are any missing title IDs, process them
         if titleID_diff:
             titleID_diff = list(titleID_diff)

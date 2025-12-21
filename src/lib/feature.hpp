@@ -280,7 +280,7 @@ namespace FEATURE {
                 .chunk_count = UPDATE_INFO::count_chunk_for_each_title(db, entry.file_name+".txt")
             };
 
-            entry.id = UPDATE_INFO::create_unique_id(entry.file_path, entry.epoch_time, entry.chunk_count);
+            entry.id = UPDATE_INFO::create_unique_id(entry.file_path);
             // Export data info if needed
             if (is_dumped) UTILITIES_HPP::Basic::data_info_dump(entry);
 
