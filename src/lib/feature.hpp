@@ -244,11 +244,10 @@ namespace FEATURE {
                 DROP TABLE IF EXISTS file_info;
                 CREATE TABLE IF NOT EXISTS file_info (
                     id TEXT PRIMARY KEY,
-                    file_name TEXT NOT NULL,
+                    file_name TEXT NOT NULL UNIQUE,
                     file_path TEXT NOT NULL,
                     epoch_time INTEGER NOT NULL,
-                    chunk_count INTEGER NOT NULL,
-                    UNIQUE (file_name, epoch_time)
+                    chunk_count INTEGER NOT NULL
                 );
             )";
             execute_sql(db, create_table_sql);
@@ -257,16 +256,49 @@ namespace FEATURE {
         // Start a transaction for batch processing
         execute_sql(db, "BEGIN TRANSACTION;");
 
-        // Prepare the insert statement (using "INSERT OR REPLACE" to handle both insert/update)
+        // Prepare the insert statement (using "INSERT OR IGNORE" to handle both insert/update)
         std::string insert_sql = R"(
-            INSERT OR REPLACE INTO file_info (id, file_name, file_path, epoch_time, chunk_count)
+            INSERT OR IGNORE INTO file_info (id, file_name, file_path, epoch_time, chunk_count)
             VALUES (?, ?, ?, ?, ?);
         )";
         sqlite3_stmt* stmt;
         sqlite3_prepare_v2(db, insert_sql.c_str(), -1, &stmt, nullptr);
 
+        std::string exists_sql = R"(
+            SELECT 1 FROM file_info
+            WHERE file_name = ?
+            LIMIT 1;
+        )";
+        sqlite3_stmt* exists_stmt;
+        sqlite3_prepare_v2(db, exists_sql.c_str(), -1, &exists_stmt, nullptr);
+
+
         bool trigger_once = true;
         for (const std::filesystem::path& file : filtered_files) {
+            // Check file existed in table, yes to skip
+            std::string file_name = file.stem().generic_string();
+
+            // Bind
+            sqlite3_bind_text(
+                exists_stmt, 1,
+                file_name.c_str(),
+                -1, SQLITE_STATIC
+            );
+
+            // Check
+            bool exists = (sqlite3_step(exists_stmt) == SQLITE_ROW);
+
+            // Reset
+            sqlite3_reset(exists_stmt);
+            sqlite3_clear_bindings(exists_stmt);
+
+            if (exists) {
+                if (show_progress) {
+                    std::cout << "Skipped (file_name exists): " << file_name << std::endl;
+                }
+                continue;
+            }
+
             if (trigger_once && is_dumped) {
                 UTILITIES_HPP::Basic::reset_file_info_dumper(ENV_HPP::data_info_path);
                 trigger_once = false;
@@ -306,6 +338,7 @@ namespace FEATURE {
 
         // Finalize the prepared statement
         sqlite3_finalize(stmt);
+        sqlite3_finalize(exists_stmt);
 
         // Commit the transaction to apply all inserts
         execute_sql(db, "COMMIT TRANSACTION;");
