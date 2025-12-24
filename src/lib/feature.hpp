@@ -224,7 +224,7 @@ namespace FEATURE {
      */
     void computeResourceData(const std::vector<std::filesystem::path>& filtered_files,
                          const bool& show_progress = true,
-                         const bool& reset_table = true,
+                         const bool& reset_table = false,
                          const bool& is_dumped = true) {
         // Connect to the database
         sqlite3* db;
@@ -243,8 +243,8 @@ namespace FEATURE {
             std::string create_table_sql = R"(
                 DROP TABLE IF EXISTS file_info;
                 CREATE TABLE IF NOT EXISTS file_info (
-                    id TEXT PRIMARY KEY,
-                    file_name TEXT NOT NULL UNIQUE,
+                    id TEXT NOT NULL,
+                    file_name TEXT PRIMARY KEY,
                     file_path TEXT NOT NULL,
                     epoch_time INTEGER NOT NULL,
                     chunk_count INTEGER NOT NULL

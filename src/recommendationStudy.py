@@ -1,6 +1,6 @@
 from subprocess import run
 from os import listdir
-from os.path import join
+from os.path import join, exists
 from json import dump, load
 from modules.path import source_data
 from random import shuffle
@@ -218,16 +218,18 @@ def bulk_insert(cursor, table, columns, rows, batch_size=50000):
         cursor.executemany(sql, batch)
 
 if __name__ == "__main__":
-    # Load existing recommendations as dict
-    loaded_list = load(open("data/recommendations.json", "r", encoding="utf-8"))
-    merged = {item["ID"]: item for item in loaded_list}
-
     edit_config_file()
     warm_up_app()
     disable_compiler()
+
     existing_category = set()
-    for item in merged.values():
-        existing_category.update(item.get("Distance", {}).keys())
+    merged = dict()
+    if exists("data/recommendations.json"):
+        # Load existing recommendations as dict
+        loaded_list = load(open("data/recommendations.json", "r", encoding="utf-8"))
+        merged = {item["ID"]: item for item in loaded_list}
+        for item in merged.values():
+            existing_category.update(item.get("Distance", {}).keys())
 
     # 1. Process each topic individually
     topics = [t for t in listdir("conversation") if t.endswith(".txt")]

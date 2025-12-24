@@ -11,7 +11,7 @@
 #include "lib/env.hpp"
 #include "lib/utilities.hpp"
 
-const bool reset_table = true;
+const bool reset_table = false;
 const bool show_progress = false;
 const bool is_dumped = true;
 
