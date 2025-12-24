@@ -4,6 +4,7 @@ import os
 import subprocess
 import time
 import signal
+from datetime import datetime
 
 MODELS: List[str] = [
     "smollm:1.7b", "falcon3:7b", "orca-mini:7b", "mistral:7b", "llama3.2:latest", 
@@ -127,10 +128,14 @@ def main() -> None:
 
     try:
         ID_session = input("Enter session ID (or press Enter to skip): ").strip()
+        os.makedirs("conversation", exist_ok=True)
         if ID_session:
-            os.makedirs("conversation", exist_ok=True)
             if not os.path.exists("conversation/" + ID_session + ".txt"):
                 open("conversation/" + ID_session + ".txt", "w").close()
+        else:
+            ID_session = datetime.now().strftime("%Y_%m_%d_%H_%M_%S")
+            open("conversation/" + ID_session + ".txt", "w").close()
+            print(f"Session ID set to current timestamp: {ID_session}")
 
         for prompt in prompts[:limiter]: # Limit number of prompts for testing
             print(f"\nUser Prompt: {prompt}")
