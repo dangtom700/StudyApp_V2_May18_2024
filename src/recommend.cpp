@@ -321,6 +321,7 @@ void writer_thread_func() {
         }
 
         insert_item_matrix(batch, db);
+        std::cout << "Flush. ";
     }
 
     sqlite3_close(db);
@@ -402,7 +403,7 @@ void producer_worker_dynamic(
 }
 
 void mappingItemMatrix() {
-    bool reset_table = false;
+    bool reset_table = true;
 
     sqlite3* db;
     if (sqlite3_open(ENV_HPP::database_path.string().c_str(), &db) != SQLITE_OK) {
