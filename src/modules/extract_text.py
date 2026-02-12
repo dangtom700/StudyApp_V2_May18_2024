@@ -27,7 +27,7 @@ def text_to_chunks(text, chunk_size):
 
 def clean_text_for_extracted_data(text):
     """ Only keep A-Z, a-z, 0-9, and spaces. """
-    return re.sub(r'[^A-Za-z0-9\s]', '', text)
+    return re.sub(r'[^A-Za-z0-9\s]', ' ', text) # Replace unwanted characters with space
 
 def save_chunks_to_file(file_path, chunks):
     """Save each chunk to a new line in a file."""

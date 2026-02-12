@@ -46,7 +46,7 @@ def app():
         extract_text.extract_text(CHUNK_SIZE=chunk_size, SOURCE_FOLDER=path.source_data, DB_PATH=path.chunk_database_path, DEST_FOLDER=path.dest_data)
     
     if args.processWordFreq:
-        word_freq.process_word_frequencies_in_batches(reset_state=False)
+        word_freq.process_word_frequencies_in_batches(reset_state=True)
 
     if args.tokenizePrompt: # function is functioning properly
         word_freq.promptFindingReference()
