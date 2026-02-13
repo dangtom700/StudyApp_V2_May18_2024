@@ -48,6 +48,7 @@ set "computeTFIDF=1"
 set "computeRelationalDistance=1"
 set "ideation=0"
 set "promptReference=0"
+set "mappingItemMatrix=1"
 
 rem Process flags
 :process_flags
@@ -60,6 +61,7 @@ for %%A in (%*) do (
     if "%%A"=="--computeRelationalDistance" set computeRelationalDistance=1
     if "%%A"=="--ideation" set ideation=1
     if "%%A"=="--promptReference" set promptReference=1
+    if "%%A"=="--mappingItemMatrix" set mappingItemMatrix=1
 )
 
 rem Show Components
@@ -131,6 +133,14 @@ if %promptReference%==1 (
     word_tokenizer --processPrompt
     if %errorlevel% neq 0 (
         echo Error executing Find References in Database.
+    )
+)
+
+rem Mapping Item Matrix
+if %mappingItemMatrix%==1 (
+    word_tokenizer --mappingItemMatrix
+    if %errorlevel% neq 0 (
+        echo Error executing Mapping Item Matrix.
     )
 )
 

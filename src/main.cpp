@@ -11,8 +11,8 @@
 #include "lib/env.hpp"
 #include "lib/utilities.hpp"
 
-const bool reset_table = true;
-const bool show_progress = true;
+const bool reset_table = false;
+const bool show_progress = false;
 const bool is_dumped = true;
 
 void displayHelp()
@@ -74,6 +74,13 @@ void computeTFIDF()
     std::cout << "Finished: TF-IDF computed." << std::endl;
 }
 
+void mappingItemMatrix()
+{
+    std::cout << "Mapping item matrix..." << std::endl;
+    FEATURE::mappingItemMatrix(show_progress, 100000, reset_table);
+    std::cout << "Finished: Item matrix mapped." << std::endl;
+}
+
 int main(int argc, char *argv[])
 {
     // Check if any command-line arguments were provided
@@ -89,7 +96,8 @@ int main(int argc, char *argv[])
         {"--computerelationaldistance", computeRelationalDistance},
         {"--updatedatabaseinformation", updateDatabaseInformation},
         {"--processprompt", processPrompt},
-        {"--computetfidf", computeTFIDF}};
+        {"--computetfidf", computeTFIDF},
+        {"--mappingitemmatrix", mappingItemMatrix}};
 
     // Iterate through the provided command-line arguments and execute corresponding actions
     for (int i = 1; i < argc; ++i)

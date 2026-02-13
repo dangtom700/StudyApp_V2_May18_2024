@@ -8,6 +8,7 @@
 #include <memory> // For smart pointers
 #include <sqlite3.h>
 #include <unordered_map>
+#include <unordered_set>
 #include <mutex>
 #include <thread>
 
@@ -15,10 +16,11 @@
 #include "env.hpp"
 #include "transform.hpp"
 #include "updateDB.hpp"
-#include "tagging.hpp"
+#include "recommend.hpp"
 
-namespace FEATURE {
-    
+namespace FEATURE
+{
+
     /**
      * Execute a SQL query on the given database.
      *
@@ -27,10 +29,12 @@ namespace FEATURE {
      *
      * @throws std::runtime_error if the query fails with an error message.
      */
-    void execute_sql(sqlite3* db, const std::string& sql) {
-        char* error_message = nullptr;
+    void execute_sql(sqlite3 *db, const std::string &sql)
+    {
+        char *error_message = nullptr;
         int exit = sqlite3_exec(db, sql.c_str(), nullptr, nullptr, &error_message);
-        if (exit != SQLITE_OK) {
+        if (exit != SQLITE_OK)
+        {
             std::cerr << "Error executing SQL: " << error_message << std::endl
                       << "SQL: " << sql << std::endl;
             sqlite3_free(error_message);
@@ -44,15 +48,17 @@ namespace FEATURE {
      * @param db The SQLite database connection.
      * @param query The SQL query to be prepared.
      * @return A prepared sqlite3_stmt object if successful, otherwise nullptr on failure.
-     * 
-     * This function prepares an SQL statement for execution by compiling the query 
-     * into a byte-code program that can be executed. If the preparation fails, it 
+     *
+     * This function prepares an SQL statement for execution by compiling the query
+     * into a byte-code program that can be executed. If the preparation fails, it
      * outputs an error message to the standard error and returns nullptr.
      */
-    sqlite3_stmt* prepareStatement(sqlite3* db, const std::string& query, const std::string& content) {
-        sqlite3_stmt* stmt = nullptr;
+    sqlite3_stmt *prepareStatement(sqlite3 *db, const std::string &query, const std::string &content)
+    {
+        sqlite3_stmt *stmt = nullptr;
         int rc = sqlite3_prepare_v2(db, query.c_str(), -1, &stmt, nullptr);
-        if (rc != SQLITE_OK) {
+        if (rc != SQLITE_OK)
+        {
             std::cerr << "Error preparing statement: " << sqlite3_errmsg(db) << std::endl
                       << "SQL: " << query << std::endl
                       << "Content: " << content << std::endl;
@@ -60,7 +66,6 @@ namespace FEATURE {
         }
         return stmt;
     }
-    
 
     /**
      * Compute the relational distance of each token in the given map of strings to
@@ -73,15 +78,18 @@ namespace FEATURE {
      *
      * @throws std::runtime_error if the database connection or query fails.
      */
-    void computeRelationalDistance(const std::vector<std::filesystem::path>& filtered_files,
-                                const bool& show_progress = true,
-                                const bool& reset_table = true,
-                                const bool& is_dumped = true) {
-        try {
+    void computeRelationalDistance(const std::vector<std::filesystem::path> &filtered_files,
+                                   const bool &show_progress = true,
+                                   const bool &reset_table = true,
+                                   const bool &is_dumped = true)
+    {
+        try
+        {
             // Set up SQLite database connection
-            sqlite3* db;
+            sqlite3 *db;
             int exit = sqlite3_open(ENV_HPP::database_path.string().c_str(), &db);
-            if (exit) {
+            if (exit)
+            {
                 std::cerr << "Error opening SQLite database: " << sqlite3_errmsg(db) << std::endl;
                 return;
             }
@@ -90,7 +98,8 @@ namespace FEATURE {
             execute_sql(db, "PRAGMA synchronous = OFF;");
 
             // Create tables if reset_table is true
-            if (reset_table) {
+            if (reset_table)
+            {
                 std::string create_table_sql = R"(
                     DROP TABLE IF EXISTS file_token;
                     CREATE TABLE IF NOT EXISTS file_token (
@@ -120,22 +129,29 @@ namespace FEATURE {
             execute_sql(db, "BEGIN TRANSACTION;");
 
             bool trigger_once = true;
-            for (const std::filesystem::path& file : filtered_files) {
-                if (trigger_once && is_dumped) {
+            for (const std::filesystem::path &file : filtered_files)
+            {
+                if (trigger_once && is_dumped)
+                {
                     trigger_once = false;
                     UTILITIES_HPP::Basic::reset_data_dumper(ENV_HPP::data_dumper_path);
                 }
 
                 std::map<std::string, int> json_map = TRANSFORMER::json_to_map(file);
-                
-                for (auto it = json_map.begin(); it != json_map.end();) {
-                    const std::string& key = it->first;
+
+                for (auto it = json_map.begin(); it != json_map.end();)
+                {
+                    const std::string &key = it->first;
                     const int value = it->second;
 
-                    if (value < ENV_HPP::min_value || key.length() > ENV_HPP::max_length || 
-                        !std::all_of(key.begin(), key.end(), [](char c) { return c >= 'a' && c <= 'z'; })) {
+                    if (value < ENV_HPP::min_value || key.length() > ENV_HPP::max_length ||
+                        !std::all_of(key.begin(), key.end(), [](char c)
+                                     { return c >= 'a' && c <= 'z'; }))
+                    {
                         it = json_map.erase(it); // Safely erase invalid entries
-                    } else {
+                    }
+                    else
+                    {
                         ++it; // Move to the next element
                     }
                 }
@@ -152,14 +168,15 @@ namespace FEATURE {
                 row.filtered_tokens = TRANSFORMER::token_filter(json_map, ENV_HPP::max_length, ENV_HPP::min_value, row.relational_distance);
 
                 // Dump the contents of a DataEntry to a file
-                if (is_dumped) UTILITIES_HPP::Basic::data_entry_dump(row);
+                if (is_dumped)
+                    UTILITIES_HPP::Basic::data_entry_dump(row);
 
                 // Insert the row into file_token table using a prepared statement
                 std::string insert_sql = R"(
                     INSERT OR REPLACE INTO file_token (file_name, total_tokens, unique_tokens, relational_distance)
                     VALUES (?, ?, ?, ?);
                 )";
-                sqlite3_stmt* stmt;
+                sqlite3_stmt *stmt;
                 sqlite3_prepare_v2(db, insert_sql.c_str(), -1, &stmt, nullptr);
                 sqlite3_bind_text(stmt, 1, row.path.c_str(), -1, SQLITE_STATIC);
                 sqlite3_bind_int(stmt, 2, row.sum);
@@ -174,7 +191,8 @@ namespace FEATURE {
                     VALUES (?, ?, ?, ?);
                 )";
                 sqlite3_prepare_v2(db, insert_sql.c_str(), -1, &stmt, nullptr);
-                for (const auto& token : row.filtered_tokens) {
+                for (const auto &token : row.filtered_tokens)
+                {
                     sqlite3_bind_text(stmt, 1, row.path.c_str(), -1, SQLITE_STATIC);
                     sqlite3_bind_text(stmt, 2, std::get<0>(token).c_str(), -1, SQLITE_STATIC);
                     sqlite3_bind_int(stmt, 3, std::get<1>(token));
@@ -184,7 +202,8 @@ namespace FEATURE {
                 }
                 sqlite3_finalize(stmt);
 
-                if (show_progress) {
+                if (show_progress)
+                {
                     std::cout << "Processed: " << file << std::endl;
                 }
             }
@@ -198,20 +217,21 @@ namespace FEATURE {
             // Close the SQLite database connection
             sqlite3_close(db);
             std::cout << "Computing relational distance data finished" << std::endl;
-        } catch (const std::exception& e) {
+        }
+        catch (const std::exception &e)
+        {
             std::cerr << "Error: " << e.what() << std::endl;
         }
     }
 
-
     /**
      * @brief Compute and store resource data from the given filtered files
-     * 
+     *
      * @param filtered_files A vector of file paths to compute resource data from
      * @param show_progress Whether to show progress in the console
      * @param reset_table Whether to reset the resource data table, default is true
      * @param is_dumped Whether to dump resource data to a file, default is true
-     * 
+     *
      * This function will compute resource data from the given filtered files and store it in a database.
      * The resource data includes the last write time, epoch time, chunk count, starting id, and ending id.
      * The function will also dump the resource data to a file if is_dumped is true.
@@ -219,14 +239,16 @@ namespace FEATURE {
      * If show_progress is true, the progress will be shown in the console.
      * If an error occurs, an error message will be printed to the console.
      */
-    void computeResourceData(const std::vector<std::filesystem::path>& filtered_files,
-                         const bool& show_progress = true,
-                         const bool& reset_table = false,
-                         const bool& is_dumped = true) {
+    void computeResourceData(const std::vector<std::filesystem::path> &filtered_files,
+                             const bool &show_progress = true,
+                             const bool &reset_table = false,
+                             const bool &is_dumped = true)
+    {
         // Connect to the database
-        sqlite3* db;
+        sqlite3 *db;
         int exit = sqlite3_open(ENV_HPP::database_path.string().c_str(), &db);
-        if (exit != SQLITE_OK) {
+        if (exit != SQLITE_OK)
+        {
             std::cerr << "Error opening database: " << sqlite3_errmsg(db) << std::endl;
             sqlite3_close(db);
             return;
@@ -236,7 +258,8 @@ namespace FEATURE {
         execute_sql(db, "PRAGMA synchronous = OFF;");
 
         // Create or reset the table if required
-        if (reset_table) {
+        if (reset_table)
+        {
             std::string create_table_sql = R"(
                 DROP TABLE IF EXISTS file_info;
                 CREATE TABLE IF NOT EXISTS file_info (
@@ -258,7 +281,7 @@ namespace FEATURE {
             INSERT OR IGNORE INTO file_info (id, file_name, file_path, epoch_time, chunk_count)
             VALUES (?, ?, ?, ?, ?);
         )";
-        sqlite3_stmt* stmt;
+        sqlite3_stmt *stmt;
         sqlite3_prepare_v2(db, insert_sql.c_str(), -1, &stmt, nullptr);
 
         std::string exists_sql = R"(
@@ -266,12 +289,12 @@ namespace FEATURE {
             WHERE file_name = ?
             LIMIT 1;
         )";
-        sqlite3_stmt* exists_stmt;
+        sqlite3_stmt *exists_stmt;
         sqlite3_prepare_v2(db, exists_sql.c_str(), -1, &exists_stmt, nullptr);
 
-
         bool trigger_once = true;
-        for (const std::filesystem::path& file : filtered_files) {
+        for (const std::filesystem::path &file : filtered_files)
+        {
             // Check file existed in table, yes to skip
             std::string file_name = file.stem().generic_string();
 
@@ -279,8 +302,7 @@ namespace FEATURE {
             sqlite3_bind_text(
                 exists_stmt, 1,
                 file_name.c_str(),
-                -1, SQLITE_STATIC
-            );
+                -1, SQLITE_STATIC);
 
             // Check
             bool exists = (sqlite3_step(exists_stmt) == SQLITE_ROW);
@@ -289,14 +311,17 @@ namespace FEATURE {
             sqlite3_reset(exists_stmt);
             sqlite3_clear_bindings(exists_stmt);
 
-            if (exists) {
-                if (show_progress) {
+            if (exists)
+            {
+                if (show_progress)
+                {
                     std::cout << "Skipped (file_name exists): " << file_name << std::endl;
                 }
                 continue;
             }
 
-            if (trigger_once && is_dumped) {
+            if (trigger_once && is_dumped)
+            {
                 UTILITIES_HPP::Basic::reset_file_info_dumper(ENV_HPP::data_info_path);
                 trigger_once = false;
             }
@@ -306,12 +331,12 @@ namespace FEATURE {
                 .file_name = file.stem().generic_string(),
                 .file_path = file.generic_string(),
                 .epoch_time = UPDATE_INFO::get_epoch_time(file),
-                .chunk_count = UPDATE_INFO::count_chunk_for_each_title(db, entry.file_name+".txt")
-            };
+                .chunk_count = UPDATE_INFO::count_chunk_for_each_title(db, entry.file_name + ".txt")};
 
             entry.id = UPDATE_INFO::create_unique_id(entry.file_path);
             // Export data info if needed
-            if (is_dumped) UTILITIES_HPP::Basic::data_info_dump(entry);
+            if (is_dumped)
+                UTILITIES_HPP::Basic::data_info_dump(entry);
 
             // Bind the values to the statement
             sqlite3_bind_text(stmt, 1, entry.id.c_str(), -1, SQLITE_STATIC);
@@ -321,14 +346,16 @@ namespace FEATURE {
             sqlite3_bind_int(stmt, 5, entry.chunk_count);
 
             // Execute the statement
-            if (sqlite3_step(stmt) != SQLITE_DONE) {
+            if (sqlite3_step(stmt) != SQLITE_DONE)
+            {
                 std::cerr << "Error inserting into file_info: " << sqlite3_errmsg(db) << std::endl;
             }
 
             // Reset the statement to use it again
             sqlite3_reset(stmt);
 
-            if (show_progress) {
+            if (show_progress)
+            {
                 std::cout << "Processed: " << file << std::endl;
             }
         }
@@ -361,110 +388,126 @@ namespace FEATURE {
      * -----------------------------------------------------------------
      *
      * @param top_n The number of top results to output
-    */
-    void processPrompt(const int& top_n) {
-        try {
+     */
+    void processPrompt(const int &top_n)
+    {
+        try
+        {
             // Step 1: Token preparation
             std::map<std::string, int> tokens = TRANSFORMER::json_to_map(ENV_HPP::buffer_json_path);
             int distance = TRANSFORMER::Pythagoras(tokens);
             std::vector<std::tuple<std::string, int, double>> filtered_tokens = TRANSFORMER::token_filter(tokens, 16, 1, distance);
             tokens.clear();
-    
+
             // Step 2: Open database
             std::ofstream output_file(ENV_HPP::outputPrompt);
             output_file << ""; // Clear the file
-            
-            sqlite3* db;
-            if (sqlite3_open(ENV_HPP::database_path.string().c_str(), &db) != SQLITE_OK) {
+
+            sqlite3 *db;
+            if (sqlite3_open(ENV_HPP::database_path.string().c_str(), &db) != SQLITE_OK)
+            {
                 std::cerr << "Error opening database: " << sqlite3_errmsg(db) << std::endl;
                 return;
             }
-    
+
             // SQLite PRAGMAs
             sqlite3_exec(db, "PRAGMA journal_mode=WAL;", nullptr, nullptr, nullptr);
             sqlite3_exec(db, "PRAGMA synchronous=OFF;", nullptr, nullptr, nullptr);
             sqlite3_exec(db, "PRAGMA temp_store=MEMORY;", nullptr, nullptr, nullptr);
             sqlite3_exec(db, "BEGIN;", nullptr, nullptr, nullptr);
-    
+
             // Step 3: Prepare file_info reader
             std::string file_info_sql = "SELECT id, file_name FROM file_info;";
-            sqlite3_stmt* file_stmt = prepareStatement(db, file_info_sql, "Error preparing statement (file_info)");
-            if (!file_stmt) {
+            sqlite3_stmt *file_stmt = prepareStatement(db, file_info_sql, "Error preparing statement (file_info)");
+            if (!file_stmt)
+            {
                 sqlite3_close(db);
                 return;
             }
-    
+
             // Step 4: Load relation_distance map
             std::map<std::string, std::map<std::string, double>> relation_distance_map;
             std::string token_in_clause;
-            for (const auto& [token, _, __] : filtered_tokens)
+            for (const auto &[token, _, __] : filtered_tokens)
                 token_in_clause += "'" + token + "',";
-            if (!token_in_clause.empty()) token_in_clause.pop_back();
-    
+            if (!token_in_clause.empty())
+                token_in_clause.pop_back();
+
             std::string relation_sql = "SELECT file_name, Token, relational_distance FROM relation_distance WHERE Token IN (" + token_in_clause + ");";
-            sqlite3_stmt* rel_stmt = prepareStatement(db, relation_sql, "Error preparing statement (relation_distance)");
-            if (!rel_stmt) {
+            sqlite3_stmt *rel_stmt = prepareStatement(db, relation_sql, "Error preparing statement (relation_distance)");
+            if (!rel_stmt)
+            {
                 sqlite3_finalize(file_stmt);
                 sqlite3_close(db);
                 return;
             }
-    
-            while (sqlite3_step(rel_stmt) == SQLITE_ROW) {
-                std::string rel_file = reinterpret_cast<const char*>(sqlite3_column_text(rel_stmt, 0));
-                std::string token = reinterpret_cast<const char*>(sqlite3_column_text(rel_stmt, 1));
+
+            while (sqlite3_step(rel_stmt) == SQLITE_ROW)
+            {
+                std::string rel_file = reinterpret_cast<const char *>(sqlite3_column_text(rel_stmt, 0));
+                std::string token = reinterpret_cast<const char *>(sqlite3_column_text(rel_stmt, 1));
                 double rel_dist = sqlite3_column_double(rel_stmt, 2);
                 relation_distance_map[rel_file][token] = rel_dist;
             }
 
             sqlite3_finalize(rel_stmt);
-    
+
             // Step 5: Load TF-IDF values
             std::string tfidf_sql = "SELECT tf_idf FROM tf_idf WHERE word = ?;";
-            sqlite3_stmt* tfidf_stmt = prepareStatement(db, tfidf_sql, "Error preparing statement (tf_idf)");
-            if (!tfidf_stmt) {
+            sqlite3_stmt *tfidf_stmt = prepareStatement(db, tfidf_sql, "Error preparing statement (tf_idf)");
+            if (!tfidf_stmt)
+            {
                 sqlite3_finalize(file_stmt);
                 sqlite3_close(db);
                 return;
             }
-    
-            for (auto& [token, freq, base_distance] : filtered_tokens) {
+
+            for (auto &[token, freq, base_distance] : filtered_tokens)
+            {
                 sqlite3_reset(tfidf_stmt);
                 sqlite3_bind_text(tfidf_stmt, 1, token.c_str(), -1, SQLITE_TRANSIENT);
-                if (sqlite3_step(tfidf_stmt) == SQLITE_ROW) {
+                if (sqlite3_step(tfidf_stmt) == SQLITE_ROW)
+                {
                     double tfidf = sqlite3_column_double(tfidf_stmt, 0);
                     // Adjust to 0.0 if TF-IDF value is not found
-                    if (std::isnan(tfidf)) tfidf = 0.0;
+                    if (std::isnan(tfidf))
+                        tfidf = 0.0;
                     // Update base_distance with addition of TF-IDF value
                     base_distance += tfidf / freq;
                 }
             }
             sqlite3_finalize(tfidf_stmt);
-    
+
             // Step 6: Compute scores
             std::vector<std::tuple<std::string, std::string, double>> RESULT;
-    
-            while (sqlite3_step(file_stmt) == SQLITE_ROW) {
-                std::string id(reinterpret_cast<const char*>(sqlite3_column_text(file_stmt, 0)));
-                std::string file_name(reinterpret_cast<const char*>(sqlite3_column_text(file_stmt, 1)));
-    
+
+            while (sqlite3_step(file_stmt) == SQLITE_ROW)
+            {
+                std::string id(reinterpret_cast<const char *>(sqlite3_column_text(file_stmt, 0)));
+                std::string file_name(reinterpret_cast<const char *>(sqlite3_column_text(file_stmt, 1)));
+
                 std::string rel_file_key = "title_" + id;
-                if (relation_distance_map.find(rel_file_key) == relation_distance_map.end()) continue;
-    
+                if (relation_distance_map.find(rel_file_key) == relation_distance_map.end())
+                    continue;
+
                 double score = 0.0;
-                const auto& token_map = relation_distance_map[rel_file_key];
-    
-                for (const auto& [token, _, base_distance] : filtered_tokens) {
+                const auto &token_map = relation_distance_map[rel_file_key];
+
+                for (const auto &[token, _, base_distance] : filtered_tokens)
+                {
                     auto rel_it = token_map.find(token);
-                    if (rel_it == token_map.end()) continue;
-    
+                    if (rel_it == token_map.end())
+                        continue;
+
                     double rel_dist = rel_it->second;
                     score += rel_dist * base_distance;
                 }
-    
-                if (score > 0.0) {
+
+                if (score > 0.0)
+                {
                     RESULT.emplace_back(id, file_name, score);
                 }
-    
+
                 relation_distance_map.erase(rel_file_key);
             }
 
@@ -475,24 +518,25 @@ namespace FEATURE {
             // Free up memory
             relation_distance_map.clear();
             filtered_tokens.clear();
-    
+
             // Step 7: Sort and output
-            std::sort(RESULT.begin(), RESULT.end(), [](const auto& a, const auto& b) {
-                return std::get<2>(a) > std::get<2>(b);
-            });
-    
+            std::sort(RESULT.begin(), RESULT.end(), [](const auto &a, const auto &b)
+                      { return std::get<2>(a) > std::get<2>(b); });
+
             uint16_t top_n_value = std::min(static_cast<uint16_t>(RESULT.size()), static_cast<uint16_t>(top_n));
             output_file << "Top " << top_n_value << " Results:\n"
                         << "-----------------------------------------------------------------\n";
-            for (uint16_t i = 0; i < top_n_value; i++) {
+            for (uint16_t i = 0; i < top_n_value; i++)
+            {
                 output_file << "ID: " << std::get<0>(RESULT[i]) << "\n"
                             << "Distance: " << std::get<2>(RESULT[i]) << "\n"
                             << "Rank: " << i + 1 << "\n"
                             << "Name: [[" << std::get<1>(RESULT[i]) << "]]\n"
                             << "-----------------------------------------------------------------\n";
             }
-    
-        } catch (const std::exception& e) {
+        }
+        catch (const std::exception &e)
+        {
             std::cerr << "Error: " << e.what() << std::endl;
         }
     }
@@ -508,35 +552,43 @@ namespace FEATURE {
      * @return A new list containing only the files that are not present in the
      * database.
      */
-    std::vector<std::filesystem::path> skim_files(std::vector<std::filesystem::path>& files, const std::string& extension) {
+    std::vector<std::filesystem::path> skim_files(std::vector<std::filesystem::path> &files, const std::string &extension)
+    {
         // Step 1: Open the database connection
-        sqlite3* db;
-        if (sqlite3_open(ENV_HPP::database_path.string().c_str(), &db) != SQLITE_OK) {
+        sqlite3 *db;
+        if (sqlite3_open(ENV_HPP::database_path.string().c_str(), &db) != SQLITE_OK)
+        {
             std::cerr << "Error opening database: " << sqlite3_errmsg(db) << std::endl;
             return files; // Return the original list if the database cannot be opened
         }
 
         // Step 2: Prepare the SQL query to fetch all file names in the database
         std::string fetch_sql;
-        if (extension == ".pdf") {
+        if (extension == ".pdf")
+        {
             fetch_sql = R"(
                 SELECT DISTINCT file_name 
                 FROM file_info
             )";
-        } else if (extension == ".json") {
+        }
+        else if (extension == ".json")
+        {
             fetch_sql = R"(
                 SELECT DISTINCT file_name 
                 FROM relation_distance
             )";
-        } else {
+        }
+        else
+        {
             std::cerr << "Unsupported extension: " << extension << std::endl;
             sqlite3_close(db);
             return files; // Return the original list if the extension is unsupported
         }
 
         // Prepare the SQL statement
-        sqlite3_stmt* stmt;
-        if (sqlite3_prepare_v2(db, fetch_sql.c_str(), -1, &stmt, nullptr) != SQLITE_OK) {
+        sqlite3_stmt *stmt;
+        if (sqlite3_prepare_v2(db, fetch_sql.c_str(), -1, &stmt, nullptr) != SQLITE_OK)
+        {
             std::cerr << "Error preparing SQL statement: " << sqlite3_errmsg(db) << std::endl;
             sqlite3_close(db);
             return files; // Return the original list if the statement cannot be prepared
@@ -544,10 +596,12 @@ namespace FEATURE {
 
         // Step 3: Retrieve all entries from the database
         std::unordered_set<std::string> db_files;
-        while (sqlite3_step(stmt) == SQLITE_ROW) {
-            const unsigned char* db_file = sqlite3_column_text(stmt, 0);
-            if (db_file) {
-                db_files.insert(reinterpret_cast<const char*>(db_file));
+        while (sqlite3_step(stmt) == SQLITE_ROW)
+        {
+            const unsigned char *db_file = sqlite3_column_text(stmt, 0);
+            if (db_file)
+            {
+                db_files.insert(reinterpret_cast<const char *>(db_file));
             }
         }
 
@@ -556,11 +610,13 @@ namespace FEATURE {
         sqlite3_close(db);
 
         // Step 4: Filter the files based on the database entries
-        auto filter_condition = [&db_files, &extension](const std::filesystem::path& file) {
-            if (file.extension() == extension) {
+        auto filter_condition = [&db_files, &extension](const std::filesystem::path &file)
+        {
+            if (file.extension() == extension)
+            {
                 // Remove the extension and compare with database values
                 std::string file_name_no_ext = file.filename().stem().string(); // Strips the extension
-                return !(db_files.find(file_name_no_ext) == db_files.end()); // Return true if not in database
+                return !(db_files.find(file_name_no_ext) == db_files.end());    // Return true if not in database
             }
             return true; // If unsupported extension, mark for removal
         };
@@ -585,14 +641,16 @@ namespace FEATURE {
      * @param MIN_THRES_FREQ The minimum frequency of a word to be included in the computation.
      * @param BUFFER_SIZE The number of records to process at once. This is used to speed up the computation.
      */
-    void computeTFIDF(const uint16_t& MIN_THRES_FREQ = 4,
-                      const uint16_t& BUFFER_SIZE = 1000) {
+    void computeTFIDF(const uint16_t &MIN_THRES_FREQ = 4,
+                      const uint16_t &BUFFER_SIZE = 1000)
+    {
 
-        const std::string& chunk_database_path = ENV_HPP::database_path.string();
-        const std::string& GLOBAL_JSON_PATH = ENV_HPP::global_terms_path.string();
+        const std::string &chunk_database_path = ENV_HPP::database_path.string();
+        const std::string &GLOBAL_JSON_PATH = ENV_HPP::global_terms_path.string();
 
-        sqlite3* db;
-        if (sqlite3_open(chunk_database_path.c_str(), &db) != SQLITE_OK) {
+        sqlite3 *db;
+        if (sqlite3_open(chunk_database_path.c_str(), &db) != SQLITE_OK)
+        {
             std::cerr << "Can't open database\n";
             return;
         }
@@ -603,12 +661,11 @@ namespace FEATURE {
 
         // Create tf_idf table
         execute_sql(db,
-            "CREATE TABLE IF NOT EXISTS tf_idf ("
-            "word TEXT PRIMARY KEY, "
-            "freq INTEGER, "
-            "doc_count INTEGER, "
-            "tf_idf REAL)"
-        );
+                    "CREATE TABLE IF NOT EXISTS tf_idf ("
+                    "word TEXT PRIMARY KEY, "
+                    "freq INTEGER, "
+                    "doc_count INTEGER, "
+                    "tf_idf REAL)");
 
         // Load JSON
         std::ifstream inputFile(GLOBAL_JSON_PATH);
@@ -616,25 +673,30 @@ namespace FEATURE {
         inputFile >> global_word_freq;
 
         std::map<std::string, int> filtered_words;
-        for (auto& [word, freq] : global_word_freq.items()) {
-            if (freq >= MIN_THRES_FREQ && word.length() > 1) {
+        for (auto &[word, freq] : global_word_freq.items())
+        {
+            if (freq >= MIN_THRES_FREQ && word.length() > 1)
+            {
                 filtered_words[word] = freq;
             }
         }
 
         int sum_freq = 0;
-        for (const auto& [word, freq] : filtered_words) {
+        for (const auto &[word, freq] : filtered_words)
+        {
             sum_freq += freq;
         }
 
         // Get doc count per token
         std::map<std::string, int> word_doc_counts;
-        sqlite3_stmt* stmt;
+        sqlite3_stmt *stmt;
 
         std::string query = "SELECT token, COUNT(DISTINCT file_name) FROM relation_distance GROUP BY token;";
-        if (sqlite3_prepare_v2(db, query.c_str(), -1, &stmt, nullptr) == SQLITE_OK) {
-            while (sqlite3_step(stmt) == SQLITE_ROW) {
-                std::string token(reinterpret_cast<const char*>(sqlite3_column_text(stmt, 0)));
+        if (sqlite3_prepare_v2(db, query.c_str(), -1, &stmt, nullptr) == SQLITE_OK)
+        {
+            while (sqlite3_step(stmt) == SQLITE_ROW)
+            {
+                std::string token(reinterpret_cast<const char *>(sqlite3_column_text(stmt, 0)));
                 int count = sqlite3_column_int(stmt, 1);
                 word_doc_counts[token] = count;
             }
@@ -645,7 +707,8 @@ namespace FEATURE {
         int total_docs = 0;
         query = "SELECT COUNT(DISTINCT file_name) FROM relation_distance;";
         if (sqlite3_prepare_v2(db, query.c_str(), -1, &stmt, nullptr) == SQLITE_OK &&
-            sqlite3_step(stmt) == SQLITE_ROW) {
+            sqlite3_step(stmt) == SQLITE_ROW)
+        {
             total_docs = sqlite3_column_int(stmt, 0);
         }
         sqlite3_finalize(stmt);
@@ -654,7 +717,8 @@ namespace FEATURE {
         execute_sql(db, "BEGIN TRANSACTION;");
         std::vector<TFIDFRecord> buffer;
 
-        for (const auto& [word, freq] : filtered_words) {
+        for (const auto &[word, freq] : filtered_words)
+        {
             int doc_count = word_doc_counts[word];
             double tf = static_cast<double>(freq) / sum_freq;
             double idf = log10((total_docs + 1.0) / (doc_count + 1.0)) + 1.0;
@@ -662,15 +726,17 @@ namespace FEATURE {
 
             buffer.push_back({word, freq, doc_count, tf_idf});
 
-            if (buffer.size() >= BUFFER_SIZE) {
-                sqlite3_stmt* insertStmt;
-                std::string sql = 
+            if (buffer.size() >= BUFFER_SIZE)
+            {
+                sqlite3_stmt *insertStmt;
+                std::string sql =
                     "INSERT INTO tf_idf (word, freq, doc_count, tf_idf) VALUES (?, ?, ?, ?) "
                     "ON CONFLICT(word) DO UPDATE SET "
                     "freq=excluded.freq, doc_count=excluded.doc_count, tf_idf=excluded.tf_idf;";
                 sqlite3_prepare_v2(db, sql.c_str(), -1, &insertStmt, nullptr);
 
-                for (const auto& record : buffer) {
+                for (const auto &record : buffer)
+                {
                     sqlite3_bind_text(insertStmt, 1, record.word.c_str(), -1, SQLITE_TRANSIENT);
                     sqlite3_bind_int(insertStmt, 2, record.freq);
                     sqlite3_bind_int(insertStmt, 3, record.doc_count);
@@ -686,15 +752,17 @@ namespace FEATURE {
         }
 
         // Insert remaining records
-        if (!buffer.empty()) {
-            sqlite3_stmt* insertStmt;
-            std::string sql = 
+        if (!buffer.empty())
+        {
+            sqlite3_stmt *insertStmt;
+            std::string sql =
                 "INSERT INTO tf_idf (word, freq, doc_count, tf_idf) VALUES (?, ?, ?, ?) "
                 "ON CONFLICT(word) DO UPDATE SET "
                 "freq=excluded.freq, doc_count=excluded.doc_count, tf_idf=excluded.tf_idf;";
             sqlite3_prepare_v2(db, sql.c_str(), -1, &insertStmt, nullptr);
 
-            for (const auto& record : buffer) {
+            for (const auto &record : buffer)
+            {
                 sqlite3_bind_text(insertStmt, 1, record.word.c_str(), -1, SQLITE_TRANSIENT);
                 sqlite3_bind_int(insertStmt, 2, record.freq);
                 sqlite3_bind_int(insertStmt, 3, record.doc_count);
@@ -714,6 +782,82 @@ namespace FEATURE {
         std::cout << "TF-IDF computation completed." << std::endl;
     }
 
+    void mappingItemMatrix(const bool &show_progress = true,
+                           const uint32_t threshold = 500000,
+                           const bool reset_table = true)
+    {
+        sqlite3 *db;
+        if (sqlite3_open(ENV_HPP::database_path.string().c_str(), &db) != SQLITE_OK)
+        {
+            std::cerr << "Error opening database." << std::endl;
+            return;
+        }
+
+        execute_sql(db, "PRAGMA journal_mode=WAL;");
+        execute_sql(db, "PRAGMA synchronous=OFF;");
+        execute_sql(db, "PRAGMA temp_store=MEMORY;");
+
+        if (reset_table)
+        {
+            execute_sql(db, "DROP TABLE IF EXISTS item_matrix;");
+        }
+        // Be extra sure about there is always a table to process, otherwise the following code will break
+        execute_sql(db, "CREATE TABLE item_matrix (target_id TEXT, target_name TEXT, source_id TEXT, source_name TEXT, distance REAL);");
+
+        auto unique_ids = RECOMMEND::collect_unique_id(db);
+        auto processing_ids = RECOMMEND::collect_processing_id(db, reset_table);
+
+        std::vector<std::tuple<std::string, std::string, std::string, std::string, double>> result_tank;
+
+        std::cout << "Found " << processing_ids.size() << " files to process\n";
+
+        for (const auto &id_pair : processing_ids)
+        {
+            const std::string &id = id_pair.first;
+            const std::string &file_name = id_pair.second;
+
+            auto filtered_tokens = RECOMMEND::load_token_map(db, id);
+            if (filtered_tokens.empty())
+                continue;
+
+            RECOMMEND::apply_tfidf(db, filtered_tokens);
+            auto relation_distance_map = RECOMMEND::load_related_tokens(db, filtered_tokens);
+            std::vector<std::tuple<std::string, std::string, double>> results =
+                RECOMMEND::compute_recommendations(filtered_tokens, relation_distance_map, id, unique_ids);
+
+            for (const auto &[target_id, target_name, distance] : results)
+            {
+                std::tuple<std::string, std::string, std::string, std::string, double> row =
+                    {target_id, target_name, id, file_name, distance};
+                result_tank.push_back(row);
+            }
+
+            if (result_tank.size() >= threshold)
+            {
+                std::cout << "Inserting batch of size: " << result_tank.size() << std::endl;
+                execute_sql(db, "BEGIN;");
+                RECOMMEND::insert_item_matrix(result_tank, db);
+                execute_sql(db, "COMMIT;");
+                result_tank.clear();
+            }
+
+            if (show_progress)
+            {
+                std::cout << "Completed ID: " << id << " (" << file_name << "), Tokens: "
+                          << filtered_tokens.size() << ", Tank size: " << result_tank.size() << std::endl;
+            }
+        }
+
+        if (!result_tank.empty())
+        {
+            std::cout << "Inserting final batch of size: " << result_tank.size() << std::endl;
+            execute_sql(db, "BEGIN;");
+            RECOMMEND::insert_item_matrix(result_tank, db);
+            execute_sql(db, "COMMIT;");
+        }
+
+        sqlite3_close(db);
+    }
 }
 
 #endif // FEATURE_HPP
