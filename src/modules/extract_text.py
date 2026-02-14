@@ -20,14 +20,35 @@ From a raw dataset,
 4. Save text chunks and embeddings to a database
 """
 
-def text_to_chunks(text, chunk_size):
-    """Split text into chunks of approximately `chunk_size` words."""
+def text_to_chunks(text, chunk_size, overlap=50):
+    """
+    Split text into chunks of `chunk_size` words with a 
+    sliding window of `overlap` words.
+    """
     words = text.split()
-    return [' '.join(words[i:i+chunk_size]) for i in range(0, len(words), chunk_size)]
+    chunks = []
+    
+    # The step is the actual "new" content added to each chunk
+    step = chunk_size - overlap
+    
+    # Ensure we don't get stuck in an infinite loop if overlap >= chunk_size
+    if step <= 0:
+        step = chunk_size // 2 
+
+    for i in range(0, len(words), step):
+        chunk = words[i : i + chunk_size]
+        chunks.append(' '.join(chunk))
+        
+        # Stop if the current chunk reached the end of the word list
+        if i + chunk_size >= len(words):
+            break
+            
+    return chunks
 
 def clean_text_for_extracted_data(text):
     """ Only keep A-Z, a-z, 0-9, and spaces. """
-    return re.sub(r'[^A-Za-z0-9\s]', ' ', text) # Replace unwanted characters with space
+    text = re.sub(r'[^A-Za-z0-9\s]', ' ', text) # Replace special chars with space
+    return re.sub(r'\s+', ' ', text).strip()    # Collapse multiple spaces into one
 
 def save_chunks_to_file(file_path, chunks):
     """Save each chunk to a new line in a file."""
@@ -35,7 +56,7 @@ def save_chunks_to_file(file_path, chunks):
         for chunk in chunks:
             f.write(f"{chunk}\n")
         
-def process_file(file, source_folder, chunk_size, dataset_folder):
+def process_file(file, source_folder, chunk_size, dataset_folder, overlap_size):
     """Read and chunk a file, saving the output to dataset_folder."""
     if not file.endswith(".txt"):
         return
@@ -45,7 +66,7 @@ def process_file(file, source_folder, chunk_size, dataset_folder):
             raw_text = f.read()
 
         cleaned_text = clean_text_for_extracted_data(raw_text)
-        chunks = text_to_chunks(cleaned_text, chunk_size)
+        chunks = text_to_chunks(cleaned_text, chunk_size, overlap = overlap_size)
 
         output_path = os.path.join(dataset_folder, file)
         save_chunks_to_file(output_path, chunks)
@@ -53,8 +74,7 @@ def process_file(file, source_folder, chunk_size, dataset_folder):
     except Exception as e:
         print(f"[ERROR] Failed to process {file}: {e}")
 
-def insert_chunks_into_db(dataset_folder, db_path):
-    """Insert chunked data from dataset_folder into the SQLite database."""
+def insert_chunks_into_db(dataset_folder, db_path, overlap_size):
     print("[INFO] Inserting chunks into database...")
     conn = sqlite3.connect(db_path)
     cursor = conn.cursor()
@@ -65,14 +85,30 @@ def insert_chunks_into_db(dataset_folder, db_path):
             with open(file_path, "r", encoding="utf-8") as f:
                 lines = f.readlines()
 
+            # Prepare data for batch insertion
+            data_to_insert = []
             for chunk_id, chunk_text in enumerate(lines):
-                cursor.execute("""
-                    INSERT OR IGNORE INTO pdf_chunks (file_name, chunk_id, chunk_text)
-                    VALUES (?, ?, ?)
-                """, (file, chunk_id, chunk_text))
+                chunk_text = chunk_text.strip()
+                word_count = len(chunk_text.split())
+                
+                data_to_insert.append((
+                    file, 
+                    chunk_id, 
+                    chunk_text, 
+                    word_count, 
+                    overlap_size
+                ))
+
+            # Batch execution is significantly faster
+            cursor.executemany("""
+                INSERT OR IGNORE INTO pdf_chunks 
+                (file_name, chunk_id, chunk_text, word_count, overlap_size)
+                VALUES (?, ?, ?, ?, ?)
+            """, data_to_insert)
+
         except Exception as e:
             print(f"[ERROR] Failed to insert chunks from {file}: {e}")
-
+        
         os.remove(file_path)
 
     conn.commit()
@@ -92,12 +128,13 @@ def extract_text(SOURCE_FOLDER, DEST_FOLDER, CHUNK_SIZE=512, DB_PATH=chunk_datab
     # Step 1: Setup Database
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
-
-    cursor.execute(f"""
+    cursor.execute("""
         CREATE TABLE IF NOT EXISTS pdf_chunks (
             file_name TEXT,
             chunk_id INTEGER,
             chunk_text TEXT,
+            word_count INTEGER,
+            overlap_size INTEGER,
             PRIMARY KEY (file_name, chunk_id)
         )
     """)
@@ -112,6 +149,7 @@ def extract_text(SOURCE_FOLDER, DEST_FOLDER, CHUNK_SIZE=512, DB_PATH=chunk_datab
     
     num_raw_files = len(raw_files)
     num_zero = len(zero_byte_files)
+    overlap_size = int(CHUNK_SIZE * 0.3)  # Assuming 30% overlap
 
     del raw_files
     del zero_byte_files
@@ -124,14 +162,14 @@ def extract_text(SOURCE_FOLDER, DEST_FOLDER, CHUNK_SIZE=512, DB_PATH=chunk_datab
 
         with cf.ThreadPoolExecutor() as executor:
             futures = [
-                executor.submit(process_file, f, SOURCE_FOLDER, CHUNK_SIZE, DEST_FOLDER)
+                executor.submit(process_file, f, SOURCE_FOLDER, CHUNK_SIZE, DEST_FOLDER, overlap_size)
                 for f in new_files
             ]
             for future in cf.as_completed(futures):
                 future.result()  # This will raise exceptions if any occur inside threads
 
         # Step 3: Insert into database
-        insert_chunks_into_db(DEST_FOLDER, DB_PATH)
+        insert_chunks_into_db(DEST_FOLDER, DB_PATH, overlap_size)
 
     # Check if all files have been processed
     num_completed = cursor.execute("SELECT COUNT(DISTINCT file_name) FROM pdf_chunks").fetchone()[0]
