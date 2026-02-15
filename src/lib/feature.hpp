@@ -802,10 +802,10 @@ namespace FEATURE
             execute_sql(db, "DROP TABLE IF EXISTS item_matrix;");
         }
         // Be extra sure about there is always a table to process, otherwise the following code will break
-        execute_sql(db, "CREATE TABLE item_matrix (target_id TEXT, target_name TEXT, source_id TEXT, source_name TEXT, distance REAL);");
+        execute_sql(db, "CREATE TABLE IF NOT EXISTS item_matrix (target_id TEXT, target_name TEXT, source_id TEXT, source_name TEXT, distance REAL);");
 
-        auto unique_ids = RECOMMEND::collect_unique_id(db);
-        auto processing_ids = RECOMMEND::collect_processing_id(db, reset_table);
+        std::map<std::string, std::string> unique_ids = RECOMMEND::collect_unique_id(db);
+        std::map<std::string, std::string> processing_ids = RECOMMEND::collect_processing_id(db, reset_table);
 
         std::vector<std::tuple<std::string, std::string, std::string, std::string, double>> result_tank;
 
@@ -834,7 +834,6 @@ namespace FEATURE
 
             if (result_tank.size() >= threshold)
             {
-                std::cout << "Inserting batch of size: " << result_tank.size() << std::endl;
                 execute_sql(db, "BEGIN;");
                 RECOMMEND::insert_item_matrix(result_tank, db);
                 execute_sql(db, "COMMIT;");
