@@ -834,6 +834,7 @@ namespace FEATURE
 
             if (result_tank.size() >= threshold)
             {
+                std::cout << ".";
                 execute_sql(db, "BEGIN;");
                 RECOMMEND::insert_item_matrix(result_tank, db);
                 execute_sql(db, "COMMIT;");
