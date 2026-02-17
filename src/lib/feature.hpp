@@ -811,51 +811,44 @@ namespace FEATURE
         std::vector<std::tuple<std::string, std::string, std::string, std::string, double>> result_tank;
         std::cout << "Found " << processing_ids.size() << " files to process\n";
 
-        for (const auto &id_pair : unique_ids)
+        for (const auto &id_pair : processing_ids)
         {
-            // Find if id_pair exists in the processed. n to n-1
-            auto it = processing_ids.find(id_pair.first);
-            if (it != processing_ids.end())
-            {
-                // If found, process the id_pair
-                const std::string &id = id_pair.first;
-                const std::string &file_name = id_pair.second;
+            // If found, process the id_pair
+            const std::string &id = id_pair.first;
+            const std::string &file_name = id_pair.second;
 
-                auto filtered_tokens = RECOMMEND::load_token_map(db, id);
-                if (filtered_tokens.empty())
-                    continue;
-
-                RECOMMEND::apply_tfidf(db, filtered_tokens);
-                auto relation_distance_map = RECOMMEND::load_related_tokens(db, filtered_tokens);
-                std::vector<std::tuple<std::string, std::string, double>> results = RECOMMEND::compute_recommendations(filtered_tokens, relation_distance_map, id, comparison_list);
-
-                for (const auto &[target_id, target_name, distance] : results)
-                {
-                    std::tuple<std::string, std::string, std::string, std::string, double> row =
-                        {target_id, target_name, id, file_name, distance};
-                    result_tank.push_back(row);
-                }
-
-                comparison_list.erase(id); // Remove the current id from comparison list to speed up the iteration
-
-                if (result_tank.size() >= threshold)
-                {
-                    std::cout << ".";
-                    execute_sql(db, "BEGIN;");
-                    RECOMMEND::insert_item_matrix(result_tank, db);
-                    execute_sql(db, "COMMIT;");
-                    result_tank.clear();
-                }
-
-                if (show_progress)
-                {
-                    std::cout << "Completed ID: " << id << " (" << file_name << "), Tokens: "
-                              << filtered_tokens.size() << ", Tank size: " << result_tank.size()
-                              << "Remaining unique IDs to compare: " << comparison_list.size() << std::endl;
-                }
-            }
-            else
+            auto filtered_tokens = RECOMMEND::load_token_map(db, id);
+            if (filtered_tokens.empty())
                 continue;
+
+            RECOMMEND::apply_tfidf(db, filtered_tokens);
+            auto relation_distance_map = RECOMMEND::load_related_tokens(db, filtered_tokens);
+            std::vector<std::tuple<std::string, std::string, double>> results = RECOMMEND::compute_recommendations(filtered_tokens, relation_distance_map, id, comparison_list);
+
+            for (const auto &[target_id, target_name, distance] : results)
+            {
+                std::tuple<std::string, std::string, std::string, std::string, double> row =
+                    {target_id, target_name, id, file_name, distance};
+                result_tank.push_back(row);
+            }
+
+            comparison_list.erase(id); // Remove the current id from comparison list to speed up the iteration
+
+            if (result_tank.size() >= threshold)
+            {
+                std::cout << ".";
+                execute_sql(db, "BEGIN;");
+                RECOMMEND::insert_item_matrix(result_tank, db);
+                execute_sql(db, "COMMIT;");
+                result_tank.clear();
+            }
+
+            if (show_progress)
+            {
+                std::cout << "Completed ID: " << id << " (" << file_name << "), Tokens: "
+                          << filtered_tokens.size() << ", Tank size: " << result_tank.size()
+                          << ". Remaining unique IDs to compare: " << comparison_list.size() << std::endl;
+            }
         }
 
         if (!result_tank.empty())
