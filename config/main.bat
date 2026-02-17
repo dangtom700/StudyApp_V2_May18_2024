@@ -41,11 +41,11 @@ rem Function to execute tasks based on flags
 :execute_tasks
 
 set "showComponents=0"
-set "extractText=1"
-set "updateDatabaseInformation=1"
-set "processWordFreq=1"
-set "computeTFIDF=1"
-set "computeRelationalDistance=1"
+set "extractText=0"
+set "updateDatabaseInformation=0"
+set "processWordFreq=0"
+set "computeTFIDF=0"
+set "computeRelationalDistance=0"
 set "ideation=0"
 set "promptReference=0"
 set "mappingItemMatrix=1"
@@ -101,20 +101,20 @@ if %processWordFreq%==1 (
     )
 )
 
-rem Compute TF-IDF
-if %computeTFIDF%==1 (
-    word_tokenizer --computeTFIDF
-    if %errorlevel% neq 0 (
-        echo Error executing Computing TF-IDF.
-        goto end
-    )
-)
-
 rem Compute Relational Distance
 if %computeRelationalDistance%==1 (
     word_tokenizer --computeRelationalDistance
     if %errorlevel% neq 0 (
         echo Error executing Compute Relational Distance.
+        goto end
+    )
+)
+
+rem Compute TF-IDF
+if %computeTFIDF%==1 (
+    word_tokenizer --computeTFIDF
+    if %errorlevel% neq 0 (
+        echo Error executing Computing TF-IDF.
         goto end
     )
 )

@@ -77,7 +77,7 @@ void computeTFIDF()
 void mappingItemMatrix()
 {
     std::cout << "Mapping item matrix..." << std::endl;
-    FEATURE::mappingItemMatrix(show_progress, 100000, reset_table);
+    FEATURE::mappingItemMatrix(true, 100000, reset_table);
     std::cout << "Finished: Item matrix mapped." << std::endl;
 }
 

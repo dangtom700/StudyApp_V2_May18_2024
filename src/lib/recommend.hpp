@@ -24,51 +24,6 @@ namespace RECOMMEND
         return stmt;
     }
 
-    std::map<std::string, std::string> collect_processing_id(sqlite3 *db, bool reset_table)
-    {
-        std::map<std::string, std::string> unique_ids;
-        std::string sql = "SELECT id, file_name FROM file_info WHERE chunk_count > 0";
-        sqlite3_stmt *stmt = prepareStatement(db, sql);
-        if (!stmt)
-            return unique_ids;
-
-        while (sqlite3_step(stmt) == SQLITE_ROW)
-        {
-            const unsigned char *id_txt = sqlite3_column_text(stmt, 0);
-            const unsigned char *name_txt = sqlite3_column_text(stmt, 1);
-            if (id_txt && name_txt)
-            {
-                std::string key = reinterpret_cast<const char *>(id_txt);
-                std::string value = reinterpret_cast<const char *>(name_txt);
-                unique_ids["title_" + key] = value;
-            }
-        }
-        sqlite3_finalize(stmt);
-
-        // Remove key that already exists in item_matrix
-        if (reset_table)
-            return unique_ids;
-        else
-        {
-            sql = "SELECT DISTINCT source_id FROM item_matrix";
-            stmt = prepareStatement(db, sql);
-            if (!stmt)
-                return unique_ids;
-
-            while (sqlite3_step(stmt) == SQLITE_ROW)
-            {
-                const unsigned char *id_txt = sqlite3_column_text(stmt, 0);
-                if (id_txt)
-                {
-                    std::string key = reinterpret_cast<const char *>(id_txt);
-                    unique_ids.erase(key);
-                }
-            }
-            sqlite3_finalize(stmt);
-        }
-        return unique_ids;
-    }
-
     std::map<std::string, std::string> collect_unique_id(sqlite3 *db)
     {
         std::map<std::string, std::string> unique_ids;
@@ -91,6 +46,56 @@ namespace RECOMMEND
         sqlite3_finalize(stmt);
         return unique_ids;
     }
+
+    std::map<std::string, std::string> collect_processing_id(sqlite3 *db, bool reset_table, std::map<std::string, std::string> unique_ids)
+    {
+        // Remove key that already exists in item_matrix
+        if (reset_table)
+            return unique_ids;
+        else
+        {
+            std::string sql = "SELECT DISTINCT source_id FROM item_matrix";
+            sqlite3_stmt *stmt = prepareStatement(db, sql);
+            if (!stmt)
+                return unique_ids;
+
+            while (sqlite3_step(stmt) == SQLITE_ROW)
+            {
+                const unsigned char *id_txt = sqlite3_column_text(stmt, 0);
+                if (id_txt)
+                {
+                    std::string key = reinterpret_cast<const char *>(id_txt);
+                    unique_ids.erase(key);
+                }
+            }
+            sqlite3_finalize(stmt);
+        }
+        return unique_ids;
+    }
+
+    // std::map<std::string, std::string> collect_processed_id(sqlite3 *db, bool reset_table)
+    // {
+    //     std::map<std::string, std::string> processed_ids;
+    //     if (!reset_table)
+    //     {
+    //         std::string sql = "SELECT DISTINCT source_id FROM item_matrix";
+    //         sqlite3_stmt *stmt = prepareStatement(db, sql);
+    //         if (!stmt)
+    //             return processed_ids;
+
+    //         while (sqlite3_step(stmt) == SQLITE_ROW)
+    //         {
+    //             const unsigned char *id_txt = sqlite3_column_text(stmt, 0);
+    //             if (id_txt)
+    //             {
+    //                 std::string key = reinterpret_cast<const char *>(id_txt);
+    //                 processed_ids[key] = key; // Value is not important, we just need the keys
+    //             }
+    //         }
+    //         sqlite3_finalize(stmt);
+    //     }
+    //     return processed_ids;
+    // }
 
     std::vector<std::tuple<std::string, int, double>> load_token_map(sqlite3 *db, const std::string &id)
     {
