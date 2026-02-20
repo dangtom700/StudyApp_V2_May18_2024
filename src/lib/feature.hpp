@@ -808,7 +808,6 @@ namespace FEATURE
         std::map<std::string, std::string> processing_ids = RECOMMEND::collect_processing_id(db, reset_table, unique_ids);
         std::map<std::string, std::string> comparison_list = unique_ids; // Copy of unique_ids for comparison
 
-        std::vector<std::tuple<std::string, std::string, std::string, std::string, double>> result_tank;
         std::cout << "Found " << processing_ids.size() << " files to process\n";
 
         for (const auto &id_pair : processing_ids)
@@ -816,6 +815,7 @@ namespace FEATURE
             // If found, process the id_pair
             const std::string &id = id_pair.first;
             const std::string &file_name = id_pair.second;
+            std::vector<std::tuple<std::string, std::string, std::string, std::string, double>> result;
 
             auto filtered_tokens = RECOMMEND::load_token_map(db, id);
             if (filtered_tokens.empty())
@@ -829,34 +829,20 @@ namespace FEATURE
             {
                 std::tuple<std::string, std::string, std::string, std::string, double> row =
                     {target_id, target_name, id, file_name, distance};
-                result_tank.push_back(row);
+                result.push_back(row);
             }
 
             comparison_list.erase(id); // Remove the current id from comparison list to speed up the iteration
 
-            if (result_tank.size() >= threshold)
-            {
-                std::cout << ".";
-                execute_sql(db, "BEGIN;");
-                RECOMMEND::insert_item_matrix(result_tank, db);
-                execute_sql(db, "COMMIT;");
-                result_tank.clear();
-            }
+            execute_sql(db, "BEGIN;");
+            RECOMMEND::insert_item_matrix(result, db);
+            execute_sql(db, "COMMIT;");
 
             if (show_progress)
             {
-                std::cout << "Completed ID: " << id << " (" << file_name << "), Tokens: "
-                          << filtered_tokens.size() << ", Tank size: " << result_tank.size()
-                          << ". Remaining unique IDs to compare: " << comparison_list.size() << std::endl;
+                std::cout << "Completed ID: " << id << " (" << file_name << "), Tokens: " << filtered_tokens.size()
+                          << ", Remaining unique IDs to compare: " << comparison_list.size() << std::endl;
             }
-        }
-
-        if (!result_tank.empty())
-        {
-            std::cout << "Inserting final batch of size: " << result_tank.size() << std::endl;
-            execute_sql(db, "BEGIN;");
-            RECOMMEND::insert_item_matrix(result_tank, db);
-            execute_sql(db, "COMMIT;");
         }
 
         sqlite3_close(db);
