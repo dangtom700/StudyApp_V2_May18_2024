@@ -14,8 +14,8 @@ CONFIG = {
     "NOTES_FOLDER_NAME": "notes",
     "DISTANCE_THRESHOLD": 0.5,
     "DEGREE_THRESHOLDS": {
-        2: 0.8
-        # 3: 0.6
+        2: 0.8,
+        3: 0.6
     },
     "RECOMMEND_LIMIT": 150,
     "CHUNK_SAMPLE_SIZE": 3,
