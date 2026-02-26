@@ -41,14 +41,15 @@ rem Function to execute tasks based on flags
 :execute_tasks
 
 set "showComponents=0"
-set "extractText=1"
-set "updateDatabaseInformation=1"
-set "processWordFreq=1"
-set "computeTFIDF=1"
-set "computeRelationalDistance=1"
+set "extractText=0"
+set "updateDatabaseInformation=0"
+set "processWordFreq=0"
+set "computeTFIDF=0"
+set "computeRelationalDistance=0"
 set "ideation=0"
 set "promptReference=0"
-set "mappingItemMatrix=1"
+set "mappingItemMatrix=0"
+set "topicTokenize=1"
 
 rem Process flags
 :process_flags
@@ -62,6 +63,7 @@ for %%A in (%*) do (
     if "%%A"=="--ideation" set ideation=1
     if "%%A"=="--promptReference" set promptReference=1
     if "%%A"=="--mappingItemMatrix" set mappingItemMatrix=1
+    if "%%A"=="--topicTokenize" set topicTokenize=1
 )
 
 rem Show Components
@@ -141,6 +143,14 @@ if %mappingItemMatrix%==1 (
     word_tokenizer --mappingItemMatrix
     if %errorlevel% neq 0 (
         echo Error executing Mapping Item Matrix.
+    )
+)
+
+rem Topic Tokenize
+if %topicTokenize%==1 (
+    python src/main.py --topicTokenize
+    if %errorlevel% neq 0 (
+        echo Error executing Topic Tokenization.
     )
 )
 

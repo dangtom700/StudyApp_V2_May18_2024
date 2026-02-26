@@ -17,6 +17,7 @@ def app():
     parser.add_argument("--processWordFreq", action= 'store_true', help="Create index tables and analyze word frequencies all in one")
     parser.add_argument("--tokenizePrompt", action= 'store_true', help="Prompt to find references in full database based on context of search")
     parser.add_argument("--computeTFIDF", action= 'store_true', help="Compute TF-IDF of all tokens in database")
+    parser.add_argument("--topicTokenize", action= 'store_true', help="Tokenize topics and store in database")
 
     args = parser.parse_args()
 
@@ -53,6 +54,10 @@ def app():
 
     if args.computeTFIDF:
         tf_idf.computeTFIDF()
+
+    if args.topicTokenize:
+        TOPICS = {""}
+        word_freq.tokenize_topics(TOPIC_LIST=TOPICS)
 
 if __name__ == "__main__":
     app()
