@@ -493,7 +493,7 @@ def tokenize_topics(TOPIC_LIST: set[str]):
         tag_name = topic_file.stem
         if tag_name in processed_tags:
             continue
-        print(f"\nProcessing topic: {tag_name}")
+        print(f"Processing topic: {tag_name}")
 
         # Write prompt
         PROMPT_FILE.write_text(
