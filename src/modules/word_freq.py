@@ -4,14 +4,35 @@ import re
 import nltk
 from collections import defaultdict
 from shutil import rmtree
-from modules.path import chunk_database_path, token_json_path, buffer_json_path, dataset_path, log_file_path
+from modules.path import chunk_database_path, token_json_path, buffer_json_path
 from nltk.stem import PorterStemmer
 from nltk.corpus import stopwords
 from concurrent.futures import ThreadPoolExecutor
 from json import dump
 import string
+import requests
 from functools import partial
-from subprocess import run
+from pathlib import Path
+from typing import Optional
+import time
+
+# Configurations and constants
+WIKI_FOLDER = Path("wiki_topics")
+PROMPT_FILE = Path("Prompt.txt")
+OUTPUT_FILE = Path("outputPrompt.txt")
+API_URL = "https://en.wikipedia.org/w/api.php"
+HEADERS = {"User-Agent": "TopicDatasetBuilder/1.0 (godKnows@how.com)"}
+CONFIG = {
+    "DB_PATH": Path("data/pdf_text.db"),
+    "SOURCE_FOLDER": Path("D:/READING LIST"),
+    "NOTES_FOLDER_NAME": "notes",
+    "DISTANCE_THRESHOLD": 0.5,
+    "RECOMMEND_LIMIT": 150,
+    "CHUNK_SAMPLE_SIZE": 3,
+    "BATCH_SIZE": 200_000
+}
+
+CONFIG["DESTINATION_FOLDER"] = CONFIG["SOURCE_FOLDER"] / CONFIG["NOTES_FOLDER_NAME"]
 
 # One-time compiled regex pattern
 REPEATED_CHAR_PATTERN = re.compile(r"([a-zA-Z])\1{2,}")
@@ -183,8 +204,6 @@ def process_chunks_in_batches(database, pdf_titles, fetched_result):
     It processes chunks in batches and stores word frequencies in individual JSON files in the `token_json_path` folder.
     It also keeps track of the global word frequencies and stores them in a single JSON file after all titles have been processed.
     """
-    
-    global_word_freq = defaultdict(int)
 
     # Ensure the directory exists
     os.makedirs(token_json_path, exist_ok=True)
@@ -197,10 +216,6 @@ def process_chunks_in_batches(database, pdf_titles, fetched_result):
         for title_id, word_freq in zip(pdf_titles, executor.map(retrieve_func, pdf_titles)):
             if word_freq is None or len(word_freq) == 0:
                 continue
-            
-            # Update global word frequencies
-            for word, freq in word_freq.items():
-                global_word_freq[word] += freq
 
             # Dump word frequencies for each title into a separate JSON file immediately
             json_file_path = os.path.join(token_json_path, f'title_{fetched_result[title_id]}.json')
@@ -208,11 +223,6 @@ def process_chunks_in_batches(database, pdf_titles, fetched_result):
                 dump(word_freq, f, ensure_ascii=False, indent=4)
 
     print("All titles processed and word frequencies stored in individual JSON files.")
-
-    json_global_path = os.path.join(os.getcwd(), 'data', 'global_word_freq.json')
-    with open(json_global_path, 'w', encoding='utf-8') as f:
-        dump(global_word_freq, f, ensure_ascii=False, indent=4)
-    print("Global word frequencies inserted into the database.")
 
 # Retrieve title IDs from JSON files with pattern title_*.json -> *
 def get_title_ids_from_json(folder_path):
@@ -292,33 +302,139 @@ def process_word_frequencies_in_batches(reset_state=False, folder_path=token_jso
     conn.commit()
     conn.close()
 
+def get_connection():
+    conn = sqlite3.connect(CONFIG["DB_PATH"])
+    conn.execute("PRAGMA foreign_keys = ON;")
+    return conn
+
+def setup_database(conn, reset = False):
+    cursor = conn.cursor()
+
+    if reset:
+        cursor.execute("DROP TABLE IF EXISTS topic_token;")
+        cursor.execute("DROP TABLE IF EXISTS tags;")
+
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS tags (
+            Name TEXT,
+            ID TEXT,
+            Distance REAL,
+            Tag TEXT,
+            Degree INTEGER DEFAULT 1,
+            PRIMARY KEY (ID, Tag)
+        )
+    """)
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS topic_token(
+            topic TEXT,
+            token TEXT,
+            frequency INTEGER,
+            PRIMARY KEY (topic, token)
+        )
+    """)
+    conn.commit()
+
+def clean_filename(name: str) -> str:
+    return re.sub(r"[^\w\-. ]", "_", name)
+
+def fetch_article(title: str) -> Optional[str]:
+    try:
+        response = requests.get(
+            API_URL,
+            params={
+                "action": "query",
+                "format": "json",
+                "titles": title,
+                "prop": "extracts",
+                "explaintext": True,
+                "redirects": 1,
+            },
+            headers=HEADERS,
+            timeout=15,
+        )
+        response.raise_for_status()
+
+        pages = response.json().get("query", {}).get("pages", {})
+        page = next(iter(pages.values()), {})
+
+        return None if "missing" in page else page.get("extract", "")
+
+    except requests.RequestException as e:
+        print(f"Wiki request failed for {title}: {e}")
+        return None
+
+def prepare_filtered_table(reset=True):
+    with get_connection() as db:
+
+        if reset:
+            db.execute("DROP TABLE IF EXISTS item_matrix_filtered;")
+
+        db.execute("PRAGMA journal_mode=WAL;")
+        db.execute("PRAGMA synchronous=NORMAL;")
+
+        db.execute("""
+            CREATE TABLE IF NOT EXISTS item_matrix_filtered (
+                source_name TEXT NOT NULL,
+                target_name TEXT NOT NULL,
+                distance REAL NOT NULL,
+                PRIMARY KEY (source_name, target_name)
+            );
+        """)
+
+        db.execute("""
+            CREATE INDEX IF NOT EXISTS idx_imf_source_distance
+            ON item_matrix_filtered(source_name, distance DESC);
+        """)
+
+        db.execute("""
+            CREATE INDEX IF NOT EXISTS idx_imf_target_distance
+            ON item_matrix_filtered(target_name, distance DESC);
+        """)
+
+        last_rowid = 0
+
+        while True:
+            rows = db.execute(
+                """
+                SELECT rowid, source_name, target_name, distance
+                FROM item_matrix
+                WHERE rowid > ?
+                  AND distance > ?
+                ORDER BY rowid
+                LIMIT ?;
+                """,
+                (last_rowid, CONFIG["DISTANCE_THRESHOLD"], CONFIG["BATCH_SIZE"])
+            ).fetchall()
+
+            if not rows:
+                break
+
+            db.executemany(
+                """
+                INSERT OR IGNORE INTO item_matrix_filtered
+                (source_name, target_name, distance)
+                VALUES (?, ?, ?);
+                """,
+                [(r[1], r[2], r[3]) for r in rows]
+            )
+
+            last_rowid = rows[-1][0]
+            db.commit()
+
+            print(f"Processed up to rowid {last_rowid}")
+
+    print("Filtered table prepared.")
+
 # _________________________________________________________________________________
 # _________________________________________________________________________________
 
-def promptFindingReference() -> None:
+def promptFindingReference(is_dumped = True) -> Optional[dict]:
     """Reads in a prompt from a text file, cleans the text, and stores the cleaned
     prompt in a JSON file. The prompt is cleaned by removing punctuation, converting
     to lowercase, tokenizing, removing stop words, removing words with repeated
     characters, and stemming. If the cleaned prompt is empty, a message is printed
     and the function returns early. Otherwise, the cleaned prompt is stored in the
     buffer.json file."""
-    def clean_prompt(text: str):
-        # Remove punctuation and convert to lowercase
-        text = re.sub(r'[^\w\s]', ' ', text).lower()
-        text = ultra_clean_token(text)
-        # Tokenize text
-        tokens = nltk.word_tokenize(text)
-
-        # Initialize filtered tokens
-        filtered_tokens = defaultdict(int)
-
-        # Process tokens
-        for token in tokens:  # Exclude the first and last token
-            if token.isalpha() and token not in stop_words and not has_repeats_regex(token):
-                root_word = stemmer.stem(token)
-                filtered_tokens[root_word] += 1
-
-        return filtered_tokens
     # Read in from prompt.txt
     with open("PROMPT.txt", "r", encoding="utf-8", errors="ignore") as f:
         prompt = f.readlines()
@@ -326,12 +442,76 @@ def promptFindingReference() -> None:
     prompt = " ".join(prompt)
 
     # Clean the prompt text
-    cleaned_prompt = clean_prompt(prompt)
+    cleaned_prompt = clean_text(prompt)
 
     # Check if cleaned prompt is empty
     if not cleaned_prompt:
         print("No valid words found in the prompt.")
 
-    # Dump the cleaned prompt to the buffer.json file
-    with open(buffer_json_path, "w") as f:
-        dump(cleaned_prompt, f, ensure_ascii=False, indent=4)
+    if is_dumped:
+        # Dump the cleaned prompt to the buffer.json file
+        with open(buffer_json_path, "w") as f:
+            dump(cleaned_prompt, f, ensure_ascii=False, indent=4)
+        return None
+    # else return the cleaned prompt as a dictionary 
+    return cleaned_prompt
+
+def tokenize_topics(TOPIC_LIST: set[str]):    
+    WIKI_FOLDER.mkdir(exist_ok=True)
+
+    for topic in TOPIC_LIST:
+        filename = clean_filename(topic.replace(" ", "_").lower()) + ".txt"
+        file_path = WIKI_FOLDER / filename
+
+        if file_path.exists():
+            continue
+
+        content = fetch_article(topic)
+
+        if not content:
+            print(f"Wiki article not found: {topic}")
+            continue
+
+        file_path.write_text(content, encoding="utf-8")
+        time.sleep(1)  # polite API delay
+
+    # STEP 2: Open DB
+    conn = sqlite3.connect(chunk_database_path)
+    setup_database(conn, reset=True)
+    cursor = conn.cursor()
+
+    prepare_filtered_table(reset=True)
+
+    processed_tags = {
+        row[0] for row in
+        cursor.execute("SELECT DISTINCT Tag FROM tags").fetchall()
+    }
+
+    topic_files = list(WIKI_FOLDER.glob("*.txt"))
+
+    for topic_file in topic_files:
+        tag_name = topic_file.stem
+        if tag_name in processed_tags:
+            continue
+        print(f"\nProcessing topic: {tag_name}")
+
+        # Write prompt
+        PROMPT_FILE.write_text(
+            topic_file.read_text(encoding="utf-8"),
+            encoding="utf-8"
+        )
+
+        result = promptFindingReference(is_dumped=False)
+        if not result:
+            print(f"No valid tokens found for topic: {tag_name}")
+            continue
+        # Insert tokens into the database
+        for token, freq in result.items():
+            cursor.execute(
+                "INSERT OR IGNORE INTO topic_token (topic, token, frequency) VALUES (?, ?, ?)",
+                (tag_name, token, freq)
+            )
+
+    conn.commit()
+    conn.close()
+    print("\nPipeline completed successfully.")
