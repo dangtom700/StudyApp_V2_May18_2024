@@ -77,8 +77,15 @@ void computeTFIDF()
 void mappingItemMatrix()
 {
     std::cout << "Mapping item matrix..." << std::endl;
-    FEATURE::mappingItemMatrix(true, 100000, reset_table);
+    FEATURE::mappingItemMatrix(true, reset_table);
     std::cout << "Finished: Item matrix mapped." << std::endl;
+}
+
+void labelTopics()
+{
+    std::cout << "Labeling topics..." << std::endl;
+    FEATURE::label_topics(true, reset_table);
+    std::cout << "Finished: Topics labeled." << std::endl;
 }
 
 int main(int argc, char *argv[])
@@ -97,7 +104,8 @@ int main(int argc, char *argv[])
         {"--updatedatabaseinformation", updateDatabaseInformation},
         {"--processprompt", processPrompt},
         {"--computetfidf", computeTFIDF},
-        {"--mappingitemmatrix", mappingItemMatrix}};
+        {"--mappingitemmatrix", mappingItemMatrix},
+        {"--labeltopics", labelTopics}};
 
     // Iterate through the provided command-line arguments and execute corresponding actions
     for (int i = 1; i < argc; ++i)

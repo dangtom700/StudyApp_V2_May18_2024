@@ -149,6 +149,7 @@ if %mappingItemMatrix%==1 (
 rem Topic Tokenize
 if %topicTokenize%==1 (
     python src/main.py --topicTokenize
+    word_tokenizer --labelTopics
     if %errorlevel% neq 0 (
         echo Error executing Topic Tokenization.
     )
