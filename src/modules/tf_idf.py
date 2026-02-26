@@ -1,7 +1,8 @@
 import sqlite3
 import ujson as json  # Much faster
 import math
-from modules.path import chunk_database_path
+from modules.path import chunk_database_path, token_json_path
+from os import listdir, path
 
 GLOBAL_JSON_PATH = "data/global_word_freq.json"
 MIN_THRES_FREQ = 4
@@ -24,9 +25,18 @@ def computeTFIDF():
         )
     """)
 
-    with open(GLOBAL_JSON_PATH, "r", encoding="utf-8") as f:
-        global_word_freq = json.load(f)
+    # Open every JSON file in the data/token_json folder and build a global word frequency dictionary
+    global_word_freq = {}
+    for file in listdir(token_json_path):
+        with open(path.join(token_json_path, file), "r", encoding="utf-8") as f:
+            data = json.load(f)
+            for word, freq in data.items():
+                global_word_freq[word] = global_word_freq.get(word, 0) + freq # Add up frequencies across all files
 
+    # Save the global word frequency dictionary to a JSON file for reference
+    with open(GLOBAL_JSON_PATH, "w", encoding="utf-8") as f:
+        json.dump(global_word_freq, f, ensure_ascii=False, indent=2)
+    
     filtered_words = {
         word: freq for word, freq in global_word_freq.items()
         if freq >= MIN_THRES_FREQ or len(word.strip()) > 1
