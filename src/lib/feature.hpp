@@ -783,7 +783,6 @@ namespace FEATURE
     }
 
     void mappingItemMatrix(const bool &show_progress = true,
-                           const uint32_t threshold = 500000,
                            const bool reset_table = true)
     {
         sqlite3 *db;
@@ -805,7 +804,7 @@ namespace FEATURE
         execute_sql(db, "CREATE TABLE IF NOT EXISTS item_matrix (target_id TEXT, target_name TEXT, source_id TEXT, source_name TEXT, distance REAL);");
 
         std::map<std::string, std::string> unique_ids = RECOMMEND::collect_unique_id(db);
-        std::map<std::string, std::string> processing_ids = RECOMMEND::collect_processing_id(db, reset_table, unique_ids);
+        std::map<std::string, std::string> processing_ids = RECOMMEND::collect_processing_id(db, reset_table, unique_ids, "SELECT DISTINCT source_id FROM item_matrix");
         std::map<std::string, std::string> comparison_list = unique_ids; // Copy of unique_ids for comparison
 
         std::cout << "Found " << processing_ids.size() << " files to process\n";
@@ -845,6 +844,77 @@ namespace FEATURE
             }
         }
 
+        sqlite3_close(db);
+    }
+
+    void label_topics(bool show_progress = true, bool reset_table = true)
+    {
+        sqlite3 *db;
+        if (sqlite3_open(ENV_HPP::database_path.string().c_str(), &db) != SQLITE_OK)
+        {
+            std::cerr << "Error opening database." << std::endl;
+            return;
+        }
+
+        execute_sql(db, "PRAGMA journal_mode=WAL;");
+        execute_sql(db, "PRAGMA synchronous=OFF;");
+        execute_sql(db, "PRAGMA temp_store=MEMORY;");
+
+        // Create or reset the tags table
+        if (reset_table)
+        {
+            std::string drop_table_sql = "DROP TABLE IF EXISTS tags;";
+            execute_sql(db, drop_table_sql);
+        }
+
+        std::string create_table_sql = R"(
+            CREATE TABLE IF NOT EXISTS tags (
+                name TEXT,
+                ID TEXT,
+                distance REAL,
+                topic TEXT,
+                degree INTEGER
+            );
+        )";
+        execute_sql(db, create_table_sql);
+
+        std::map<std::string, std::string> unique_ids = RECOMMEND::collect_unique_id(db);
+        std::vector<std::string> unique_topics = RECOMMEND::collect_unique_topic(db);
+        std::map<std::string, std::string> processing_ids = RECOMMEND::collect_processing_id(db, reset_table, unique_ids, "SELECT DISTINCT ID FROM tags");
+
+        std::cout << "Found " << processing_ids.size() << " files to process\n";
+
+        for (const std::string &topic : unique_topics)
+        {
+            std::vector<std::tuple<std::string, std::string, std::string, double>> result;
+
+            auto filtered_tokens = RECOMMEND::load_topic_token_map(db, topic);
+            if (filtered_tokens.empty())
+                continue;
+
+            RECOMMEND::apply_tfidf(db, filtered_tokens);
+            auto relation_distance_map = RECOMMEND::load_related_tokens(db, filtered_tokens);
+            std::vector<std::tuple<std::string, std::string, double>> recommendations = RECOMMEND::compute_recommendations(filtered_tokens, relation_distance_map, topic, processing_ids);
+
+            for (const auto &[target_id, target_name, distance] : recommendations)
+            {
+                if (distance > 0.4)
+                {
+                    std::tuple<std::string, std::string, std::string, double> row =
+                        {target_id, target_name, topic, distance};
+                    result.push_back(row);
+                }
+            }
+
+            execute_sql(db, "BEGIN;");
+            RECOMMEND::insert_tags(result, db);
+            execute_sql(db, "COMMIT;");
+
+            if (show_progress)
+                std::cout << "Completed Topic: " << topic << ", Tokens: " << filtered_tokens.size() << std::endl;
+        }
+
+        RECOMMEND::expand_degree(db, 1, 2, 0.7);
         sqlite3_close(db);
     }
 }

@@ -47,14 +47,33 @@ namespace RECOMMEND
         return unique_ids;
     }
 
-    std::map<std::string, std::string> collect_processing_id(sqlite3 *db, bool reset_table, std::map<std::string, std::string> unique_ids)
+    std::vector<std::string> collect_unique_topic(sqlite3 *db)
+    {
+        std::vector<std::string> unique_topics;
+        std::string sql = "SELECT DISTINCT topic FROM topic_token";
+        sqlite3_stmt *stmt = prepareStatement(db, sql);
+        if (!stmt)
+            return unique_topics;
+
+        while (sqlite3_step(stmt) == SQLITE_ROW)
+        {
+            const unsigned char *topic = sqlite3_column_text(stmt, 0);
+            if (topic)
+            {
+                unique_topics.push_back(reinterpret_cast<const char *>(topic));
+            }
+        }
+        sqlite3_finalize(stmt);
+        return unique_topics;
+    }
+
+    std::map<std::string, std::string> collect_processing_id(sqlite3 *db, bool reset_table, std::map<std::string, std::string> unique_ids, std::string sql)
     {
         // Remove key that already exists in item_matrix
         if (reset_table)
             return unique_ids;
         else
         {
-            std::string sql = "SELECT DISTINCT source_id FROM item_matrix";
             sqlite3_stmt *stmt = prepareStatement(db, sql);
             if (!stmt)
                 return unique_ids;
@@ -122,6 +141,34 @@ namespace RECOMMEND
             filtered_tokens.emplace_back(token, freq, base_distance);
         }
         sqlite3_finalize(stmt);
+        return filtered_tokens;
+    }
+
+    std::vector<std::tuple<std::string, int, double>> load_topic_token_map(sqlite3 *db, const std::string &topic)
+    {
+        std::vector<std::tuple<std::string, int, double>> result;
+        std::map<std::string, int> token_freq_map;
+
+        std::string sql =
+            "SELECT token, frequency FROM topic_token WHERE topic = ?";
+
+        sqlite3_stmt *stmt = prepareStatement(db, sql);
+        if (!stmt)
+            return result;
+
+        sqlite3_bind_text(stmt, 1, topic.c_str(), -1, SQLITE_TRANSIENT);
+
+        while (sqlite3_step(stmt) == SQLITE_ROW)
+        {
+            std::string token =
+                reinterpret_cast<const char *>(sqlite3_column_text(stmt, 0));
+            int freq = sqlite3_column_int(stmt, 1);
+            token_freq_map[token] = freq;
+        }
+        sqlite3_finalize(stmt);
+
+        double distance = TRANSFORMER::Pythagoras(token_freq_map);
+        std::vector<std::tuple<std::string, int, double>> filtered_tokens = TRANSFORMER::token_filter(token_freq_map, 16, 1, distance);
         return filtered_tokens;
     }
 
@@ -227,7 +274,7 @@ namespace RECOMMEND
     }
 
     void insert_item_matrix(
-        std::vector<std::tuple<std::string, std::string, std::string, std::string, double>> &RESULT,
+        const std::vector<std::tuple<std::string, std::string, std::string, std::string, double>> &RESULT,
         sqlite3 *db)
     {
         std::string insert_sql = "INSERT OR IGNORE INTO item_matrix (target_id, target_name, source_id, source_name, distance) VALUES (?, ?, ?, ?, ?);";
@@ -245,6 +292,87 @@ namespace RECOMMEND
             sqlite3_step(stmt);
             sqlite3_reset(stmt);
         }
+        sqlite3_finalize(stmt);
+    }
+
+    void insert_tags(
+        const std::vector<std::tuple<std::string, std::string, std::string, double>> &RESULT,
+        sqlite3 *db)
+    {
+        std::string insert_sql = "INSERT OR IGNORE INTO tags (ID, name, distance, topic, degree) VALUES (?, ?, ?, ?, ?);";
+        sqlite3_stmt *stmt = prepareStatement(db, insert_sql);
+        if (!stmt)
+            return;
+
+        for (const auto &[target_id, target_name, topic, distance] : RESULT)
+        {
+            sqlite3_bind_text(stmt, 1, target_id.c_str(), -1, SQLITE_TRANSIENT);
+            sqlite3_bind_text(stmt, 2, target_name.c_str(), -1, SQLITE_TRANSIENT);
+            sqlite3_bind_double(stmt, 3, distance);
+            sqlite3_bind_text(stmt, 4, topic.c_str(), -1, SQLITE_TRANSIENT);
+            sqlite3_bind_int(stmt, 5, 1); // Default degree value
+            sqlite3_step(stmt);
+            sqlite3_reset(stmt);
+        }
+        sqlite3_finalize(stmt);
+    }
+
+    void expand_degree(sqlite3 *db, int from_degree, int to_degree, double threshold)
+    {
+        std::string sql = R"(
+
+        INSERT INTO tags (name, ID, distance, topic, degree)
+
+        SELECT
+            CASE
+                WHEN im.source_name = t.name
+                    THEN im.target_name
+                ELSE im.source_name
+            END                  AS new_name,
+
+            fi.id                AS new_id,
+            im.distance          AS distance,
+            t.topic              AS topic,
+            ?                    AS degree
+
+        FROM tags t
+        JOIN item_matrix im
+            ON (im.source_name = t.name
+             OR im.target_name = t.name)
+
+        JOIN file_info fi
+            ON fi.file_name =
+                CASE
+                    WHEN im.source_name = t.name
+                        THEN im.target_name
+                    ELSE im.source_name
+                END
+
+        WHERE
+            t.degree = ?
+            AND im.distance > ?
+            AND NOT EXISTS (
+                SELECT 1
+                FROM tags existing
+                WHERE existing.name =
+                    CASE
+                        WHEN im.source_name = t.name
+                            THEN im.target_name
+                        ELSE im.source_name
+                    END
+                AND existing.topic = t.topic
+            );
+    )";
+
+        sqlite3_stmt *stmt = prepareStatement(db, sql);
+        if (!stmt)
+            return;
+
+        sqlite3_bind_int(stmt, 1, to_degree);
+        sqlite3_bind_int(stmt, 2, from_degree);
+        sqlite3_bind_double(stmt, 3, threshold);
+
+        sqlite3_step(stmt);
         sqlite3_finalize(stmt);
     }
 
