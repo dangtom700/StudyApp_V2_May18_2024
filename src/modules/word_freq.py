@@ -312,18 +312,7 @@ def setup_database(conn, reset = False):
 
     if reset:
         cursor.execute("DROP TABLE IF EXISTS topic_token;")
-        cursor.execute("DROP TABLE IF EXISTS tags;")
 
-    cursor.execute("""
-        CREATE TABLE IF NOT EXISTS tags (
-            Name TEXT,
-            ID TEXT,
-            Distance REAL,
-            Tag TEXT,
-            Degree INTEGER DEFAULT 1,
-            PRIMARY KEY (ID, Tag)
-        )
-    """)
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS topic_token(
             topic TEXT,
@@ -463,7 +452,7 @@ def tokenize_topics(TOPIC_LIST: set[str]):
         filename = clean_filename(topic.replace(" ", "_").lower()) + ".txt"
         file_path = WIKI_FOLDER / filename
 
-        if file_path.exists():
+        if file_path.exists() or len(topic) == 0: # skip if file already exists or topic is empty
             continue
 
         content = fetch_article(topic)
@@ -484,7 +473,7 @@ def tokenize_topics(TOPIC_LIST: set[str]):
 
     processed_tags = {
         row[0] for row in
-        cursor.execute("SELECT DISTINCT Tag FROM tags").fetchall()
+        cursor.execute("SELECT DISTINCT topic FROM topic_token").fetchall()
     }
 
     topic_files = list(WIKI_FOLDER.glob("*.txt"))
