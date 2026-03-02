@@ -847,7 +847,7 @@ namespace FEATURE
         sqlite3_close(db);
     }
 
-    void label_topics(bool show_progress = true, bool reset_table = true)
+    void label_topics(bool show_progress, bool reset_table, float threshold)
     {
         sqlite3 *db;
         if (sqlite3_open(ENV_HPP::database_path.string().c_str(), &db) != SQLITE_OK)
@@ -882,8 +882,6 @@ namespace FEATURE
         std::vector<std::string> unique_topics = RECOMMEND::collect_unique_topic(db);
         std::map<std::string, std::string> processing_ids = RECOMMEND::collect_processing_id(db, reset_table, unique_ids, "SELECT DISTINCT ID FROM tags");
 
-        std::cout << "Found " << processing_ids.size() << " files to process\n";
-
         for (const std::string &topic : unique_topics)
         {
             std::vector<std::tuple<std::string, std::string, std::string, double>> result;
@@ -898,7 +896,7 @@ namespace FEATURE
 
             for (const auto &[target_id, target_name, distance] : recommendations)
             {
-                if (distance > 0.4)
+                if (distance > threshold) // Threshold to filter and label topics
                 {
                     std::tuple<std::string, std::string, std::string, double> row =
                         {target_id, target_name, topic, distance};
@@ -911,10 +909,28 @@ namespace FEATURE
             execute_sql(db, "COMMIT;");
 
             if (show_progress)
-                std::cout << "Completed Topic: " << topic << ", Tokens: " << filtered_tokens.size() << std::endl;
+                std::cout << "Completed Topic: " << topic << ", Tokens: " << filtered_tokens.size() << ", Results: " << result.size() << std::endl;
         }
 
-        RECOMMEND::expand_degree(db, 1, 2, 0.7);
+        sqlite3_close(db);
+    }
+
+    void iterative_topic_expansion(int max_degree, float threshold)
+    {
+        sqlite3 *db;
+        if (sqlite3_open(ENV_HPP::database_path.string().c_str(), &db) != SQLITE_OK)
+        {
+            std::cerr << "Error opening database." << std::endl;
+            return;
+        }
+
+        for (int degree = 1; degree <= max_degree; degree++)
+        {
+            RECOMMEND::expand_degree(db, degree, degree + 1, threshold);
+            std::cout << "Completed expanding to degree " << degree + 1 << std::endl;
+            execute_sql(db, "COMMIT;");
+        }
+
         sqlite3_close(db);
     }
 }
