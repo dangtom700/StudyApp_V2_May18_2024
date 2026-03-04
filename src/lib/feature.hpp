@@ -847,7 +847,7 @@ namespace FEATURE
         sqlite3_close(db);
     }
 
-    void label_topics(bool show_progress, bool reset_table, float threshold)
+    void label_topics(bool show_progress, bool reset_table)
     {
         sqlite3 *db;
         if (sqlite3_open(ENV_HPP::database_path.string().c_str(), &db) != SQLITE_OK)
@@ -863,29 +863,27 @@ namespace FEATURE
         // Create or reset the tags table
         if (reset_table)
         {
-            std::string drop_table_sql = "DROP TABLE IF EXISTS tags;";
+            std::string drop_table_sql = "DROP TABLE IF EXISTS tags_full";
             execute_sql(db, drop_table_sql);
         }
 
-        std::string create_table_sql = R"(
-            CREATE TABLE IF NOT EXISTS tags (
+        std::string create_full_table_sql = R"(
+            CREATE TABLE IF NOT EXISTS tags_full (
                 name TEXT,
                 ID TEXT,
                 distance REAL,
                 topic TEXT,
-                degree INTEGER
+                PRIMARY KEY (ID, topic)
             );
         )";
-        execute_sql(db, create_table_sql);
+        execute_sql(db, create_full_table_sql);
 
         std::map<std::string, std::string> unique_ids = RECOMMEND::collect_unique_id(db);
         std::vector<std::string> unique_topics = RECOMMEND::collect_unique_topic(db);
-        std::map<std::string, std::string> processing_ids = RECOMMEND::collect_processing_id(db, reset_table, unique_ids, "SELECT DISTINCT ID FROM tags");
+        std::map<std::string, std::string> processing_ids = RECOMMEND::collect_processing_id(db, reset_table, unique_ids, "SELECT DISTINCT ID FROM tags_full");
 
         for (const std::string &topic : unique_topics)
         {
-            std::vector<std::tuple<std::string, std::string, std::string, double>> result;
-
             auto filtered_tokens = RECOMMEND::load_topic_token_map(db, topic);
             if (filtered_tokens.empty())
                 continue;
@@ -894,28 +892,21 @@ namespace FEATURE
             auto relation_distance_map = RECOMMEND::load_related_tokens(db, filtered_tokens);
             std::vector<std::tuple<std::string, std::string, double>> recommendations = RECOMMEND::compute_recommendations(filtered_tokens, relation_distance_map, topic, processing_ids);
 
-            for (const auto &[target_id, target_name, distance] : recommendations)
-            {
-                if (distance > threshold) // Threshold to filter and label topics
-                {
-                    std::tuple<std::string, std::string, std::string, double> row =
-                        {target_id, target_name, topic, distance};
-                    result.push_back(row);
-                }
-            }
-
             execute_sql(db, "BEGIN;");
-            RECOMMEND::insert_tags(result, db);
+            RECOMMEND::insert_tags_full(recommendations, topic, db);
             execute_sql(db, "COMMIT;");
 
             if (show_progress)
-                std::cout << "Completed Topic: " << topic << ", Tokens: " << filtered_tokens.size() << ", Results: " << result.size() << std::endl;
+                std::cout << "Completed Topic: " << topic << ", Tokens: " << filtered_tokens.size() << std::endl;
         }
 
         sqlite3_close(db);
     }
 
-    void iterative_topic_expansion(int max_degree, float threshold)
+    void iterative_topic_expansion(int max_degree,
+                                   float threshold,
+                                   float threshold_degree1,
+                                   bool reset_table)
     {
         sqlite3 *db;
         if (sqlite3_open(ENV_HPP::database_path.string().c_str(), &db) != SQLITE_OK)
@@ -924,11 +915,124 @@ namespace FEATURE
             return;
         }
 
-        for (int degree = 1; degree <= max_degree; degree++)
+        execute_sql(db, "PRAGMA journal_mode=WAL;");
+        execute_sql(db, "PRAGMA synchronous=OFF;");
+        execute_sql(db, "PRAGMA temp_store=MEMORY;");
+        execute_sql(db, "PRAGMA cache_size=-200000;"); // ~200MB cache if available
+
+        if (reset_table)
+            execute_sql(db, "DROP TABLE IF EXISTS tags;");
+
+        // -------------------------------------------------
+        // Create optimized tags table
+        // -------------------------------------------------
+        std::string create_table_sql = R"(
+        CREATE TABLE IF NOT EXISTS tags (
+            name     TEXT NOT NULL,
+            ID       TEXT NOT NULL,
+            distance REAL NOT NULL CHECK(distance > 0 AND distance <= 1),
+            topic    TEXT NOT NULL,
+            degree   INTEGER NOT NULL CHECK(degree >= 1),
+            PRIMARY KEY (ID, topic)
+        ) WITHOUT ROWID;
+        )";
+
+        execute_sql(db, create_table_sql);
+
+        // -------------------------------------------------
+        // Required indexes
+        // -------------------------------------------------
+        execute_sql(db,
+                    "CREATE INDEX IF NOT EXISTS idx_tags_degree "
+                    "ON tags(degree);");
+
+        execute_sql(db,
+                    "CREATE INDEX IF NOT EXISTS idx_imf_source "
+                    "ON item_matrix_filtered(source_name);");
+
+        execute_sql(db,
+                    "CREATE INDEX IF NOT EXISTS idx_imf_target "
+                    "ON item_matrix_filtered(target_name);");
+
+        execute_sql(db,
+                    "CREATE INDEX IF NOT EXISTS idx_tf_id_topic "
+                    "ON tags_full(ID, topic);");
+
+        std::cout << "Database setup completed. Starting iterative topic expansion..." << std::endl;
+        // -------------------------------------------------
+        // Degree 1 (seed)
+        // -------------------------------------------------
+        const char *insert_degree1_sql = R"(
+            INSERT OR IGNORE INTO tags (name, ID, distance, topic, degree)
+            SELECT name, ID, distance, topic, 1
+            FROM tags_full
+            WHERE distance >= ?;
+        )";
+
+        execute_sql(db, "BEGIN;");
+
+        sqlite3_stmt *stmt = nullptr;
+        sqlite3_prepare_v2(db, insert_degree1_sql, -1, &stmt, nullptr);
+        sqlite3_bind_double(stmt, 1, threshold_degree1);
+        sqlite3_step(stmt);
+        sqlite3_finalize(stmt);
+
+        execute_sql(db, "COMMIT;");
+        std::cout << "Completed expanding to degree 1 (seed)" << std::endl;
+
+        // -------------------------------------------------
+        // Iterative Expansion
+        // -------------------------------------------------
+        for (int degree = 1; degree <= max_degree; ++degree)
         {
-            RECOMMEND::expand_degree(db, degree, degree + 1, threshold);
-            std::cout << "Completed expanding to degree " << degree + 1 << std::endl;
+            execute_sql(db, "BEGIN;");
+
+            const char *expand_sql = R"(
+            INSERT OR IGNORE INTO tags (name, ID, distance, topic, degree)
+
+            SELECT
+                CASE
+                    WHEN im.source_name = t.name THEN im.target_name
+                    ELSE im.source_name
+                END AS new_name,
+
+                tf.ID,
+                tf.distance,
+                t.topic,
+                ?
+
+            FROM tags t
+
+            JOIN item_matrix_filtered im
+                ON (im.source_name = t.name
+                 OR im.target_name = t.name)
+
+            JOIN tags_full tf
+                ON tf.name =
+                    CASE
+                        WHEN im.source_name = t.name THEN im.target_name
+                        ELSE im.source_name
+                    END
+                AND tf.topic = t.topic
+
+            WHERE t.degree = ?
+              AND im.distance >= ?;
+        )";
+
+            sqlite3_stmt *stmt = nullptr;
+            sqlite3_prepare_v2(db, expand_sql, -1, &stmt, nullptr);
+
+            sqlite3_bind_int(stmt, 1, degree + 1);   // new degree
+            sqlite3_bind_int(stmt, 2, degree);       // current degree
+            sqlite3_bind_double(stmt, 3, threshold); // similarity threshold
+
+            sqlite3_step(stmt);
+            sqlite3_finalize(stmt);
+
             execute_sql(db, "COMMIT;");
+
+            std::cout << "Completed expanding to degree "
+                      << degree + 1 << std::endl;
         }
 
         sqlite3_close(db);

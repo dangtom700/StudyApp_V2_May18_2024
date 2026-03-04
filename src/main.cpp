@@ -88,6 +88,13 @@ void labelTopics()
     std::cout << "Finished: Topics labeled." << std::endl;
 }
 
+void expandTopics()
+{
+    std::cout << "Expanding topics..." << std::endl;
+    FEATURE::iterative_topic_expansion(3, 0.5, 0.8, reset_table);
+    std::cout << "Finished: Topics expanded." << std::endl;
+}
+
 int main(int argc, char *argv[])
 {
     // Check if any command-line arguments were provided
@@ -105,7 +112,8 @@ int main(int argc, char *argv[])
         {"--processprompt", processPrompt},
         {"--computetfidf", computeTFIDF},
         {"--mappingitemmatrix", mappingItemMatrix},
-        {"--labeltopics", labelTopics}};
+        {"--labeltopics", labelTopics},
+        {"--expandtopics", expandTopics}};
 
     // Iterate through the provided command-line arguments and execute corresponding actions
     for (int i = 1; i < argc; ++i)

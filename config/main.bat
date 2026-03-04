@@ -49,7 +49,9 @@ set "computeRelationalDistance=0"
 set "ideation=0"
 set "promptReference=0"
 set "mappingItemMatrix=0"
-set "topicTokenize=1"
+set "topicTokenize=0"
+set "labelTopics=0"
+set "expandTopics=0"
 
 rem Process flags
 :process_flags
@@ -64,6 +66,8 @@ for %%A in (%*) do (
     if "%%A"=="--promptReference" set promptReference=1
     if "%%A"=="--mappingItemMatrix" set mappingItemMatrix=1
     if "%%A"=="--topicTokenize" set topicTokenize=1
+    if "%%A"=="--labelTopics" set labelTopics=1
+    if "%%A"=="--expandTopics" set expandTopics=1
 )
 
 rem Show Components
@@ -149,9 +153,24 @@ if %mappingItemMatrix%==1 (
 rem Topic Tokenize
 if %topicTokenize%==1 (
     python src/main.py --topicTokenize
-    word_tokenizer --labelTopics
     if %errorlevel% neq 0 (
         echo Error executing Topic Tokenization.
+    )
+)
+
+rem Label Topics
+if %labelTopics%==1 (
+    word_tokenizer --labelTopics
+    if %errorlevel% neq 0 (
+        echo Error executing Label Topics.
+    )
+)
+
+rem Expand Topics
+if %expandTopics%==1 (
+    word_tokenizer --expandTopics
+    if %errorlevel% neq 0 (
+        echo Error executing Expand Topics.
     )
 )
 
