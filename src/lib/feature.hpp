@@ -989,8 +989,7 @@ namespace FEATURE
             RECOMMEND::expand_degree(db, degree, degree + 1, threshold);
             execute_sql(db, "COMMIT;");
 
-            std::cout << "Completed expanding to degree "
-                      << degree + 1 << std::endl;
+            std::cout << "Completed expanding to degree " << degree + 1 << std::endl;
         }
 
         sqlite3_close(db);
