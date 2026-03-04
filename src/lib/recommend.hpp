@@ -295,28 +295,6 @@ namespace RECOMMEND
         sqlite3_finalize(stmt);
     }
 
-    void insert_tags(
-        const std::vector<std::tuple<std::string, std::string, std::string, double>> &RESULT,
-        sqlite3 *db)
-    {
-        std::string insert_sql = "INSERT OR IGNORE INTO tags (ID, name, distance, topic, degree) VALUES (?, ?, ?, ?, ?);";
-        sqlite3_stmt *stmt = prepareStatement(db, insert_sql);
-        if (!stmt)
-            return;
-
-        for (const auto &[target_id, target_name, topic, distance] : RESULT)
-        {
-            sqlite3_bind_text(stmt, 1, target_id.c_str(), -1, SQLITE_TRANSIENT);
-            sqlite3_bind_text(stmt, 2, target_name.c_str(), -1, SQLITE_TRANSIENT);
-            sqlite3_bind_double(stmt, 3, distance);
-            sqlite3_bind_text(stmt, 4, topic.c_str(), -1, SQLITE_TRANSIENT);
-            sqlite3_bind_int(stmt, 5, 1); // Default degree value
-            sqlite3_step(stmt);
-            sqlite3_reset(stmt);
-        }
-        sqlite3_finalize(stmt);
-    }
-
     void insert_tags_full(
         const std::vector<std::tuple<std::string, std::string, double>> &RESULT,
         const std::string &topic,
@@ -341,22 +319,45 @@ namespace RECOMMEND
 
     void expand_degree(sqlite3 *db, int from_degree, int to_degree, double threshold)
     {
-        std::string sql = "INSERT OR IGNORE INTO tags (name, topic, degree) "
-                          "SELECT DISTINCT "
-                          "CASE "
-                          "WHEN im.source_name = t.name THEN im.target_name "
-                          "ELSE im.source_name "
-                          "END, "
-                          "t.topic, " +
-                          std::to_string(to_degree) + " "
-                                                      "FROM item_matrix im "
-                                                      "JOIN tags t ON (im.source_name = t.name OR im.target_name = t.name) "
-                                                      "WHERE t.degree = ? AND im.distance > ?;";
-        sqlite3_stmt *stmt = prepareStatement(db, sql);
-        if (!stmt)
-            return;
-        sqlite3_bind_int(stmt, 1, from_degree);
-        sqlite3_bind_double(stmt, 2, threshold);
+        const char *expand_sql = R"(
+            INSERT OR IGNORE INTO tags (name, ID, distance, topic, degree)
+
+            SELECT
+                CASE
+                    WHEN im.source_name = t.name THEN im.target_name
+                    ELSE im.source_name
+                END AS new_name,
+
+                tf.ID,
+                tf.distance,
+                t.topic,
+                ?
+
+            FROM tags t
+
+            JOIN item_matrix_filtered im
+                ON (im.source_name = t.name
+                 OR im.target_name = t.name)
+
+            JOIN tags_full tf
+                ON tf.name =
+                    CASE
+                        WHEN im.source_name = t.name THEN im.target_name
+                        ELSE im.source_name
+                    END
+                AND tf.topic = t.topic
+
+            WHERE t.degree = ?
+              AND im.distance >= ?;
+        )";
+
+        sqlite3_stmt *stmt = nullptr;
+        sqlite3_prepare_v2(db, expand_sql, -1, &stmt, nullptr);
+
+        sqlite3_bind_int(stmt, 1, to_degree);    // new degree
+        sqlite3_bind_int(stmt, 2, from_degree);  // current degree
+        sqlite3_bind_double(stmt, 3, threshold); // similarity threshold
+
         sqlite3_step(stmt);
         sqlite3_finalize(stmt);
     }

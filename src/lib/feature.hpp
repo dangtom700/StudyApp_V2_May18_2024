@@ -986,49 +986,7 @@ namespace FEATURE
         for (int degree = 1; degree <= max_degree; ++degree)
         {
             execute_sql(db, "BEGIN;");
-
-            const char *expand_sql = R"(
-            INSERT OR IGNORE INTO tags (name, ID, distance, topic, degree)
-
-            SELECT
-                CASE
-                    WHEN im.source_name = t.name THEN im.target_name
-                    ELSE im.source_name
-                END AS new_name,
-
-                tf.ID,
-                tf.distance,
-                t.topic,
-                ?
-
-            FROM tags t
-
-            JOIN item_matrix_filtered im
-                ON (im.source_name = t.name
-                 OR im.target_name = t.name)
-
-            JOIN tags_full tf
-                ON tf.name =
-                    CASE
-                        WHEN im.source_name = t.name THEN im.target_name
-                        ELSE im.source_name
-                    END
-                AND tf.topic = t.topic
-
-            WHERE t.degree = ?
-              AND im.distance >= ?;
-        )";
-
-            sqlite3_stmt *stmt = nullptr;
-            sqlite3_prepare_v2(db, expand_sql, -1, &stmt, nullptr);
-
-            sqlite3_bind_int(stmt, 1, degree + 1);   // new degree
-            sqlite3_bind_int(stmt, 2, degree);       // current degree
-            sqlite3_bind_double(stmt, 3, threshold); // similarity threshold
-
-            sqlite3_step(stmt);
-            sqlite3_finalize(stmt);
-
+            RECOMMEND::expand_degree(db, degree, degree + 1, threshold);
             execute_sql(db, "COMMIT;");
 
             std::cout << "Completed expanding to degree "
