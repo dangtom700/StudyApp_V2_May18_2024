@@ -2,14 +2,14 @@ import concurrent.futures as cf
 import os
 import sqlite3
 import re
+import hashlib
 
 from modules.path import chunk_database_path
 
 # --- Config ---
-
+HASH_NAME_PATTERN = re.compile(r"^[a-f0-9]{64}\.pdf$")
 BATCH_SIZE = 100
 
-# -----------------------------------------------------------------------------------------------
 # -----------------------------------------------------------------------------------------------
 
 """
@@ -175,3 +175,40 @@ def extract_text(SOURCE_FOLDER, DEST_FOLDER, CHUNK_SIZE=512, DB_PATH=chunk_datab
     num_completed = cursor.execute("SELECT COUNT(DISTINCT file_name) FROM pdf_chunks").fetchone()[0]
     print(f"[INFO] {num_completed}/{num_raw_files - num_zero} files processed.")
     conn.close()
+
+def hash_file_content(path):
+    hasher = hashlib.sha256()
+    with open(path, "rb") as f:
+        while chunk := f.read(1048576):
+            hasher.update(chunk)
+    return hasher.hexdigest()
+
+import re
+
+HASH_NAME_PATTERN = re.compile(r"^[a-f0-9]{64}\.pdf$")
+
+def rename_files(folder):
+    for file in os.listdir(folder):
+        if not file.lower().endswith(".pdf"):
+            continue
+
+        if HASH_NAME_PATTERN.match(file):
+            continue
+
+        old_path = os.path.join(folder, file)
+
+        try:
+            file_hash = hash_file_content(old_path)
+            new_name = f"{file_hash}.pdf"
+            new_path = os.path.join(folder, new_name)
+
+            if os.path.exists(new_path):
+                print(f"[SKIP] Duplicate detected: {file} -> {new_name}")
+                os.remove(old_path)
+                continue
+
+            os.rename(old_path, new_path)
+            print(f"[RENAMED] {file} -> {new_name}")
+
+        except Exception as e:
+            print(f"[ERROR] Failed to process {file}: {e}")

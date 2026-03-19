@@ -19,3 +19,5 @@ assign_topics.ipynb
 analysis/
 wiki_topics/
 config/main_tag.bat
+compressed_vectors.csv
+build/
