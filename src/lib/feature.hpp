@@ -100,30 +100,35 @@ namespace FEATURE
             // Create tables if reset_table is true
             if (reset_table)
             {
-                std::string create_table_sql = R"(
+                // Only drop tables
+                std::string drop_sql = R"(
                     DROP TABLE IF EXISTS file_token;
-                    CREATE TABLE IF NOT EXISTS file_token (
-                        file_name TEXT PRIMARY KEY,
-                        total_tokens INTEGER,
-                        unique_tokens INTEGER,
-                        relational_distance REAL
-                    );
-                )";
-                execute_sql(db, create_table_sql);
-
-                create_table_sql = R"(
                     DROP TABLE IF EXISTS relation_distance;
-                    CREATE TABLE IF NOT EXISTS relation_distance (
-                        file_name TEXT,
-                        token TEXT,
-                        frequency INTEGER,
-                        relational_distance REAL,
-                        PRIMARY KEY (file_name, Token)
-                    );
                 )";
-                execute_sql(db, create_table_sql);
-                std::cout << "Tables created successfully" << std::endl;
+                execute_sql(db, drop_sql);
             }
+
+            // Only create tables if they do not exist
+            std::string create_sql = R"(
+                CREATE TABLE IF NOT EXISTS file_token (
+                    file_name TEXT PRIMARY KEY,
+                    total_tokens INTEGER,
+                    unique_tokens INTEGER,
+                    relational_distance REAL
+                );
+            )";
+            execute_sql(db, create_sql);
+
+            create_sql = R"(
+                CREATE TABLE IF NOT EXISTS relation_distance (
+                    file_name TEXT,
+                    token TEXT,
+                    frequency INTEGER,
+                    relational_distance REAL,
+                    PRIMARY KEY (file_name, token)
+                );
+            )";
+            execute_sql(db, create_sql);
 
             // Start a transaction to speed up multiple inserts
             execute_sql(db, "BEGIN TRANSACTION;");
@@ -259,19 +264,18 @@ namespace FEATURE
 
         // Create or reset the table if required
         if (reset_table)
-        {
-            std::string create_table_sql = R"(
-                DROP TABLE IF EXISTS file_info;
-                CREATE TABLE IF NOT EXISTS file_info (
-                    id TEXT NOT NULL,
-                    file_name TEXT PRIMARY KEY,
-                    file_path TEXT NOT NULL,
-                    epoch_time INTEGER NOT NULL,
-                    chunk_count INTEGER NOT NULL
-                );
-            )";
-            execute_sql(db, create_table_sql);
-        }
+            execute_sql(db, "DROP TABLE IF EXISTS file_info");
+
+        std::string create_table_sql = R"(
+            CREATE TABLE IF NOT EXISTS file_info (
+                id TEXT NOT NULL,
+                file_name TEXT PRIMARY KEY,
+                file_path TEXT NOT NULL,
+                epoch_time INTEGER NOT NULL,
+                chunk_count INTEGER NOT NULL
+            );
+        )";
+        execute_sql(db, create_table_sql);
 
         // Start a transaction for batch processing
         execute_sql(db, "BEGIN TRANSACTION;");
