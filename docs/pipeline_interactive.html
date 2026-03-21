@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LearnCraft Pipeline Documentation</title>
+    <link rel="icon" href="https://th.bing.com/th/id/OIP.JBlEwFEGnOPhnB7JVqyHSwHaH_?pid=ImgDet&w=179&h=193&c=7&dpr=1.5">
+    <link rel="stylesheet" href="interactive_archived.css">
+</head>
+
+<body>
+    <div class="Title">
+        <h1>LearnCraft: Data Pipeline Execution Flow</h1>
+    </div>
+
+    <div class="Credits" style="text-align: center; margin-bottom: 30px; font-style: italic; color: #555;">
+        <p>Created and developed by Dang Tom</p>
+        <p>Date: 2026-03-21</p>
+    </div>
+
+    <div class="Introduction">
+        <h2>System Architecture Overview</h2>
+        <p>The LearnCraft pipeline (<code>config\main.bat</code>) operates on a powerful dual-language architecture:</p>
+        <ul>
+            <li><strong>Python:</strong> Handles data ingestion, PDF text extraction, Natural Language Processing, and
+                LLM integrations.</li>
+            <li><strong>C++:</strong> Built as <code>word_tokenizer</code> from <code>src/main.cpp</code>, this module
+                is highly optimized for heavy numerical computation, calculating relational distances, and mapping token
+                matrices.</li>
+        </ul>
+        <p>Follow the timeline beneath to understand how a stack of raw PDF files is systematically transformed into
+            structured, queryable data, eventually feeding into multi-model LLM ideation and content preferencing.</p>
+    </div>
+
+    <!-- Timeline UI Section -->
+    <div class="timeline" style="margin-top: 40px; margin-bottom: 40px;">
+        <!-- Step 1 -->
+        <div class="container left">
+            <div class="content">
+                <h2>1. Data Ingestion (PDF Stack)</h2>
+                <p>Starting with a fresh stack of PDF files, the system parses, renames, and extracts clean text chunks
+                    for further analysis.</p>
+                <ul>
+                    <li><code>python src/main.py --renameFile</code>: Standardizes file names utilizing a reliable
+                        hashing algorithm.</li>
+                    <li><code>python src/main.py --extractText</code>: Parses PDFs and systematically inserts ~1024
+                        character chunks directly into the database.</li>
+                    <li><code>word_tokenizer --updateDatabaseInformation</code>: The C++ module rapidly scans the
+                        resources directory to initialize DB metadata correctly.</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Step 2 -->
+        <div class="container right">
+            <div class="content">
+                <h2>2. Text Processing & NLP Analysis</h2>
+                <p>The parsed textual corpus is normalized, indexed by stems, and heavily analyzed for frequency and
+                    predefined topics.</p>
+                <ul>
+                    <li><code>python src/main.py --processWordFreq</code>: Analyzes raw word frequencies, filters out
+                        stop words, and creates precise index tables.</li>
+                    <li><code>python src/main.py --topicTokenize</code>: Tokenizes a predefined dictionary of scientific
+                        constraints (e.g., epidemiology, quantum computing) to set authoritative baselines.</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Step 3 -->
+        <div class="container left">
+            <div class="content">
+                <h2>3. High-Performance Computation (C++)</h2>
+                <p>Heavy numeric processing is delegated to optimized C++ subroutines, enabling rapid discovery of
+                    correlations.</p>
+                <ul>
+                    <li><code>word_tokenizer --computeRelationalDistance</code>: Derives the Euclidean norm between
+                        differing token frequency vectors.</li>
+                    <li><code>word_tokenizer --computeTFIDF</code>: Runs Term Frequency-Inverse Document Frequency
+                        evaluations on the entire DB.</li>
+                    <li><code>word_tokenizer --mappingItemMatrix</code>: Projects and maps relationship matrices
+                        accurately across all nodes.</li>
+                    <li><code>word_tokenizer --labelTopics</code> / <code>--expandTopics</code>: Iteratively models,
+                        labels, and expands thematic topics via statistical clustering.</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Step 4 -->
+        <div class="container right">
+            <div class="content">
+                <h2>4. Contextual Prompting & Reference</h2>
+                <p>With vectorized distances effectively mapped, raw user queries are strictly matched against highly
+                    relevant document pieces.</p>
+                <ul>
+                    <li><code>python src/main.py --tokenizePrompt</code>: Syntactically assesses the user's immediate
+                        search context.</li>
+                    <li><code>word_tokenizer --processPrompt</code>: Isolates and targets specific matching segments
+                        inside the pre-computed database for instantaneous retrieval.</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Step 5 -->
+        <div class="container left">
+            <div class="content">
+                <h2>5. LLM Ideation & Content Preferencing</h2>
+                <p>Ultimately, referenced context acts as the bedrock for creative and analytic LLM interactive
+                    ideation.</p>
+                <ul>
+                    <li><code>python src/ideation.py</code>: Fully automates the start of a local Ollama server, piping
+                        contextual queries asynchronously across leading LLMs (e.g., Llama3, Mistral, DeepSeek).</li>
+                    <li>Outputs and catalogs rich, parallel LLM conversations cleanly into organized markdown/text
+                        session records.</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- Flag Reference Table -->
+    <div class="Main_content" style="margin-top: 50px;">
+        <div class="Main_content_title">
+            <h2>Batch Configuration Flag Dictionary</h2>
+        </div>
+        <div style="padding: 20px;">
+            <table style="width: 100%; border-collapse: collapse;">
+                <tr>
+                    <th style="padding: 10px; background-color: #f2f2f2;">Flag Variable (main.bat)</th>
+                    <th style="padding: 10px; background-color: #f2f2f2;">Triggered Command</th>
+                    <th style="padding: 10px; background-color: #f2f2f2;">Execution Step</th>
+                </tr>
+                <tr>
+                    <td style="padding: 10px;"><code>run_renameFile</code></td>
+                    <td style="padding: 10px;"><code>python src/main.py --renameFile</code></td>
+                    <td style="padding: 10px;">PDF Hashing & Standarization</td>
+                </tr>
+                <tr>
+                    <td style="padding: 10px;"><code>run_extractText</code></td>
+                    <td style="padding: 10px;"><code>python src/main.py --extractText</code></td>
+                    <td style="padding: 10px;">Database Chunk Injection</td>
+                </tr>
+                <tr>
+                    <td style="padding: 10px;"><code>run_updateDatabaseInformation</code></td>
+                    <td style="padding: 10px;"><code>word_tokenizer --updateDatabaseInformation</code></td>
+                    <td style="padding: 10px;">Dataset Meta-population</td>
+                </tr>
+                <tr>
+                    <td style="padding: 10px;"><code>run_processWordFreq</code></td>
+                    <td style="padding: 10px;"><code>python src/main.py --processWordFreq</code></td>
+                    <td style="padding: 10px;">Stemming & Word Extraction</td>
+                </tr>
+                <tr>
+                    <td style="padding: 10px;"><code>run_computeRelationalDistance</code></td>
+                    <td style="padding: 10px;"><code>word_tokenizer --computeRelationalDistance</code></td>
+                    <td style="padding: 10px;">Euclidean Distance Mapping</td>
+                </tr>
+                <tr>
+                    <td style="padding: 10px;"><code>run_computeTFIDF</code></td>
+                    <td style="padding: 10px;"><code>word_tokenizer --computeTFIDF</code></td>
+                    <td style="padding: 10px;">TF-IDF Matrix Evaluation</td>
+                </tr>
+                <tr>
+                    <td style="padding: 10px;"><code>run_mappingItemMatrix</code></td>
+                    <td style="padding: 10px;"><code>word_tokenizer --mappingItemMatrix</code></td>
+                    <td style="padding: 10px;">General Token Mapping</td>
+                </tr>
+                <tr>
+                    <td style="padding: 10px;"><code>run_topicTokenize</code></td>
+                    <td style="padding: 10px;"><code>python src/main.py --topicTokenize</code></td>
+                    <td style="padding: 10px;">Core Term Bootstrapping</td>
+                </tr>
+                <tr>
+                    <td style="padding: 10px;"><code>run_labelTopics</code></td>
+                    <td style="padding: 10px;"><code>word_tokenizer --labelTopics</code></td>
+                    <td style="padding: 10px;">Topic Clustering Labeling</td>
+                </tr>
+                <tr>
+                    <td style="padding: 10px;"><code>run_expandTopics</code></td>
+                    <td style="padding: 10px;"><code>word_tokenizer --expandTopics</code></td>
+                    <td style="padding: 10px;">Dynamically Expands Topics</td>
+                </tr>
+                <tr>
+                    <td style="padding: 10px;"><code>run_promptReference</code></td>
+                    <td style="padding: 10px;">
+                        <code>python src/main.py --tokenizePrompt</code><br><code>word_tokenizer --processPrompt</code>
+                    </td>
+                    <td style="padding: 10px;">Matching Search Contexts</td>
+                </tr>
+                <tr>
+                    <td style="padding: 10px;"><code>run_ideation</code></td>
+                    <td style="padding: 10px;"><code>python src/ideation.py</code></td>
+                    <td style="padding: 10px;">Multi-LLM Stream Pipeline</td>
+                </tr>
+            </table>
+        </div>
+    </div>
+</body>
+
+</html>
