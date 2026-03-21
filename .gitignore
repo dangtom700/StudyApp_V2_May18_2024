@@ -21,3 +21,4 @@ wiki_topics/
 config/main_tag.bat
 compressed_vectors.csv
 build/
+.cache/
