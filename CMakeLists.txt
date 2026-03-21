@@ -9,12 +9,19 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 # -----------------------------
 add_executable(LibraryManager
     app/main.cpp
+    app/lib/database_manager.cpp
+    app/lib/library_system.cpp
 )
 
 target_include_directories(LibraryManager PUBLIC
     app/lib
 )
 
-# JSON library
+# Dependencies
 find_package(nlohmann_json REQUIRED)
-target_link_libraries(LibraryManager PRIVATE nlohmann_json::nlohmann_json)
+find_package(SQLite3 REQUIRED)
+
+target_link_libraries(LibraryManager PRIVATE 
+    nlohmann_json::nlohmann_json
+    SQLite::SQLite3
+)
