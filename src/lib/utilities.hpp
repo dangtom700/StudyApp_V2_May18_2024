@@ -95,7 +95,7 @@ namespace UTILITIES_HPP {
                 std::cout << "Could not open file" << std::endl;
                 return;
             }
-            file << "ID, File Name, File Path, Epoch Time, Chunk Count, Starting ID, Ending ID" << std::endl;
+            file << "ID, File Name, File Path, Epoch Time, Chunk Count" << std::endl;
         }
 
         // Dump the contents of a DataEntry to a file

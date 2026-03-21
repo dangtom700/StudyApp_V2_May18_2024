@@ -13,6 +13,7 @@ def app():
                                      allow_abbrev=True)
     
     parser.add_argument("--displayHelp", action= 'store_true', help= 'Display help message')
+    parser.add_argument("--renameFile", action= 'store_true', help= 'Encode the file name with hashing algorithm')
     parser.add_argument("--extractText", action= 'store_true', help= 'Extract text from PDF files and store in database')
     parser.add_argument("--processWordFreq", action= 'store_true', help="Create index tables and analyze word frequencies all in one")
     parser.add_argument("--tokenizePrompt", action= 'store_true', help="Prompt to find references in full database based on context of search")
@@ -23,6 +24,9 @@ def app():
 
     if args.displayHelp:
         print("This project is to meant to store record of learning activities. The files and record of activities are then transfer into database that show user the timeline and activities done in that day. Python is used to extract text from PDF files and store in database. Python also offers a few useful modules to process Natural Language Processing and word processing modules to conviniently analyze word frequencies and word stems to clean up textual data for processing cosine similarity search.")
+
+    if args.renameFile:
+        extract_text.rename_files(path.pdf_path)
 
     if args.extractText: # function is functioning properly
         
@@ -56,7 +60,7 @@ def app():
         tf_idf.computeTFIDF()
 
     if args.topicTokenize:
-        TOPICS = {""}
+        TOPICS = {"epidemiology", "endocrinology", "immunology", "gerontology", "toxicology", "glaciology", "crystallography", "petrology", "acoustics", "photonics", "ethics", "meta-ethics", "theology", "etymology", "demography", "museology", "quantum computing", "chaos theory", "number theory", "bioengineering", "formal methods", "tribology", "cryogenics", "phononics", "metamaterials", "digital twins", "edge computing", "swarm intelligence", "neuromorphic engineering", "haptics", "synthetic biology", "pharmacokinetics", "biomanufacturing", "neuroprosthetics", "proteomics", "epistemology", "ethnomusicology", "cliodynamics", "jurisprudence", "hydrometeorology", "geochronology", "agroecology", "limnology"}
         word_freq.tokenize_topics(TOPIC_LIST=TOPICS)
 
 if __name__ == "__main__":

@@ -84,14 +84,14 @@ void mappingItemMatrix()
 void labelTopics()
 {
     std::cout << "Labeling topics..." << std::endl;
-    FEATURE::label_topics(true, reset_table);
+    FEATURE::label_topics(true, true);
     std::cout << "Finished: Topics labeled." << std::endl;
 }
 
 void expandTopics()
 {
     std::cout << "Expanding topics..." << std::endl;
-    FEATURE::iterative_topic_expansion(3, 0.5, 0.8, reset_table);
+    FEATURE::iterative_topic_expansion(3, 0.5, 0.5, true);
     std::cout << "Finished: Topics expanded." << std::endl;
 }
 
