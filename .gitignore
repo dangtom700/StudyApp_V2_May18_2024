@@ -22,3 +22,4 @@ config/main_tag.bat
 compressed_vectors.csv
 build/
 .cache/
+app/__pycache__/
