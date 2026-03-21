@@ -25,3 +25,27 @@ target_link_libraries(LibraryManager PRIVATE
     nlohmann_json::nlohmann_json
     SQLite::SQLite3
 )
+
+# -----------------------------
+# Tests
+# -----------------------------
+enable_testing()
+
+add_executable(test_library
+    test/test_main.cpp
+    test/test_database_manager.cpp
+    test/test_library_system.cpp
+    app/lib/database_manager.cpp
+    app/lib/library_system.cpp
+)
+
+target_include_directories(test_library PUBLIC
+    app/lib
+)
+
+target_link_libraries(test_library PRIVATE 
+    nlohmann_json::nlohmann_json
+    SQLite::SQLite3
+)
+
+add_test(NAME LibraryTests COMMAND test_library)
