@@ -842,10 +842,7 @@ namespace FEATURE
             execute_sql(db, "COMMIT;");
 
             if (show_progress)
-            {
-                std::cout << "Completed ID: " << id << " (" << file_name << "), Tokens: " << filtered_tokens.size()
-                          << ", Remaining unique IDs to compare: " << comparison_list.size() << std::endl;
-            }
+                std::cout << id << std::endl;
         }
 
         sqlite3_close(db);
