@@ -1,27 +1,6 @@
 @echo off
 
-REM ========================================
-REM Program Description
-REM This program is part of the study logging and database project.
-REM It has features implemented in both C++ and Python.
-REM 
-REM C++ Features:
-REM     1. --computeRelationalDistance
-REM     2. --updateDatabaseInformation
-REM     3. --mappingItemMatrix
-REM 
-REM Python Features:
-REM     1. --extractText
-REM     2. --processWordFreq
-REM     3. --getDataset
-REM 
-REM Merged Feature:
-REM     1. --promptReference
-REM 
-REM Run with command-line flags to select features.
-REM ========================================
-
-@REM rem Clear terminal
+@REM Clear terminal
 cls
 
 rem Record start time
@@ -45,8 +24,8 @@ set "renameFile=0"
 set "extractText=1"
 set "updateDatabaseInformation=1"
 set "processWordFreq=1"
-set "computeTFIDF=1"
 set "computeRelationalDistance=1"
+set "computeTFIDF=1"
 set "ideation=0"
 set "promptReference=0"
 set "mappingItemMatrix=1"
@@ -62,8 +41,8 @@ for %%A in (%*) do (
     if "%%A"=="--extractText" set extractText=1
     if "%%A"=="--updateDatabaseInformation" set updateDatabaseInformation=1
     if "%%A"=="--processWordFreq" set processWordFreq=1
-    if "%%A"=="--computeTFIDF" set computeTFIDF=1
     if "%%A"=="--computeRelationalDistance" set computeRelationalDistance=1
+    if "%%A"=="--computeTFIDF" set computeTFIDF=1
     if "%%A"=="--ideation" set ideation=1
     if "%%A"=="--promptReference" set promptReference=1
     if "%%A"=="--mappingItemMatrix" set mappingItemMatrix=1
