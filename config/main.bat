@@ -27,11 +27,11 @@ set "processWordFreq=0"
 set "computeRelationalDistance=0"
 set "computeTFIDF=0"
 set "ideation=0"
-set "promptReference=1"
+set "promptReference=0"
 set "mappingItemMatrix=1"
 set "topicTokenize=1"
 set "labelTopics=1"
-set "expandTopics=1"
+set "expandTopics=0"
 
 rem Process flags
 :process_flags
