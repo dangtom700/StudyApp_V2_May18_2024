@@ -60,7 +60,7 @@ def app():
         tf_idf.computeTFIDF()
 
     if args.topicTokenize:
-        TOPICS = {"epidemiology", "endocrinology", "immunology", "gerontology", "toxicology", "glaciology", "crystallography", "petrology", "acoustics", "photonics", "ethics", "meta-ethics", "theology", "etymology", "demography", "museology", "quantum computing", "chaos theory", "number theory", "bioengineering", "formal methods", "tribology", "cryogenics", "phononics", "metamaterials", "digital twins", "edge computing", "swarm intelligence", "neuromorphic engineering", "haptics", "synthetic biology", "pharmacokinetics", "biomanufacturing", "neuroprosthetics", "proteomics", "epistemology", "ethnomusicology", "cliodynamics", "jurisprudence", "hydrometeorology", "geochronology", "agroecology", "limnology"}
+        TOPICS = {""}
         word_freq.tokenize_topics(TOPIC_LIST=TOPICS)
 
 if __name__ == "__main__":

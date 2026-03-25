@@ -63,7 +63,7 @@ void updateDatabaseInformation()
 void processPrompt()
 {
     std::cout << "Processing prompt..." << std::endl;
-    FEATURE::processPrompt(9999);
+    FEATURE::processPrompt();
     std::cout << "Finished: Prompt processed." << std::endl;
 }
 

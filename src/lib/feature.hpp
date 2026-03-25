@@ -391,9 +391,8 @@ namespace FEATURE
      * Name: [[<name>]]
      * -----------------------------------------------------------------
      *
-     * @param top_n The number of top results to output
      */
-    void processPrompt(const int &top_n)
+    void processPrompt()
     {
         try
         {
@@ -527,10 +526,9 @@ namespace FEATURE
             std::sort(RESULT.begin(), RESULT.end(), [](const auto &a, const auto &b)
                       { return std::get<2>(a) > std::get<2>(b); });
 
-            uint16_t top_n_value = std::min(static_cast<uint16_t>(RESULT.size()), static_cast<uint16_t>(top_n));
-            output_file << "Top " << top_n_value << " Results:\n"
+            output_file << "Results:\n"
                         << "-----------------------------------------------------------------\n";
-            for (uint16_t i = 0; i < top_n_value; i++)
+            for (uint16_t i = 0; i < RESULT.size(); i++)
             {
                 output_file << "ID: " << std::get<0>(RESULT[i]) << "\n"
                             << "Distance: " << std::get<2>(RESULT[i]) << "\n"
