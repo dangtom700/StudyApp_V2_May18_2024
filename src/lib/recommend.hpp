@@ -119,7 +119,7 @@ namespace RECOMMEND
     std::vector<std::tuple<std::string, int, double>> load_token_map(sqlite3 *db, const std::string &id)
     {
         std::vector<std::tuple<std::string, int, double>> filtered_tokens;
-        std::string sql = "SELECT Token, frequency, relational_distance FROM relation_distance WHERE file_name = ?";
+        std::string sql = "SELECT Token, frequency, relational_distance FROM relation_distance WHERE file_name = ? AND frequency > 10";
         sqlite3_stmt *stmt = prepareStatement(db, sql);
         if (!stmt)
             return filtered_tokens;
@@ -150,7 +150,7 @@ namespace RECOMMEND
         std::map<std::string, int> token_freq_map;
 
         std::string sql =
-            "SELECT token, frequency FROM topic_token WHERE topic = ?";
+            "SELECT token, frequency FROM topic_token WHERE topic = ? WHERE frequency > 10";
 
         sqlite3_stmt *stmt = prepareStatement(db, sql);
         if (!stmt)

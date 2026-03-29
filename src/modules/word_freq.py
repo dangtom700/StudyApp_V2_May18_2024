@@ -193,6 +193,8 @@ def retrieve_token_list(title_id, database):
     finally:
         conn.close()  # Ensure the connection is closed
 
+    print(f"Complete {title_id}")
+
     return clean_text_dict
 
 # Process chunks in batches and store word frequencies in individual JSON files

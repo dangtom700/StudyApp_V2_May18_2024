@@ -627,41 +627,58 @@ namespace FEATURE
         return files; // Return the filtered list
     }
 
-    /**
-     * Computes TF-IDF values for all words in the database.
-     *
-     * TF-IDF (Term Frequency-Inverse Document Frequency) is a measure of how important a word is in a document.
-     * It takes into account the frequency of the word in the current document and the frequency of the word in all
-     * documents in the database.
-     *
-     * The function does the following steps:
-     * 1. Loads the JSON file containing the global word frequencies.
-     * 2. Filters out words with a frequency less than MIN_THRES_FREQ.
-     * 3. Computes the TF-IDF value for each filtered word.
-     * 4. Stores the TF-IDF values in the database.
-     *
-     * @param MIN_THRES_FREQ The minimum frequency of a word to be included in the computation.
-     * @param BUFFER_SIZE The number of records to process at once. This is used to speed up the computation.
-     */
+/**
+ * Computes TF-IDF values for all words in the database.
+ *
+ * TF-IDF (Term Frequency-Inverse Document Frequency) is a measure of how important a word is in a document.
+ * It takes into account the frequency of the word in the current document and the frequency of the word in all
+ * documents in the database.
+ *
+ * The function does the following steps:
+ * 1. Loads the JSON file containing the global word frequencies.
+ * 2. Filters out words with a frequency less than MIN_THRES_FREQ.
+ * 3. Computes the TF-IDF value for each filtered word.
+ * 4. Stores the TF-IDF values in the database.
+ *
+ * @param MIN_THRES_FREQ The minimum frequency of a word to be included in the computation.
+ * @param BUFFER_SIZE The number of records to process at once. This is used to speed up the computation.
+ */
+#include <filesystem>
+#include <fstream>
+#include <unordered_map>
+#include <iostream>
+#include <vector>
+#include <cmath>
+#include <sqlite3.h>
+#include <nlohmann/json.hpp>
+
+    using json = nlohmann::json;
+
+    struct TFIDFRecord
+    {
+        std::string word;
+        int freq;
+        int doc_count;
+        double tf_idf;
+    };
+
     void computeTFIDF(const uint16_t &MIN_THRES_FREQ = 4,
                       const uint16_t &BUFFER_SIZE = 1000)
     {
-
-        const std::string &chunk_database_path = ENV_HPP::database_path.string();
-        const std::string &GLOBAL_JSON_PATH = ENV_HPP::global_terms_path.string();
+        const std::string db_path = ENV_HPP::database_path.string();
+        const std::string GLOBAL_JSON_PATH = ENV_HPP::global_terms_path.string();
+        const std::string DATASET_FOLDER = ENV_HPP::json_path.string();
 
         sqlite3 *db;
-        if (sqlite3_open(chunk_database_path.c_str(), &db) != SQLITE_OK)
+        if (sqlite3_open(db_path.c_str(), &db) != SQLITE_OK)
         {
             std::cerr << "Can't open database\n";
             return;
         }
 
-        // Speed optimizations
         execute_sql(db, "PRAGMA journal_mode=WAL;");
         execute_sql(db, "PRAGMA synchronous = OFF;");
 
-        // Create tf_idf table
         execute_sql(db,
                     "CREATE TABLE IF NOT EXISTS tf_idf ("
                     "word TEXT PRIMARY KEY, "
@@ -669,31 +686,94 @@ namespace FEATURE
                     "doc_count INTEGER, "
                     "tf_idf REAL)");
 
-        // Load JSON
-        std::ifstream inputFile(GLOBAL_JSON_PATH);
-        json global_word_freq;
-        inputFile >> global_word_freq;
+        std::unordered_map<std::string, int> global_freq;
 
-        std::map<std::string, int> filtered_words;
-        for (auto &[word, freq] : global_word_freq.items())
+        bool loaded_from_backup = false;
+
+        if (std::filesystem::exists(GLOBAL_JSON_PATH))
+        {
+            try
+            {
+                std::ifstream in(GLOBAL_JSON_PATH);
+                json j;
+                in >> j;
+
+                for (auto &[word, freq] : j.items())
+                    global_freq[word] = freq.get<int>();
+
+                loaded_from_backup = true;
+                std::cout << "[INFO] Loaded global frequency from backup\n";
+            }
+            catch (...)
+            {
+                std::cerr << "[WARNING] Backup corrupted. Rebuilding...\n";
+            }
+        }
+
+        if (!loaded_from_backup)
+        {
+            std::cout << "[INFO] Aggregating JSON files...\n";
+
+            for (const auto &entry : std::filesystem::recursive_directory_iterator(DATASET_FOLDER))
+            {
+                if (entry.path().extension() != ".json")
+                    continue;
+
+                std::ifstream in(entry.path());
+                if (!in.is_open())
+                    continue;
+
+                try
+                {
+                    json j;
+                    in >> j;
+
+                    for (auto &[word, freq] : j.items())
+                    {
+                        global_freq[word] += freq.get<int>();
+                    }
+                }
+                catch (...)
+                {
+                    std::cerr << "[WARNING] Skipping bad JSON: "
+                              << entry.path() << std::endl;
+                }
+            }
+
+            std::cout << "[INFO] Saving backup...\n";
+
+            json out_json;
+            for (auto &[word, freq] : global_freq)
+                out_json[word] = freq;
+
+            std::string temp_path = GLOBAL_JSON_PATH + ".tmp";
+
+            {
+                std::ofstream out(temp_path);
+                out << out_json.dump();
+            }
+
+            std::filesystem::rename(temp_path, GLOBAL_JSON_PATH);
+        }
+
+        std::unordered_map<std::string, int> filtered_words;
+        int sum_freq = 0;
+
+        for (auto &[word, freq] : global_freq)
         {
             if (freq >= MIN_THRES_FREQ && word.length() > 1)
             {
                 filtered_words[word] = freq;
+                sum_freq += freq;
             }
         }
 
-        int sum_freq = 0;
-        for (const auto &[word, freq] : filtered_words)
-        {
-            sum_freq += freq;
-        }
+        std::unordered_map<std::string, int> word_doc_counts;
 
-        // Get doc count per token
-        std::map<std::string, int> word_doc_counts;
         sqlite3_stmt *stmt;
+        std::string query =
+            "SELECT token, COUNT(DISTINCT file_name) FROM relation_distance GROUP BY token;";
 
-        std::string query = "SELECT token, COUNT(DISTINCT file_name) FROM relation_distance GROUP BY token;";
         if (sqlite3_prepare_v2(db, query.c_str(), -1, &stmt, nullptr) == SQLITE_OK)
         {
             while (sqlite3_step(stmt) == SQLITE_ROW)
@@ -705,9 +785,9 @@ namespace FEATURE
         }
         sqlite3_finalize(stmt);
 
-        // Get total number of documents
         int total_docs = 0;
         query = "SELECT COUNT(DISTINCT file_name) FROM relation_distance;";
+
         if (sqlite3_prepare_v2(db, query.c_str(), -1, &stmt, nullptr) == SQLITE_OK &&
             sqlite3_step(stmt) == SQLITE_ROW)
         {
@@ -715,73 +795,41 @@ namespace FEATURE
         }
         sqlite3_finalize(stmt);
 
-        // Begin transaction
         execute_sql(db, "BEGIN TRANSACTION;");
+
         std::vector<TFIDFRecord> buffer;
 
-        for (const auto &[word, freq] : filtered_words)
+        sqlite3_stmt *insertStmt;
+        std::string sql =
+            "INSERT INTO tf_idf (word, freq, doc_count, tf_idf) VALUES (?, ?, ?, ?) "
+            "ON CONFLICT(word) DO UPDATE SET "
+            "freq=excluded.freq, doc_count=excluded.doc_count, tf_idf=excluded.tf_idf;";
+
+        sqlite3_prepare_v2(db, sql.c_str(), -1, &insertStmt, nullptr);
+
+        for (auto &[word, freq] : filtered_words)
         {
             int doc_count = word_doc_counts[word];
+
             double tf = static_cast<double>(freq) / sum_freq;
             double idf = log10((total_docs + 1.0) / (doc_count + 1.0)) + 1.0;
             double tf_idf = tf * idf;
 
-            buffer.push_back({word, freq, doc_count, tf_idf});
+            sqlite3_bind_text(insertStmt, 1, word.c_str(), -1, SQLITE_TRANSIENT);
+            sqlite3_bind_int(insertStmt, 2, freq);
+            sqlite3_bind_int(insertStmt, 3, doc_count);
+            sqlite3_bind_double(insertStmt, 4, tf_idf);
 
-            if (buffer.size() >= BUFFER_SIZE)
-            {
-                sqlite3_stmt *insertStmt;
-                std::string sql =
-                    "INSERT INTO tf_idf (word, freq, doc_count, tf_idf) VALUES (?, ?, ?, ?) "
-                    "ON CONFLICT(word) DO UPDATE SET "
-                    "freq=excluded.freq, doc_count=excluded.doc_count, tf_idf=excluded.tf_idf;";
-                sqlite3_prepare_v2(db, sql.c_str(), -1, &insertStmt, nullptr);
-
-                for (const auto &record : buffer)
-                {
-                    sqlite3_bind_text(insertStmt, 1, record.word.c_str(), -1, SQLITE_TRANSIENT);
-                    sqlite3_bind_int(insertStmt, 2, record.freq);
-                    sqlite3_bind_int(insertStmt, 3, record.doc_count);
-                    sqlite3_bind_double(insertStmt, 4, record.tf_idf);
-
-                    sqlite3_step(insertStmt);
-                    sqlite3_reset(insertStmt);
-                }
-
-                sqlite3_finalize(insertStmt);
-                buffer.clear();
-            }
+            sqlite3_step(insertStmt);
+            sqlite3_reset(insertStmt);
         }
 
-        // Insert remaining records
-        if (!buffer.empty())
-        {
-            sqlite3_stmt *insertStmt;
-            std::string sql =
-                "INSERT INTO tf_idf (word, freq, doc_count, tf_idf) VALUES (?, ?, ?, ?) "
-                "ON CONFLICT(word) DO UPDATE SET "
-                "freq=excluded.freq, doc_count=excluded.doc_count, tf_idf=excluded.tf_idf;";
-            sqlite3_prepare_v2(db, sql.c_str(), -1, &insertStmt, nullptr);
+        sqlite3_finalize(insertStmt);
 
-            for (const auto &record : buffer)
-            {
-                sqlite3_bind_text(insertStmt, 1, record.word.c_str(), -1, SQLITE_TRANSIENT);
-                sqlite3_bind_int(insertStmt, 2, record.freq);
-                sqlite3_bind_int(insertStmt, 3, record.doc_count);
-                sqlite3_bind_double(insertStmt, 4, record.tf_idf);
-
-                sqlite3_step(insertStmt);
-                sqlite3_reset(insertStmt);
-            }
-
-            sqlite3_finalize(insertStmt);
-        }
-
-        // Finalize
         execute_sql(db, "COMMIT;");
         sqlite3_close(db);
 
-        std::cout << "TF-IDF computation completed." << std::endl;
+        std::cout << "[INFO] TF-IDF computation completed.\n";
     }
 
     void mappingItemMatrix(const bool &show_progress = true,

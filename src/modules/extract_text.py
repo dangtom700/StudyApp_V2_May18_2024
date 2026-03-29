@@ -70,49 +70,74 @@ def process_file(file, source_folder, chunk_size, dataset_folder, overlap_size):
 
         output_path = os.path.join(dataset_folder, file)
         save_chunks_to_file(output_path, chunks)
+        print(f"Complete {file}")
 
     except Exception as e:
         print(f"[ERROR] Failed to process {file}: {e}")
 
 def insert_chunks_into_db(dataset_folder, db_path, overlap_size):
     print("[INFO] Inserting chunks into database...")
+
     conn = sqlite3.connect(db_path)
     cursor = conn.cursor()
 
-    for file in os.listdir(dataset_folder):
-        file_path = os.path.join(dataset_folder, file)
-        try:
-            with open(file_path, "r", encoding="utf-8") as f:
-                lines = f.readlines()
+    # Critical PRAGMA optimizations (huge speed boost)
+    cursor.execute("PRAGMA journal_mode = WAL;")        # better concurrency
+    cursor.execute("PRAGMA synchronous = OFF;")         # skip fsync (faster, less safe)
+    cursor.execute("PRAGMA temp_store = MEMORY;")       # temp tables in RAM
+    cursor.execute("PRAGMA cache_size = -100000;")      # ~100MB cache
 
-            # Prepare data for batch insertion
-            data_to_insert = []
-            for chunk_id, chunk_text in enumerate(lines):
-                chunk_text = chunk_text.strip()
-                word_count = len(chunk_text.split())
-                
-                data_to_insert.append((
-                    file, 
-                    chunk_id, 
-                    chunk_text, 
-                    word_count, 
-                    overlap_size
-                ))
+    try:
+        cursor.execute("BEGIN TRANSACTION;")
 
-            # Batch execution is significantly faster
-            cursor.executemany("""
-                INSERT OR IGNORE INTO pdf_chunks 
-                (file_name, chunk_id, chunk_text, word_count, overlap_size)
-                VALUES (?, ?, ?, ?, ?)
-            """, data_to_insert)
+        for file in os.listdir(dataset_folder):
+            file_path = os.path.join(dataset_folder, file)
 
-        except Exception as e:
-            print(f"[ERROR] Failed to insert chunks from {file}: {e}")
-        
-        os.remove(file_path)
+            try:
+                with open(file_path, "r", encoding="utf-8") as f:
+                    data_to_insert = []
+                    for chunk_id, line in enumerate(f):
+                        chunk_text = line.strip()
+                        if not chunk_text:
+                            continue
 
-    conn.commit()
-    conn.close()
+                        word_count = len(chunk_text.split())
+
+                        data_to_insert.append((
+                            file,
+                            chunk_id,
+                            chunk_text,
+                            word_count,
+                            overlap_size
+                        ))
+
+                        # chunked batch insert (prevents huge memory usage)
+                        if len(data_to_insert) >= 5000:
+                            cursor.executemany("""
+                                INSERT OR IGNORE INTO pdf_chunks 
+                                (file_name, chunk_id, chunk_text, word_count, overlap_size)
+                                VALUES (?, ?, ?, ?, ?)
+                            """, data_to_insert)
+                            data_to_insert.clear()
+
+                    # insert remaining
+                    if data_to_insert:
+                        cursor.executemany("""
+                            INSERT OR IGNORE INTO pdf_chunks 
+                            (file_name, chunk_id, chunk_text, word_count, overlap_size)
+                            VALUES (?, ?, ?, ?, ?)
+                        """, data_to_insert)
+
+                os.remove(file_path)
+                print(f"Complete {file_path}")
+                conn.commit()
+
+            except Exception as e:
+                print(f"[ERROR] Failed on {file}: {e}")
+
+    finally:
+        conn.close()
+
     print("[INFO] Database insertion completed.")
 
 # -----------------------------------------------------------------------------------------------
