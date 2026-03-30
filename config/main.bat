@@ -26,6 +26,7 @@ set "updateDatabaseInformation=1"
 set "processWordFreq=1"
 set "computeRelationalDistance=1"
 set "computeTFIDF=1"
+set "runCutoffAnalysis=1"
 set "ideation=0"
 set "promptReference=0"
 set "mappingItemMatrix=1"
@@ -43,6 +44,7 @@ for %%A in (%*) do (
     if "%%A"=="--processWordFreq" set processWordFreq=1
     if "%%A"=="--computeRelationalDistance" set computeRelationalDistance=1
     if "%%A"=="--computeTFIDF" set computeTFIDF=1
+    if "%%A"=="--runCutoffAnalysis" set runCutoffAnalysis=1
     if "%%A"=="--ideation" set ideation=1
     if "%%A"=="--promptReference" set promptReference=1
     if "%%A"=="--mappingItemMatrix" set mappingItemMatrix=1
@@ -111,6 +113,15 @@ if %computeTFIDF%==1 (
     word_tokenizer --computeTFIDF
     if %errorlevel% neq 0 (
         echo Error executing Computing TF-IDF.
+        goto end
+    )
+)
+
+rem Run Cutoff Analysis
+if %runCutoffAnalysis%==1 (
+    word_tokenizer --runCutoffAnalysis
+    if %errorlevel% neq 0 (
+        echo Error executing Cutoff Analysis.
         goto end
     )
 )
