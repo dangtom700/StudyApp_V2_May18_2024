@@ -74,6 +74,13 @@ void computeTFIDF()
     std::cout << "Finished: TF-IDF computed." << std::endl;
 }
 
+void runCutoffAnalysis()
+{
+    std::cout << "Running cutoff analysis..." << std::endl;
+    FEATURE::run_cutoff_analysis();
+    std::cout << "Finished: Cutoff analysis completed." << std::endl;
+}
+
 void mappingItemMatrix()
 {
     std::cout << "Mapping item matrix..." << std::endl;
@@ -111,6 +118,7 @@ int main(int argc, char *argv[])
         {"--updatedatabaseinformation", updateDatabaseInformation},
         {"--processprompt", processPrompt},
         {"--computetfidf", computeTFIDF},
+        {"--runcutoffanalysis", runCutoffAnalysis},
         {"--mappingitemmatrix", mappingItemMatrix},
         {"--labeltopics", labelTopics},
         {"--expandtopics", expandTopics}};

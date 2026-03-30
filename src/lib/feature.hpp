@@ -11,6 +11,9 @@
 #include <unordered_set>
 #include <mutex>
 #include <thread>
+#include <nlohmann/json.hpp>
+
+using json = nlohmann::json;
 
 #include "utilities.hpp"
 #include "env.hpp"
@@ -627,32 +630,22 @@ namespace FEATURE
         return files; // Return the filtered list
     }
 
-/**
- * Computes TF-IDF values for all words in the database.
- *
- * TF-IDF (Term Frequency-Inverse Document Frequency) is a measure of how important a word is in a document.
- * It takes into account the frequency of the word in the current document and the frequency of the word in all
- * documents in the database.
- *
- * The function does the following steps:
- * 1. Loads the JSON file containing the global word frequencies.
- * 2. Filters out words with a frequency less than MIN_THRES_FREQ.
- * 3. Computes the TF-IDF value for each filtered word.
- * 4. Stores the TF-IDF values in the database.
- *
- * @param MIN_THRES_FREQ The minimum frequency of a word to be included in the computation.
- * @param BUFFER_SIZE The number of records to process at once. This is used to speed up the computation.
- */
-#include <filesystem>
-#include <fstream>
-#include <unordered_map>
-#include <iostream>
-#include <vector>
-#include <cmath>
-#include <sqlite3.h>
-#include <nlohmann/json.hpp>
-
-    using json = nlohmann::json;
+    /**
+     * Computes TF-IDF values for all words in the database.
+     *
+     * TF-IDF (Term Frequency-Inverse Document Frequency) is a measure of how important a word is in a document.
+     * It takes into account the frequency of the word in the current document and the frequency of the word in all
+     * documents in the database.
+     *
+     * The function does the following steps:
+     * 1. Loads the JSON file containing the global word frequencies.
+     * 2. Filters out words with a frequency less than MIN_THRES_FREQ.
+     * 3. Computes the TF-IDF value for each filtered word.
+     * 4. Stores the TF-IDF values in the database.
+     *
+     * @param MIN_THRES_FREQ The minimum frequency of a word to be included in the computation.
+     * @param BUFFER_SIZE The number of records to process at once. This is used to speed up the computation.
+     */
 
     struct TFIDFRecord
     {
@@ -662,7 +655,7 @@ namespace FEATURE
         double tf_idf;
     };
 
-    void computeTFIDF(const uint16_t &MIN_THRES_FREQ = 4,
+    void computeTFIDF(const uint16_t &MIN_THRES_FREQ = 1,
                       const uint16_t &BUFFER_SIZE = 1000)
     {
         const std::string db_path = ENV_HPP::database_path.string();
@@ -732,6 +725,7 @@ namespace FEATURE
                     {
                         global_freq[word] += freq.get<int>();
                     }
+                    std::cout << "Completed: " << entry.path() << std::endl;
                 }
                 catch (...)
                 {
@@ -1041,6 +1035,132 @@ namespace FEATURE
 
         sqlite3_close(db);
     }
-}
 
+    void run_cutoff_analysis()
+    {
+        sqlite3 *db;
+
+        if (sqlite3_open(ENV_HPP::database_path.string().c_str(), &db))
+        {
+            std::cerr << "Cannot open DB\n";
+            return;
+        }
+
+        // PRAGMA (outside transaction)
+        execute_sql(db, R"(
+            PRAGMA journal_mode=WAL;
+            PRAGMA synchronous=NORMAL;
+            PRAGMA temp_store=MEMORY;
+            PRAGMA cache_size=-200000;
+        )");
+
+        // STEP 1: Indexes (optimized for your workload)
+        std::cout << "[STEP 1] Creating indexes...\n";
+        execute_sql(db, R"(
+            CREATE INDEX IF NOT EXISTS idx_rd_token_freq 
+            ON relation_distance(token, frequency);
+
+            CREATE INDEX IF NOT EXISTS idx_rd_file_freq 
+            ON relation_distance(file_name, frequency);
+
+            CREATE INDEX IF NOT EXISTS idx_rd_freq 
+            ON relation_distance(frequency);
+
+            CREATE INDEX IF NOT EXISTS idx_tfidf_freq 
+            ON tf_idf(freq);
+        )");
+
+        execute_sql(db, "BEGIN;");
+
+        // STEP 2: Frequency distribution (direct)
+        std::cout << "[STEP 2] Building freq_dist...\n";
+        execute_sql(db, R"(
+            DROP TABLE IF EXISTS freq_dist;
+            CREATE TABLE freq_dist AS
+            SELECT frequency AS freq, COUNT(*) AS cnt, SUM(frequency) AS total_freq
+            FROM relation_distance
+            GROUP BY frequency;
+        )");
+
+        // STEP 3: Token distribution
+        std::cout << "[STEP 3] Building token_dist...\n";
+        execute_sql(db, R"(
+            DROP TABLE IF EXISTS token_dist;
+            CREATE TABLE token_dist AS
+            SELECT MAX(frequency) AS freq, COUNT(*) AS cnt
+            FROM relation_distance
+            GROUP BY token;
+        )");
+
+        // STEP 4: File distribution
+        std::cout << "[STEP 4] Building file_dist...\n";
+        execute_sql(db, R"(
+            DROP TABLE IF EXISTS file_dist;
+            CREATE TABLE file_dist AS
+            SELECT MAX(frequency) AS freq, COUNT(*) AS cnt
+            FROM relation_distance
+            GROUP BY file_name;
+        )");
+
+        // STEP 5: Word distribution (simplified due to PK(word))
+        std::cout << "[STEP 5] Building word_dist...\n";
+        execute_sql(db, R"(
+            DROP TABLE IF EXISTS word_dist;
+            CREATE TABLE word_dist AS
+            SELECT freq, COUNT(*) AS cnt
+            FROM tf_idf
+            GROUP BY freq;
+        )");
+
+        // STEP 6: Totals
+        std::cout << "[STEP 6] Computing totals...\n";
+        execute_sql(db, R"(
+            DROP TABLE IF EXISTS totals;
+            CREATE TABLE totals AS
+            SELECT 
+                (SELECT SUM(total_freq) FROM freq_dist) AS total_freq,
+                (SELECT SUM(cnt) FROM token_dist) AS total_tokens,
+                (SELECT SUM(cnt) FROM file_dist) AS total_files,
+                (SELECT SUM(cnt) FROM word_dist) AS total_words;
+        )");
+
+        // STEP 7: Final cutoff table
+        std::cout << "[STEP 7] Computing cutoff_analysis...\n";
+        execute_sql(db, R"(
+            DROP TABLE IF EXISTS cutoff_analysis;
+
+            CREATE TABLE cutoff_analysis AS
+            WITH RECURSIVE targets(t) AS (
+                SELECT 1
+                UNION ALL
+                SELECT t + 1 FROM targets WHERE t < 1000
+            )
+            SELECT
+                t AS target,
+
+                -- coverage metrics
+                (SELECT SUM(total_freq) FROM freq_dist WHERE freq > t) * 1.0 / total_freq AS freq_cov,
+                (SELECT SUM(cnt) FROM token_dist WHERE freq > t) * 1.0 / total_tokens AS token_cov,
+                (SELECT SUM(cnt) FROM file_dist WHERE freq > t) * 1.0 / total_files AS file_cov,
+                (SELECT SUM(cnt) FROM word_dist WHERE freq > t) * 1.0 / total_words AS word_cov,
+
+                -- weighted score
+                (
+                    0.5 * (SELECT SUM(total_freq) FROM freq_dist WHERE freq > t) * 1.0 / total_freq +
+                    0.2 * (SELECT SUM(cnt) FROM token_dist WHERE freq > t) * 1.0 / total_tokens +
+                    0.2 * (SELECT SUM(cnt) FROM file_dist WHERE freq > t) * 1.0 / total_files +
+                    0.1 * (SELECT SUM(cnt) FROM word_dist WHERE freq > t) * 1.0 / total_words
+                ) AS weighted_score
+
+            FROM targets, totals
+            ORDER BY target;
+        )");
+
+        execute_sql(db, "COMMIT;");
+
+        std::cout << "[DONE] cutoff_analysis ready.\n";
+
+        sqlite3_close(db);
+    }
+}
 #endif // FEATURE_HPP
