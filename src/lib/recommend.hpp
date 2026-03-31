@@ -241,10 +241,37 @@ namespace RECOMMEND
         if (filtered_tokens.empty())
             return;
 
-        // Load tf-idf table once
+        // Seed temp_tokens with the tokens we actually need.
+        // apply_tfidf is called BEFORE load_related_tokens, so temp_tokens may not
+        // exist yet. Creating it here means load_related_tokens just clears and
+        // repopulates the same table (no extra overhead).
+        char *err = nullptr;
+        sqlite3_exec(db,
+            "CREATE TEMP TABLE IF NOT EXISTS temp_tokens (token TEXT PRIMARY KEY);"
+            "DELETE FROM temp_tokens;",
+            nullptr, nullptr, &err);
+        sqlite3_free(err);
+
+        const char *ins = "INSERT OR IGNORE INTO temp_tokens (token) VALUES (?)";
+        sqlite3_stmt *ins_stmt = nullptr;
+        if (sqlite3_prepare_v2(db, ins, -1, &ins_stmt, nullptr) == SQLITE_OK)
+        {
+            for (const auto &[token, _freq, _dist] : filtered_tokens)
+            {
+                sqlite3_reset(ins_stmt);
+                sqlite3_bind_text(ins_stmt, 1, token.c_str(), -1, SQLITE_STATIC);
+                sqlite3_step(ins_stmt);
+            }
+            sqlite3_finalize(ins_stmt);
+        }
+
+        // JOIN avoids loading the entire vocabulary: O(|filtered_tokens|) vs O(|vocab|).
         std::unordered_map<std::string, double> tfidf_map;
         tfidf_map.reserve(filtered_tokens.size());
-        const char *sql = "SELECT word, tf_idf FROM tf_idf;";
+        const char *sql =
+            "SELECT t.word, t.tf_idf "
+            "FROM tf_idf t "
+            "JOIN temp_tokens tt ON t.word = tt.token;";
         sqlite3_stmt *stmt = prepareStatement(db, sql);
         if (!stmt)
             return;
@@ -262,14 +289,12 @@ namespace RECOMMEND
         }
         sqlite3_finalize(stmt);
 
-        // Apply tf-idf
+        // Apply tf-idf weights
         for (auto &[token, freq, base_distance] : filtered_tokens)
         {
             auto it = tfidf_map.find(token);
             if (it != tfidf_map.end() && freq > 0)
-            {
                 base_distance += it->second / freq;
-            }
         }
     }
 
@@ -282,12 +307,14 @@ namespace RECOMMEND
         if (!stmt)
             return;
 
+        // SQLITE_STATIC: strings are refs into the RESULT vector which
+        // outlives every step call inside this loop — no copy needed.
         for (const auto &[target_id, target_name, source_id, source_name, distance] : RESULT)
         {
-            sqlite3_bind_text(stmt, 1, target_id.c_str(), -1, SQLITE_TRANSIENT);
-            sqlite3_bind_text(stmt, 2, target_name.c_str(), -1, SQLITE_TRANSIENT);
-            sqlite3_bind_text(stmt, 3, source_id.c_str(), -1, SQLITE_TRANSIENT);
-            sqlite3_bind_text(stmt, 4, source_name.c_str(), -1, SQLITE_TRANSIENT);
+            sqlite3_bind_text(stmt, 1, target_id.c_str(),   -1, SQLITE_STATIC);
+            sqlite3_bind_text(stmt, 2, target_name.c_str(), -1, SQLITE_STATIC);
+            sqlite3_bind_text(stmt, 3, source_id.c_str(),   -1, SQLITE_STATIC);
+            sqlite3_bind_text(stmt, 4, source_name.c_str(), -1, SQLITE_STATIC);
             sqlite3_bind_double(stmt, 5, distance);
             sqlite3_step(stmt);
             sqlite3_reset(stmt);
@@ -305,12 +332,13 @@ namespace RECOMMEND
         if (!stmt)
             return;
 
+        // SQLITE_STATIC: all strings live in RESULT / topic param for the loop duration.
         for (const auto &[target_id, target_name, distance] : RESULT)
         {
-            sqlite3_bind_text(stmt, 1, target_id.c_str(), -1, SQLITE_TRANSIENT);
-            sqlite3_bind_text(stmt, 2, target_name.c_str(), -1, SQLITE_TRANSIENT);
+            sqlite3_bind_text(stmt, 1, target_id.c_str(),   -1, SQLITE_STATIC);
+            sqlite3_bind_text(stmt, 2, target_name.c_str(), -1, SQLITE_STATIC);
             sqlite3_bind_double(stmt, 3, distance);
-            sqlite3_bind_text(stmt, 4, topic.c_str(), -1, SQLITE_TRANSIENT);
+            sqlite3_bind_text(stmt, 4, topic.c_str(),       -1, SQLITE_STATIC);
             sqlite3_step(stmt);
             sqlite3_reset(stmt);
         }

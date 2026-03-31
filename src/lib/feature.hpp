@@ -114,24 +114,47 @@ namespace FEATURE
             // Only create tables if they do not exist
             std::string create_sql = R"(
                 CREATE TABLE IF NOT EXISTS file_token (
-                    file_name TEXT PRIMARY KEY,
-                    total_tokens INTEGER,
-                    unique_tokens INTEGER,
-                    relational_distance REAL
-                );
+                    file_name           TEXT    NOT NULL PRIMARY KEY,
+                    total_tokens        INTEGER NOT NULL DEFAULT 0,
+                    unique_tokens       INTEGER NOT NULL DEFAULT 0,
+                    relational_distance REAL    NOT NULL DEFAULT 0.0
+                ) WITHOUT ROWID;
             )";
             execute_sql(db, create_sql);
 
             create_sql = R"(
                 CREATE TABLE IF NOT EXISTS relation_distance (
-                    file_name TEXT,
-                    token TEXT,
-                    frequency INTEGER,
-                    relational_distance REAL,
+                    file_name           TEXT    NOT NULL,
+                    token               TEXT    NOT NULL,
+                    frequency           INTEGER NOT NULL DEFAULT 0,
+                    relational_distance REAL    NOT NULL DEFAULT 0.0,
                     PRIMARY KEY (file_name, token)
-                );
+                ) WITHOUT ROWID;
             )";
             execute_sql(db, create_sql);
+
+            // // Covering index: token -> (file_name, relational_distance) lookup
+            // // used by processPrompt and load_related_tokens JOIN.
+            // execute_sql(db,
+            //             "CREATE INDEX IF NOT EXISTS idx_rd_token_covering "
+            //             "ON relation_distance(token, file_name, relational_distance);");
+
+            // Hoist prepared statements OUTSIDE the loop.
+            // Re-calling sqlite3_prepare_v2 on every iteration re-compiles the query
+            // bytecode each time — one of the most expensive SQLite anti-patterns.
+            const std::string insert_ft_sql = R"(
+                INSERT OR REPLACE INTO file_token (file_name, total_tokens, unique_tokens, relational_distance)
+                VALUES (?, ?, ?, ?);
+            )";
+            sqlite3_stmt *stmt_ft = nullptr;
+            sqlite3_prepare_v2(db, insert_ft_sql.c_str(), -1, &stmt_ft, nullptr);
+
+            const std::string insert_rd_sql = R"(
+                INSERT OR REPLACE INTO relation_distance (file_name, token, frequency, relational_distance)
+                VALUES (?, ?, ?, ?);
+            )";
+            sqlite3_stmt *stmt_rd = nullptr;
+            sqlite3_prepare_v2(db, insert_rd_sql.c_str(), -1, &stmt_rd, nullptr);
 
             // Start a transaction to speed up multiple inserts
             execute_sql(db, "BEGIN TRANSACTION;");
@@ -156,11 +179,11 @@ namespace FEATURE
                         !std::all_of(key.begin(), key.end(), [](char c)
                                      { return c >= 'a' && c <= 'z'; }))
                     {
-                        it = json_map.erase(it); // Safely erase invalid entries
+                        it = json_map.erase(it);
                     }
                     else
                     {
-                        ++it; // Move to the next element
+                        ++it;
                     }
                 }
 
@@ -171,50 +194,36 @@ namespace FEATURE
                     .relational_distance = TRANSFORMER::Pythagoras(json_map),
                 };
 
-                // Compute the relational distance of each token
-                // Double gated to filter tokens
                 row.filtered_tokens = TRANSFORMER::token_filter(json_map, ENV_HPP::max_length, ENV_HPP::min_value, row.relational_distance);
 
-                // Dump the contents of a DataEntry to a file
                 if (is_dumped)
                     UTILITIES_HPP::Basic::data_entry_dump(row);
 
-                // Insert the row into file_token table using a prepared statement
-                std::string insert_sql = R"(
-                    INSERT OR REPLACE INTO file_token (file_name, total_tokens, unique_tokens, relational_distance)
-                    VALUES (?, ?, ?, ?);
-                )";
-                sqlite3_stmt *stmt;
-                sqlite3_prepare_v2(db, insert_sql.c_str(), -1, &stmt, nullptr);
-                sqlite3_bind_text(stmt, 1, row.path.c_str(), -1, SQLITE_STATIC);
-                sqlite3_bind_int(stmt, 2, row.sum);
-                sqlite3_bind_int(stmt, 3, row.num_unique_tokens);
-                sqlite3_bind_double(stmt, 4, row.relational_distance);
-                sqlite3_step(stmt);
-                sqlite3_finalize(stmt);
+                // Insert into file_token (reuse hoisted statement)
+                sqlite3_bind_text(stmt_ft, 1, row.path.c_str(), -1, SQLITE_STATIC);
+                sqlite3_bind_int(stmt_ft, 2, row.sum);
+                sqlite3_bind_int(stmt_ft, 3, row.num_unique_tokens);
+                sqlite3_bind_double(stmt_ft, 4, row.relational_distance);
+                sqlite3_step(stmt_ft);
+                sqlite3_reset(stmt_ft);
 
-                // Insert the filtered tokens into relation_distance table using a prepared statement
-                insert_sql = R"(
-                    INSERT OR REPLACE INTO relation_distance (file_name, token, frequency, relational_distance)
-                    VALUES (?, ?, ?, ?);
-                )";
-                sqlite3_prepare_v2(db, insert_sql.c_str(), -1, &stmt, nullptr);
+                // Insert filtered tokens into relation_distance (reuse hoisted statement)
                 for (const auto &token : row.filtered_tokens)
                 {
-                    sqlite3_bind_text(stmt, 1, row.path.c_str(), -1, SQLITE_STATIC);
-                    sqlite3_bind_text(stmt, 2, std::get<0>(token).c_str(), -1, SQLITE_STATIC);
-                    sqlite3_bind_int(stmt, 3, std::get<1>(token));
-                    sqlite3_bind_double(stmt, 4, std::get<2>(token));
-                    sqlite3_step(stmt);
-                    sqlite3_reset(stmt); // Reset the statement for re-use
+                    sqlite3_bind_text(stmt_rd, 1, row.path.c_str(), -1, SQLITE_STATIC);
+                    sqlite3_bind_text(stmt_rd, 2, std::get<0>(token).c_str(), -1, SQLITE_STATIC);
+                    sqlite3_bind_int(stmt_rd, 3, std::get<1>(token));
+                    sqlite3_bind_double(stmt_rd, 4, std::get<2>(token));
+                    sqlite3_step(stmt_rd);
+                    sqlite3_reset(stmt_rd);
                 }
-                sqlite3_finalize(stmt);
 
                 if (show_progress)
-                {
                     std::cout << "Processed: " << file << std::endl;
-                }
             }
+            // Finalize hoisted statements after the loop
+            sqlite3_finalize(stmt_ft);
+            sqlite3_finalize(stmt_rd);
 
             // Commit the transaction to apply all inserts
             execute_sql(db, "COMMIT TRANSACTION;");
@@ -269,70 +278,33 @@ namespace FEATURE
         if (reset_table)
             execute_sql(db, "DROP TABLE IF EXISTS file_info");
 
+        // WITHOUT ROWID: file_name is the PK, making point-lookups single B-tree ops.
+        // UNIQUE(id) enforces id uniqueness used by collect_unique_id().
         std::string create_table_sql = R"(
             CREATE TABLE IF NOT EXISTS file_info (
-                id TEXT NOT NULL,
-                file_name TEXT PRIMARY KEY,
-                file_path TEXT NOT NULL,
-                epoch_time INTEGER NOT NULL,
-                chunk_count INTEGER NOT NULL
-            );
+                id          TEXT    NOT NULL UNIQUE,
+                file_name   TEXT    NOT NULL PRIMARY KEY,
+                file_path   TEXT    NOT NULL DEFAULT '',
+                epoch_time  INTEGER NOT NULL DEFAULT 0,
+                chunk_count INTEGER NOT NULL DEFAULT 0
+            ) WITHOUT ROWID;
         )";
         execute_sql(db, create_table_sql);
 
-        // Start a transaction for batch processing
-        execute_sql(db, "BEGIN TRANSACTION;");
-
-        // Prepare the insert statement (using "INSERT OR IGNORE" to handle both insert/update)
-        std::string insert_sql = R"(
+        // INSERT OR IGNORE handles uniqueness at DB level — no separate SELECT check needed.
+        const std::string insert_sql = R"(
             INSERT OR IGNORE INTO file_info (id, file_name, file_path, epoch_time, chunk_count)
             VALUES (?, ?, ?, ?, ?);
         )";
         sqlite3_stmt *stmt;
         sqlite3_prepare_v2(db, insert_sql.c_str(), -1, &stmt, nullptr);
 
-        std::string exists_sql = R"(
-            SELECT 1 FROM file_info
-            WHERE file_name = ?
-            LIMIT 1;
-        )";
-        sqlite3_stmt *exists_stmt;
-        sqlite3_prepare_v2(db, exists_sql.c_str(), -1, &exists_stmt, nullptr);
+        // Start a transaction for batch processing
+        execute_sql(db, "BEGIN TRANSACTION;");
 
         bool trigger_once = true;
         for (const std::filesystem::path &file : filtered_files)
         {
-            // Check file existed in table, yes to skip
-            std::string file_name = file.stem().generic_string();
-
-            // Bind
-            sqlite3_bind_text(
-                exists_stmt, 1,
-                file_name.c_str(),
-                -1, SQLITE_STATIC);
-
-            // Check
-            bool exists = (sqlite3_step(exists_stmt) == SQLITE_ROW);
-
-            // Reset
-            sqlite3_reset(exists_stmt);
-            sqlite3_clear_bindings(exists_stmt);
-
-            if (exists)
-            {
-                if (show_progress)
-                {
-                    std::cout << "Skipped (file_name exists): " << file_name << std::endl;
-                }
-                continue;
-            }
-
-            if (trigger_once && is_dumped)
-            {
-                UTILITIES_HPP::Basic::reset_file_info_dumper(ENV_HPP::data_info_path);
-                trigger_once = false;
-            }
-
             // Process the file
             DataInfo entry = {
                 .file_name = file.stem().generic_string(),
@@ -341,9 +313,6 @@ namespace FEATURE
                 .chunk_count = UPDATE_INFO::count_chunk_for_each_title(db, entry.file_name + ".txt")};
 
             entry.id = UPDATE_INFO::create_unique_id(entry.file_path);
-            // Export data info if needed
-            if (is_dumped)
-                UTILITIES_HPP::Basic::data_info_dump(entry);
 
             // Bind the values to the statement
             sqlite3_bind_text(stmt, 1, entry.id.c_str(), -1, SQLITE_STATIC);
@@ -352,24 +321,33 @@ namespace FEATURE
             sqlite3_bind_int(stmt, 4, entry.epoch_time);
             sqlite3_bind_int(stmt, 5, entry.chunk_count);
 
-            // Execute the statement
             if (sqlite3_step(stmt) != SQLITE_DONE)
-            {
                 std::cerr << "Error inserting into file_info: " << sqlite3_errmsg(db) << std::endl;
-            }
 
-            // Reset the statement to use it again
             sqlite3_reset(stmt);
 
-            if (show_progress)
+            // sqlite3_changes() == 0 means the row was a duplicate and was skipped
+            const bool inserted = (sqlite3_changes(db) > 0);
+            if (inserted)
             {
-                std::cout << "Processed: " << file << std::endl;
+                if (trigger_once && is_dumped)
+                {
+                    UTILITIES_HPP::Basic::reset_file_info_dumper(ENV_HPP::data_info_path);
+                    trigger_once = false;
+                }
+                if (is_dumped)
+                    UTILITIES_HPP::Basic::data_info_dump(entry);
+                if (show_progress)
+                    std::cout << "Processed: " << file << std::endl;
+            }
+            else if (show_progress)
+            {
+                std::cout << "Skipped (file_name exists): " << entry.file_name << std::endl;
             }
         }
 
         // Finalize the prepared statement
         sqlite3_finalize(stmt);
-        sqlite3_finalize(exists_stmt);
 
         // Commit the transaction to apply all inserts
         execute_sql(db, "COMMIT TRANSACTION;");
@@ -672,12 +650,16 @@ namespace FEATURE
         execute_sql(db, "PRAGMA journal_mode=WAL;");
         execute_sql(db, "PRAGMA synchronous = OFF;");
 
+        // WITHOUT ROWID: word IS the PK B-tree key, so WHERE word=? is a single
+        // B-tree lookup — no separate secondary index is needed.
         execute_sql(db,
                     "CREATE TABLE IF NOT EXISTS tf_idf ("
-                    "word TEXT PRIMARY KEY, "
-                    "freq INTEGER, "
-                    "doc_count INTEGER, "
-                    "tf_idf REAL)");
+                    "word      TEXT    NOT NULL PRIMARY KEY, "
+                    "id INTEGER AUTOINCREMENT, "
+                    "freq      INTEGER NOT NULL DEFAULT 0, "
+                    "doc_count INTEGER NOT NULL DEFAULT 0, "
+                    "tf_idf    REAL    NOT NULL DEFAULT 0.0"
+                    ") WITHOUT ROWID;");
 
         std::unordered_map<std::string, int> global_freq;
 
@@ -845,7 +827,26 @@ namespace FEATURE
             execute_sql(db, "DROP TABLE IF EXISTS item_matrix;");
         }
         // Be extra sure about there is always a table to process, otherwise the following code will break
-        execute_sql(db, "CREATE TABLE IF NOT EXISTS item_matrix (target_id TEXT, target_name TEXT, source_id TEXT, source_name TEXT, distance REAL);");
+        // PK order: (source_id, target_id) — range scans in expand_degree filter
+        // by source first, so the PK B-tree must start with source_id.
+        // CHECK eliminates invalid zero-score pairs at DB level.
+        execute_sql(db,
+                    "CREATE TABLE IF NOT EXISTS item_matrix ("
+                    "source_id   TEXT NOT NULL, "
+                    "source_name TEXT NOT NULL DEFAULT '', "
+                    "target_id   TEXT NOT NULL, "
+                    "target_name TEXT NOT NULL DEFAULT '', "
+                    "distance    REAL NOT NULL DEFAULT 0.0 CHECK(distance > 0.0), "
+                    "PRIMARY KEY (source_id, target_id)"
+                    ") WITHOUT ROWID;");
+        // // expand_degree JOINs on source_name and target_name — these indexes
+        // // avoid full scans of the N^2 table on every degree expansion.
+        // execute_sql(db,
+        //             "CREATE INDEX IF NOT EXISTS idx_im_source_name "
+        //             "ON item_matrix(source_name);");
+        // execute_sql(db,
+        //             "CREATE INDEX IF NOT EXISTS idx_im_target_name "
+        //             "ON item_matrix(target_name);");
 
         std::map<std::string, std::string> unique_ids = RECOMMEND::collect_unique_id(db);
         std::map<std::string, std::string> processing_ids = RECOMMEND::collect_processing_id(db, reset_table, unique_ids, "SELECT DISTINCT source_id FROM item_matrix");
@@ -910,14 +911,18 @@ namespace FEATURE
 
         std::string create_full_table_sql = R"(
             CREATE TABLE IF NOT EXISTS tags_full (
-                name TEXT,
-                ID TEXT,
-                distance REAL,
-                topic TEXT,
+                name     TEXT NOT NULL DEFAULT '',
+                ID       TEXT NOT NULL,
+                distance REAL NOT NULL DEFAULT 0.0 CHECK(distance > 0.0 AND distance <= 1.0),
+                topic    TEXT NOT NULL,
                 PRIMARY KEY (ID, topic)
-            );
+            ) WITHOUT ROWID;
         )";
         execute_sql(db, create_full_table_sql);
+        // // Index used by iterative_topic_expansion when it queries tags_full(ID, topic)
+        // execute_sql(db,
+        //             "CREATE INDEX IF NOT EXISTS idx_tags_full_id_topic "
+        //             "ON tags_full(ID, topic);");
 
         std::map<std::string, std::string> unique_ids = RECOMMEND::collect_unique_id(db);
         std::vector<std::string> unique_topics = RECOMMEND::collect_unique_topic(db);
