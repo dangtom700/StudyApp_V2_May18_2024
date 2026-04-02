@@ -655,7 +655,6 @@ namespace FEATURE
         execute_sql(db,
                     "CREATE TABLE IF NOT EXISTS tf_idf ("
                     "word      TEXT    NOT NULL PRIMARY KEY, "
-                    "id INTEGER AUTOINCREMENT, "
                     "freq      INTEGER NOT NULL DEFAULT 0, "
                     "doc_count INTEGER NOT NULL DEFAULT 0, "
                     "tf_idf    REAL    NOT NULL DEFAULT 0.0"
