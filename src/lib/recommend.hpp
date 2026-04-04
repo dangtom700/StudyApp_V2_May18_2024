@@ -92,34 +92,10 @@ namespace RECOMMEND
         return unique_ids;
     }
 
-    // std::map<std::string, std::string> collect_processed_id(sqlite3 *db, bool reset_table)
-    // {
-    //     std::map<std::string, std::string> processed_ids;
-    //     if (!reset_table)
-    //     {
-    //         std::string sql = "SELECT DISTINCT source_id FROM item_matrix";
-    //         sqlite3_stmt *stmt = prepareStatement(db, sql);
-    //         if (!stmt)
-    //             return processed_ids;
-
-    //         while (sqlite3_step(stmt) == SQLITE_ROW)
-    //         {
-    //             const unsigned char *id_txt = sqlite3_column_text(stmt, 0);
-    //             if (id_txt)
-    //             {
-    //                 std::string key = reinterpret_cast<const char *>(id_txt);
-    //                 processed_ids[key] = key; // Value is not important, we just need the keys
-    //             }
-    //         }
-    //         sqlite3_finalize(stmt);
-    //     }
-    //     return processed_ids;
-    // }
-
     std::vector<std::tuple<std::string, int, double>> load_token_map(sqlite3 *db, const std::string &id)
     {
         std::vector<std::tuple<std::string, int, double>> filtered_tokens;
-        std::string sql = "SELECT Token, frequency, relational_distance FROM relation_distance WHERE file_name = ? AND frequency > 20";
+        std::string sql = "SELECT Token, frequency, relational_distance FROM relation_distance_filtered WHERE file_name = ?";
         sqlite3_stmt *stmt = prepareStatement(db, sql);
         if (!stmt)
             return filtered_tokens;
@@ -211,7 +187,7 @@ namespace RECOMMEND
 
         // 3. Query related tokens via JOIN
         const char *query_sql = "SELECT r.file_name, r.Token, r.relational_distance "
-                                "FROM relation_distance r "
+                                "FROM relation_distance_filtered r "
                                 "JOIN temp_tokens t ON r.Token = t.token;";
         sqlite3_stmt *stmt = nullptr;
         if (sqlite3_prepare_v2(db, query_sql, -1, &stmt, nullptr) != SQLITE_OK)
@@ -247,9 +223,9 @@ namespace RECOMMEND
         // repopulates the same table (no extra overhead).
         char *err = nullptr;
         sqlite3_exec(db,
-            "CREATE TEMP TABLE IF NOT EXISTS temp_tokens (token TEXT PRIMARY KEY);"
-            "DELETE FROM temp_tokens;",
-            nullptr, nullptr, &err);
+                     "CREATE TEMP TABLE IF NOT EXISTS temp_tokens (token TEXT PRIMARY KEY);"
+                     "DELETE FROM temp_tokens;",
+                     nullptr, nullptr, &err);
         sqlite3_free(err);
 
         const char *ins = "INSERT OR IGNORE INTO temp_tokens (token) VALUES (?)";
@@ -311,9 +287,9 @@ namespace RECOMMEND
         // outlives every step call inside this loop — no copy needed.
         for (const auto &[target_id, target_name, source_id, source_name, distance] : RESULT)
         {
-            sqlite3_bind_text(stmt, 1, target_id.c_str(),   -1, SQLITE_STATIC);
+            sqlite3_bind_text(stmt, 1, target_id.c_str(), -1, SQLITE_STATIC);
             sqlite3_bind_text(stmt, 2, target_name.c_str(), -1, SQLITE_STATIC);
-            sqlite3_bind_text(stmt, 3, source_id.c_str(),   -1, SQLITE_STATIC);
+            sqlite3_bind_text(stmt, 3, source_id.c_str(), -1, SQLITE_STATIC);
             sqlite3_bind_text(stmt, 4, source_name.c_str(), -1, SQLITE_STATIC);
             sqlite3_bind_double(stmt, 5, distance);
             sqlite3_step(stmt);
@@ -335,10 +311,10 @@ namespace RECOMMEND
         // SQLITE_STATIC: all strings live in RESULT / topic param for the loop duration.
         for (const auto &[target_id, target_name, distance] : RESULT)
         {
-            sqlite3_bind_text(stmt, 1, target_id.c_str(),   -1, SQLITE_STATIC);
+            sqlite3_bind_text(stmt, 1, target_id.c_str(), -1, SQLITE_STATIC);
             sqlite3_bind_text(stmt, 2, target_name.c_str(), -1, SQLITE_STATIC);
             sqlite3_bind_double(stmt, 3, distance);
-            sqlite3_bind_text(stmt, 4, topic.c_str(),       -1, SQLITE_STATIC);
+            sqlite3_bind_text(stmt, 4, topic.c_str(), -1, SQLITE_STATIC);
             sqlite3_step(stmt);
             sqlite3_reset(stmt);
         }

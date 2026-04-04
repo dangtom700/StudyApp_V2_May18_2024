@@ -128,7 +128,7 @@ def insert_chunks_into_db(dataset_folder, db_path, overlap_size):
                             VALUES (?, ?, ?, ?, ?)
                         """, data_to_insert)
 
-                # os.remove(file_path) # Optional: clean up chunk files after insertion
+                os.remove(file_path) # Optional: clean up chunk files after insertion
                 print(f"Complete {file_path}")
                 conn.commit()
 

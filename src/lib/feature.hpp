@@ -231,6 +231,18 @@ namespace FEATURE
             // Re-enable synchronous mode (optional, depending on your use case)
             execute_sql(db, "PRAGMA synchronous = FULL;");
 
+            // Create another table of relation_distance_filtered for prompt processing to speed up query time.
+            std::string create_filtered_sql = R"(
+                DROP TABLE IF EXISTS relation_distance_filtered;
+                CREATE TABLE IF NOT EXISTS relation_distance_filtered AS
+                SELECT * FROM relation_distance
+                WHERE frequency >= 50
+            )";
+
+            execute_sql(db, create_filtered_sql);
+
+            std::cout << "Create a filtered table for prompt processing finished" << std::endl;
+
             // Close the SQLite database connection
             sqlite3_close(db);
             std::cout << "Computing relational distance data finished" << std::endl;
