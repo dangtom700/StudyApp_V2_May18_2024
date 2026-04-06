@@ -31,7 +31,7 @@ CONFIG = {
     "CHUNK_SAMPLE_SIZE": 3,
     "BATCH_SIZE": 200_000
 }
-
+not_found_topics_csv = Path("data\\not_found_topics.txt")
 CONFIG["DESTINATION_FOLDER"] = CONFIG["SOURCE_FOLDER"] / CONFIG["NOTES_FOLDER_NAME"]
 
 # One-time compiled regex pattern
@@ -369,7 +369,7 @@ def prepare_filtered_table(reset=True):
                 target_name TEXT NOT NULL,
                 distance REAL NOT NULL,
                 PRIMARY KEY (source_name, target_name)
-            );
+            ) WITHOUT ROWID;
         """)
 
         db.execute("""
@@ -382,19 +382,27 @@ def prepare_filtered_table(reset=True):
             ON item_matrix_filtered(target_name, distance DESC);
         """)
 
-        last_rowid = 0
+        last_source = ""
+        last_target = ""
 
         while True:
             rows = db.execute(
                 """
-                SELECT rowid, source_name, target_name, distance
+                SELECT source_name, target_name, distance
                 FROM item_matrix
-                WHERE rowid > ?
+                WHERE (source_name > ?)
+                   OR (source_name = ? AND target_name > ?)
                   AND distance > ?
-                ORDER BY rowid
+                ORDER BY source_name, target_name
                 LIMIT ?;
                 """,
-                (last_rowid, CONFIG["DISTANCE_THRESHOLD"], CONFIG["BATCH_SIZE"])
+                (
+                    last_source,
+                    last_source,
+                    last_target,
+                    CONFIG["DISTANCE_THRESHOLD"],
+                    CONFIG["BATCH_SIZE"]
+                )
             ).fetchall()
 
             if not rows:
@@ -406,13 +414,13 @@ def prepare_filtered_table(reset=True):
                 (source_name, target_name, distance)
                 VALUES (?, ?, ?);
                 """,
-                [(r[1], r[2], r[3]) for r in rows]
+                rows
             )
 
-            last_rowid = rows[-1][0]
+            last_source, last_target = rows[-1][0], rows[-1][1]
             db.commit()
 
-            print(f"Processed up to rowid {last_rowid}")
+            print(f"Processed up to ({last_source}, {last_target})")
 
     print("Filtered table prepared.")
 
@@ -449,6 +457,14 @@ def promptFindingReference(is_dumped = True) -> Optional[dict]:
 
 def tokenize_topics(TOPIC_LIST: set[str]):    
     WIKI_FOLDER.mkdir(exist_ok=True)
+    # Retrieve the "not found" topics from the CSV file
+    not_found_topics = set()
+    if Path(not_found_topics_csv).exists():
+        with open(not_found_topics_csv, "r", encoding="utf-8") as f:
+            for line in f:
+                not_found_topics.add(line.strip())
+    
+    TOPIC_LIST = set(TOPIC_LIST) - not_found_topics
 
     for topic in TOPIC_LIST:
         filename = clean_filename(topic.replace(" ", "_").lower()) + ".txt"
@@ -461,17 +477,24 @@ def tokenize_topics(TOPIC_LIST: set[str]):
 
         if not content:
             print(f"Wiki article not found: {topic}")
+            not_found_topics.add(topic)
             continue
 
         file_path.write_text(content, encoding="utf-8")
         time.sleep(1)  # polite API delay
 
+    # Update the "not found" topics CSV file
+    with open(not_found_topics_csv, "w", encoding="utf-8") as f:
+        for topic in sorted(not_found_topics):
+            f.write(topic + "\n")
+    
     # STEP 2: Open DB
+    print("Processing topics and storing tokens in the database...")
     conn = sqlite3.connect(chunk_database_path)
     setup_database(conn, reset=True)
     cursor = conn.cursor()
 
-    prepare_filtered_table(reset=True)
+    # prepare_filtered_table(reset=True)
 
     processed_tags = {
         row[0] for row in
