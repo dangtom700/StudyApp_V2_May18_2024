@@ -126,7 +126,7 @@ namespace RECOMMEND
         std::map<std::string, int> token_freq_map;
 
         std::string sql =
-            "SELECT token, frequency FROM topic_token WHERE topic = ? WHERE frequency > 20";
+            "SELECT token, frequency FROM topic_token WHERE topic = ?;";
 
         sqlite3_stmt *stmt = prepareStatement(db, sql);
         if (!stmt)

@@ -299,7 +299,7 @@ namespace FEATURE
                 file_path   TEXT    NOT NULL DEFAULT '',
                 epoch_time  INTEGER NOT NULL DEFAULT 0,
                 chunk_count INTEGER NOT NULL DEFAULT 0
-            ) WITHOUT ROWID;
+            );
         )";
         execute_sql(db, create_table_sql);
 
