@@ -75,7 +75,7 @@ def process_file(file, source_folder, chunk_size, dataset_folder, overlap_size):
     except Exception as e:
         print(f"[ERROR] Failed to process {file}: {e}")
 
-def insert_chunks_into_db(dataset_folder, db_path, overlap_size):
+def insert_chunks_into_db(dataset_folder, db_path):
     print("[INFO] Inserting chunks into database...")
 
     conn = sqlite3.connect(db_path)
@@ -101,22 +101,18 @@ def insert_chunks_into_db(dataset_folder, db_path, overlap_size):
                         if not chunk_text:
                             continue
 
-                        word_count = len(chunk_text.split())
-
                         data_to_insert.append((
                             file,
                             chunk_id,
-                            chunk_text,
-                            word_count,
-                            overlap_size
+                            chunk_text
                         ))
 
                         # chunked batch insert (prevents huge memory usage)
                         if len(data_to_insert) >= 5000:
                             cursor.executemany("""
                                 INSERT OR IGNORE INTO pdf_chunks 
-                                (file_name, chunk_id, chunk_text, word_count, overlap_size)
-                                VALUES (?, ?, ?, ?, ?)
+                                (file_name, chunk_id, chunk_text)
+                                VALUES (?, ?, ?)
                             """, data_to_insert)
                             data_to_insert.clear()
 
@@ -124,8 +120,8 @@ def insert_chunks_into_db(dataset_folder, db_path, overlap_size):
                     if data_to_insert:
                         cursor.executemany("""
                             INSERT OR IGNORE INTO pdf_chunks 
-                            (file_name, chunk_id, chunk_text, word_count, overlap_size)
-                            VALUES (?, ?, ?, ?, ?)
+                            (file_name, chunk_id, chunk_text)
+                            VALUES (?, ?, ?)
                         """, data_to_insert)
 
                 os.remove(file_path) # Optional: clean up chunk files after insertion
@@ -158,8 +154,6 @@ def extract_text(SOURCE_FOLDER, DEST_FOLDER, CHUNK_SIZE=512, DB_PATH=chunk_datab
             file_name TEXT,
             chunk_id INTEGER,
             chunk_text TEXT NOT NULL,
-            word_count INTEGER NOT NULL,
-            overlap_size INTEGER NOT NULL,
             PRIMARY KEY (file_name, chunk_id)
         )
     """)
@@ -194,7 +188,7 @@ def extract_text(SOURCE_FOLDER, DEST_FOLDER, CHUNK_SIZE=512, DB_PATH=chunk_datab
                 future.result()  # This will raise exceptions if any occur inside threads
 
         # Step 3: Insert into database
-        insert_chunks_into_db(DEST_FOLDER, DB_PATH, overlap_size)
+        insert_chunks_into_db(DEST_FOLDER, DB_PATH)
 
     # Check if all files have been processed
     num_completed = cursor.execute("SELECT COUNT(DISTINCT file_name) FROM pdf_chunks").fetchone()[0]
