@@ -1,5 +1,5 @@
 @echo on
-conda env create -f config\requirement.yml
-python nltk_download.py
+conda env create -f src\env.yml
+python config\nltk_download.py
 
 pause
