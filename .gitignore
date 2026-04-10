@@ -1,26 +1,54 @@
-data/
-src/modules/__pycache__
-.vscode/
-archived
-src/modules/path.py
-src/lib/env.hpp
+# ---------------------
+# Local Environments & Secrets
+# ---------------------
+.env
+
+# ---------------------
+# Python Cache
+# ---------------------
+__pycache__/
+*.pyc
+.cache/
+*.pyo
+
+# ---------------------
+# C++ Compiled Binaries
+# ---------------------
 word_tokenizer.exe
+word_tokenizer
 tokenizer.dll
-config/test.bat
-src/test.py
-src/test_file.cpp
 test_file.exe
-outputPrompt.txt
-PROMPT.txt
+build/
+
+# ---------------------
+# Database & Large Data
+# ---------------------
+data/
 models/
-logs/
-conversation/
-assign_topics.ipynb
 analysis/
 wiki_topics/
-config/main_tag.bat
 compressed_vectors.csv
-build/
-.cache/
-app/__pycache__/
 scripts/*.csv
+
+# ---------------------
+# Temporary / Test Files
+# ---------------------
+archived/
+config/test.bat
+config/main_tag.bat
+src/test.py
+src/test_file.cpp
+assign_topics.ipynb
+
+# ---------------------
+# Logs & Output
+# ---------------------
+logs/
+outputPrompt.txt
+PROMPT.txt
+conversation/
+
+# ---------------------
+# IDE Settings
+# ---------------------
+.vscode/
