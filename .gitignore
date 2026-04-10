@@ -52,3 +52,8 @@ conversation/
 # IDE Settings
 # ---------------------
 .vscode/
+
+# ---------------------
+# Temporary files
+# ---------------------
+temp.py
