@@ -1,4 +1,6 @@
-# Study Tracker (achieved version)
+# Study Tracker (archived version)
+
+> **Note:** This is an archived design document. For current project execution, architecture, and valid setup instructions, please see the **[Main Project README](../README.md)**.
 
 ## CLI Application for Study Assistant
 

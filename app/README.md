@@ -1,5 +1,7 @@
 # Study Assistant & Library Manager
 
+> **Note:** This README contains information about the legacy/standalone app pipeline documentation. For the overarching project documentation, architecture, and complete setup instructions (including Docker and Linux support), please look at the **[Root README](../README.md)**.
+
 ## New Updates
 
 In this new iteration, we have made significant architectural improvements and introduced new features:
