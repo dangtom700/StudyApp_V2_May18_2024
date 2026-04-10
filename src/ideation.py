@@ -7,8 +7,10 @@ import signal
 from datetime import datetime
 
 MODELS: List[str] = [
-    "smollm:1.7b", "falcon3:7b", "orca-mini:7b", "mistral:7b", "llama3.2:latest", 
-    "llama3:latest", "granite3.3:8b", "phi3.5:latest", "deepseek-r1:8b", "gemma:latest"
+    "smollm:1.7b", "falcon3:7b", "orca-mini:7b", "mistral:7b",
+    "llama3.2:latest", "llama3:latest", "granite3.3:8b", 
+    "phi3.5:latest", "deepseek-r1:8b", "gemma:latest", 
+    "ministral-3:latest"
 ]
 
 
