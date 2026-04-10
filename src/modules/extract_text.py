@@ -157,9 +157,9 @@ def extract_text(SOURCE_FOLDER, DEST_FOLDER, CHUNK_SIZE=512, DB_PATH=chunk_datab
         CREATE TABLE IF NOT EXISTS pdf_chunks (
             file_name TEXT,
             chunk_id INTEGER,
-            chunk_text TEXT,
-            word_count INTEGER,
-            overlap_size INTEGER,
+            chunk_text TEXT NOT NULL,
+            word_count INTEGER NOT NULL,
+            overlap_size INTEGER NOT NULL,
             PRIMARY KEY (file_name, chunk_id)
         )
     """)
@@ -174,7 +174,7 @@ def extract_text(SOURCE_FOLDER, DEST_FOLDER, CHUNK_SIZE=512, DB_PATH=chunk_datab
     
     num_raw_files = len(raw_files)
     num_zero = len(zero_byte_files)
-    overlap_size = int(CHUNK_SIZE * 0.3)  # Assuming 30% overlap
+    overlap_size = int(CHUNK_SIZE * 0.3)
 
     del raw_files
     del zero_byte_files
