@@ -1,14 +1,24 @@
-from os import getcwd
+import os
 
-StudyApp_root_path = getcwd() + "\\"
+# Best practice: try to load variables from a .env file if python-dotenv is installed
+try:
+    from dotenv import load_dotenv
+    load_dotenv()
+except ImportError:
+    pass
 
-pdf_path = "D:\\READING LIST"
-source_data = "D:\\reading_raw_dataset"
-dest_data = "D:\\reading_refined_dataset"
+# __file__ gets the location of THIS script (src/modules/path.py).
+module_dir = os.path.dirname(os.path.abspath(__file__)) # src/modules
+src_dir = os.path.dirname(module_dir) # src
+StudyApp_root_path = os.path.dirname(src_dir) + "\\" # project root with trailing slash
 
-chunk_database_path = StudyApp_root_path + "data\\pdf_text.db"
-token_json_path = StudyApp_root_path + "data\\token_json"
+pdf_path = os.getenv("READING_LIST_PATH", "D:\\READING LIST")
+source_data = os.getenv("RAW_DATA_PATH", "D:\\reading_raw_dataset")
+dest_data = os.getenv("REFINED_DATA_PATH", "D:\\reading_refined_dataset")
 
-log_file_path = StudyApp_root_path + "data\\process.log"
-buffer_json_path = StudyApp_root_path + "data\\buffer.json"
-dataset_path = StudyApp_root_path + "data\\dataset.txt"
+chunk_database_path = os.path.join(StudyApp_root_path, "data", "pdf_text.db")
+token_json_path = os.path.join(StudyApp_root_path, "data", "token_json")
+
+log_file_path = os.path.join(StudyApp_root_path, "data", "process.log")
+buffer_json_path = os.path.join(StudyApp_root_path, "data", "buffer.json")
+dataset_path = os.path.join(StudyApp_root_path, "data", "dataset.txt")

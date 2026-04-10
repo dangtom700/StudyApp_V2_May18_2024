@@ -2,30 +2,40 @@
 #define ENV_HPP
 
 #include <filesystem>
+#include <cstdlib>
 
 namespace ENV_HPP {
-    // source paths
-    std::filesystem::path resource_path = "D:\\READING LIST";
+    // Helper function to safely read environment variables with a fallback
+    inline std::filesystem::path get_env_path(const char* var_name, const char* fallback) {
+        if (const char* env_p = std::getenv(var_name)) {
+            return std::filesystem::path(env_p);
+        }
+        return std::filesystem::path(fallback);
+    }
 
-    // get the main.cpp working directory, then go up one level, go onw level down to data folder
-    std::filesystem::path data_root = std::filesystem::current_path() / ("data");
+    // Use inline const to prevent Multiple Definition Linker Errors
+    inline const std::filesystem::path resource_path = get_env_path("READING_LIST_PATH", "D:\\READING LIST");
 
-    std::filesystem::path json_path = data_root / ("token_json");
-    std::filesystem::path database_path = data_root / ("pdf_text.db");
-    std::filesystem::path output_path = data_root / ("processed_data");
-    std::filesystem::path logging_path = data_root / ("progress.log");
-    std::filesystem::path processed_data_path = data_root / ("processed_data");
-    std::filesystem::path data_dumper_path = processed_data_path / ("data_dumper.csv");
-    std::filesystem::path filtered_data_path = processed_data_path / ("token_filter.csv");
-    std::filesystem::path data_info_path = processed_data_path / ("data_info.csv");
-    std::filesystem::path buffer_json_path = data_root / ("buffer.json");
-    std::filesystem::path global_terms_path = data_root / ("global_word_freq.json");
-    std::filesystem::path outputPrompt = std::filesystem::current_path() / ("outputPrompt.txt");
-    std::filesystem::path item_matrix = data_root / ("item_matrix.csv");
-    std::filesystem::path route_list = data_root / ("route_list.csv");
+    // Ideally, pass the executable path via argv[0] in main(), but current_path can work 
+    // IF you strictly guarantee you'll always run the terminal command from the project root.
+    inline const std::filesystem::path data_root = std::filesystem::current_path() / "data";
 
-    const int max_length = 18;
-    const int min_value = 1;
+    inline const std::filesystem::path json_path = data_root / "token_json";
+    inline const std::filesystem::path database_path = data_root / "pdf_text.db";
+    inline const std::filesystem::path output_path = data_root / "processed_data";
+    inline const std::filesystem::path logging_path = data_root / "progress.log";
+    inline const std::filesystem::path processed_data_path = data_root / "processed_data";
+    inline const std::filesystem::path data_dumper_path = processed_data_path / "data_dumper.csv";
+    inline const std::filesystem::path filtered_data_path = processed_data_path / "token_filter.csv";
+    inline const std::filesystem::path data_info_path = processed_data_path / "data_info.csv";
+    inline const std::filesystem::path buffer_json_path = data_root / "buffer.json";
+    inline const std::filesystem::path global_terms_path = data_root / "global_word_freq.json";
+    inline const std::filesystem::path outputPrompt = std::filesystem::current_path() / "outputPrompt.txt";
+    inline const std::filesystem::path item_matrix = data_root / "item_matrix.csv";
+    inline const std::filesystem::path route_list = data_root / "route_list.csv";
+
+    inline const int max_length = 18;
+    inline const int min_value = 1;
 }
 
 #endif // ENV_HPP
