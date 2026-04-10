@@ -1,0 +1,17 @@
+version: '3.8'
+
+services:
+  backend-processing:
+    build: 
+      context: .
+      dockerfile: Dockerfile
+    # Environment variables injected INTO the Linux container properly
+    environment:
+      - READING_LIST_PATH=/app/data/reading_list
+      - RAW_DATA_PATH=/app/data/raw_data
+      - REFINED_DATA_PATH=/app/data/refined_data
+    # Volumes mount your host D:\ paths (read from .env) directly into the mapped Linux container drives
+    volumes:
+      - ${READING_LIST_PATH:-D:\READING LIST}:/app/data/reading_list
+      - ${RAW_DATA_PATH:-D:\reading_raw_dataset}:/app/data/raw_data
+      - ${REFINED_DATA_PATH:-D:\reading_refined_dataset}:/app/data/refined_data
