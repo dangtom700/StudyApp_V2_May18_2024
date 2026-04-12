@@ -835,7 +835,11 @@ namespace FEATURE
 
         if (reset_table)
         {
-            execute_sql(db, "DROP TABLE IF EXISTS item_matrix;");
+            execute_sql(db, "DROP TABLE IF EXISTS comparison;");
+
+            // Clear low similarity files if we are resetting the matrix
+            std::ofstream clear_file(ENV_HPP::low_similarity_files.string().c_str(), std::ofstream::trunc);
+            clear_file.close();
         }
 
         execute_sql(db,
@@ -848,9 +852,11 @@ namespace FEATURE
 
         std::map<std::string, std::string> unique_ids = RECOMMEND::collect_unique_id(db);
         std::map<std::string, std::string> processing_ids = RECOMMEND::collect_processing_id(db, reset_table, unique_ids, "SELECT DISTINCT source_id FROM comparison");
+        RECOMMEND::eliminate_low_similarity_processed_files(processing_ids);
         std::map<std::string, std::string> comparison_list = unique_ids; // Copy of unique_ids for comparison
 
         std::cout << "Found " << processing_ids.size() << " files to process\n";
+        std::ofstream file(ENV_HPP::low_similarity_files.string().c_str(), std::ofstream::app);
 
         for (const auto &id_pair : processing_ids)
         {
@@ -876,6 +882,16 @@ namespace FEATURE
 
             comparison_list.erase(id); // Remove the current id from comparison list to speed up the iteration
 
+            // If the result is empty, check if it truly has no matches in the DB
+            if (result.empty())
+            {
+                if (!RECOMMEND::has_any_similarity(db, id))
+                {
+                    file << id << "\n";
+                }
+                continue;
+            }
+
             execute_sql(db, "BEGIN;");
             RECOMMEND::insert_item_matrix(result, db);
             execute_sql(db, "COMMIT;");
@@ -885,6 +901,7 @@ namespace FEATURE
         }
 
         sqlite3_close(db);
+        file.close();
     }
 
     void label_topics(bool show_progress, bool reset_table)

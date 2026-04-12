@@ -274,6 +274,35 @@ namespace RECOMMEND
         }
     }
 
+    bool has_any_similarity(sqlite3 *db, const std::string &id)
+    {
+        std::string sql = "SELECT 1 FROM comparison WHERE source_id = ? OR target_id = ? LIMIT 1";
+        sqlite3_stmt *stmt = prepareStatement(db, sql);
+        if (!stmt)
+            return false;
+
+        sqlite3_bind_text(stmt, 1, id.c_str(), -1, SQLITE_TRANSIENT);
+        sqlite3_bind_text(stmt, 2, id.c_str(), -1, SQLITE_TRANSIENT);
+        bool exists = (sqlite3_step(stmt) == SQLITE_ROW);
+        sqlite3_finalize(stmt);
+        return exists;
+    }
+
+    void eliminate_low_similarity_processed_files(std::map<std::string, std::string> &processing_ids)
+    {
+        std::ifstream file(ENV_HPP::low_similarity_files.string().c_str());
+        if (!file.is_open())
+            return;
+
+        std::string item;
+        while (std::getline(file, item))
+        {
+            processing_ids.erase(item);
+            std::cout << "Remove: " << item << "\n";
+        }
+        file.close();
+    }
+
     void insert_item_matrix(
         const std::vector<std::tuple<std::string, std::string, double>> &RESULT,
         sqlite3 *db)

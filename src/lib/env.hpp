@@ -36,6 +36,7 @@ namespace ENV_HPP
     inline const std::filesystem::path outputPrompt = std::filesystem::current_path() / "outputPrompt.txt";
     inline const std::filesystem::path item_matrix = data_root / "item_matrix.csv";
     inline const std::filesystem::path route_list = data_root / "route_list.csv";
+    inline const std::filesystem::path low_similarity_files = data_root / "low_similarity.txt";
 
     inline const int max_length = 18;
     inline const int min_value = 1;
