@@ -837,30 +837,17 @@ namespace FEATURE
         {
             execute_sql(db, "DROP TABLE IF EXISTS item_matrix;");
         }
-        // Be extra sure about there is always a table to process, otherwise the following code will break
-        // PK order: (source_id, target_id) — range scans in expand_degree filter
-        // by source first, so the PK B-tree must start with source_id.
-        // CHECK eliminates invalid zero-score pairs at DB level.
+
         execute_sql(db,
-                    "CREATE TABLE IF NOT EXISTS item_matrix ("
+                    "CREATE TABLE IF NOT EXISTS comparison ("
                     "source_id   TEXT NOT NULL, "
-                    "source_name TEXT NOT NULL DEFAULT '', "
                     "target_id   TEXT NOT NULL, "
-                    "target_name TEXT NOT NULL DEFAULT '', "
                     "distance    REAL NOT NULL DEFAULT 0.0 CHECK(distance > 0.0), "
                     "PRIMARY KEY (source_id, target_id)"
                     ") WITHOUT ROWID;");
-        // // expand_degree JOINs on source_name and target_name — these indexes
-        // // avoid full scans of the N^2 table on every degree expansion.
-        // execute_sql(db,
-        //             "CREATE INDEX IF NOT EXISTS idx_im_source_name "
-        //             "ON item_matrix(source_name);");
-        // execute_sql(db,
-        //             "CREATE INDEX IF NOT EXISTS idx_im_target_name "
-        //             "ON item_matrix(target_name);");
 
         std::map<std::string, std::string> unique_ids = RECOMMEND::collect_unique_id(db);
-        std::map<std::string, std::string> processing_ids = RECOMMEND::collect_processing_id(db, reset_table, unique_ids, "SELECT DISTINCT source_id FROM item_matrix");
+        std::map<std::string, std::string> processing_ids = RECOMMEND::collect_processing_id(db, reset_table, unique_ids, "SELECT DISTINCT source_id FROM comparison");
         std::map<std::string, std::string> comparison_list = unique_ids; // Copy of unique_ids for comparison
 
         std::cout << "Found " << processing_ids.size() << " files to process\n";
@@ -869,8 +856,7 @@ namespace FEATURE
         {
             // If found, process the id_pair
             const std::string &id = id_pair.first;
-            const std::string &file_name = id_pair.second;
-            std::vector<std::tuple<std::string, std::string, std::string, std::string, double>> result;
+            std::vector<std::tuple<std::string, std::string, double>> result;
 
             auto filtered_tokens = RECOMMEND::load_token_map(db, id);
             if (filtered_tokens.empty())
@@ -882,8 +868,9 @@ namespace FEATURE
 
             for (const auto &[target_id, target_name, distance] : results)
             {
-                std::tuple<std::string, std::string, std::string, std::string, double> row =
-                    {target_id, target_name, id, file_name, distance};
+                if (distance < 0.4)
+                    continue;
+                std::tuple<std::string, std::string, double> row = {target_id, id, distance};
                 result.push_back(row);
             }
 
@@ -922,7 +909,6 @@ namespace FEATURE
 
         std::string create_full_table_sql = R"(
             CREATE TABLE IF NOT EXISTS tags_full (
-                name     TEXT NOT NULL DEFAULT '',
                 ID       TEXT NOT NULL,
                 distance REAL NOT NULL DEFAULT 0.0 CHECK(distance > 0.0 AND distance <= 1.0),
                 topic    TEXT NOT NULL,
@@ -985,8 +971,7 @@ namespace FEATURE
         // -------------------------------------------------
         std::string create_table_sql = R"(
         CREATE TABLE IF NOT EXISTS tags (
-            name     TEXT NOT NULL,
-            ID       TEXT NOT NULL,
+            ID     TEXT NOT NULL,
             distance REAL NOT NULL CHECK(distance > 0 AND distance <= 1),
             topic    TEXT NOT NULL,
             degree   INTEGER NOT NULL CHECK(degree >= 1),
@@ -1020,8 +1005,8 @@ namespace FEATURE
         // Degree 1 (seed)
         // -------------------------------------------------
         const char *insert_degree1_sql = R"(
-            INSERT OR IGNORE INTO tags (name, ID, distance, topic, degree)
-            SELECT name, ID, distance, topic, 1
+            INSERT OR IGNORE INTO tags (ID, distance, topic, degree)
+            SELECT ID, distance, topic, 1
             FROM tags_full
             WHERE distance >= ?;
         )";

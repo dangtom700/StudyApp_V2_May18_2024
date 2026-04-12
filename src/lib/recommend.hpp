@@ -275,23 +275,21 @@ namespace RECOMMEND
     }
 
     void insert_item_matrix(
-        const std::vector<std::tuple<std::string, std::string, std::string, std::string, double>> &RESULT,
+        const std::vector<std::tuple<std::string, std::string, double>> &RESULT,
         sqlite3 *db)
     {
-        std::string insert_sql = "INSERT OR IGNORE INTO item_matrix (target_id, target_name, source_id, source_name, distance) VALUES (?, ?, ?, ?, ?);";
+        std::string insert_sql = "INSERT OR IGNORE INTO comparison (target_id, source_id, distance) VALUES (?, ?, ?);";
         sqlite3_stmt *stmt = prepareStatement(db, insert_sql);
         if (!stmt)
             return;
 
         // SQLITE_STATIC: strings are refs into the RESULT vector which
         // outlives every step call inside this loop — no copy needed.
-        for (const auto &[target_id, target_name, source_id, source_name, distance] : RESULT)
+        for (const auto &[target_id, source_id, distance] : RESULT)
         {
             sqlite3_bind_text(stmt, 1, target_id.c_str(), -1, SQLITE_STATIC);
-            sqlite3_bind_text(stmt, 2, target_name.c_str(), -1, SQLITE_STATIC);
-            sqlite3_bind_text(stmt, 3, source_id.c_str(), -1, SQLITE_STATIC);
-            sqlite3_bind_text(stmt, 4, source_name.c_str(), -1, SQLITE_STATIC);
-            sqlite3_bind_double(stmt, 5, distance);
+            sqlite3_bind_text(stmt, 2, source_id.c_str(), -1, SQLITE_STATIC);
+            sqlite3_bind_double(stmt, 3, distance);
             sqlite3_step(stmt);
             sqlite3_reset(stmt);
         }
@@ -303,18 +301,17 @@ namespace RECOMMEND
         const std::string &topic,
         sqlite3 *db)
     {
-        std::string insert_sql = "INSERT OR IGNORE INTO tags_full (ID, name, distance, topic) VALUES (?, ?, ?, ?);";
+        std::string insert_sql = "INSERT OR IGNORE INTO tags_full (ID, distance, topic) VALUES (?, ?, ?);";
         sqlite3_stmt *stmt = prepareStatement(db, insert_sql);
         if (!stmt)
             return;
 
         // SQLITE_STATIC: all strings live in RESULT / topic param for the loop duration.
-        for (const auto &[target_id, target_name, distance] : RESULT)
+        for (const auto &[target_id, ignored_name, distance] : RESULT)
         {
             sqlite3_bind_text(stmt, 1, target_id.c_str(), -1, SQLITE_STATIC);
-            sqlite3_bind_text(stmt, 2, target_name.c_str(), -1, SQLITE_STATIC);
-            sqlite3_bind_double(stmt, 3, distance);
-            sqlite3_bind_text(stmt, 4, topic.c_str(), -1, SQLITE_STATIC);
+            sqlite3_bind_double(stmt, 2, distance);
+            sqlite3_bind_text(stmt, 3, topic.c_str(), -1, SQLITE_STATIC);
             sqlite3_step(stmt);
             sqlite3_reset(stmt);
         }
