@@ -388,12 +388,12 @@ def prepare_filtered_table(reset=True):
         while True:
             rows = db.execute(
                 """
-                SELECT source_name, target_name, distance
+                SELECT source_id, target_id, distance
                 FROM item_matrix
-                WHERE (source_name > ?)
-                   OR (source_name = ? AND target_name > ?)
+                WHERE (source_id > ?)
+                   OR (source_id = ? AND target_id > ?)
                   AND distance > ?
-                ORDER BY source_name, target_name
+                ORDER BY source_id, target_id
                 LIMIT ?;
                 """,
                 (
