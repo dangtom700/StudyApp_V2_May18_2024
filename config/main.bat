@@ -145,6 +145,7 @@ if %promptReference%==1 (
 
 rem Mapping Item Matrix
 if %mappingItemMatrix%==1 (
+    python src/main.py --computeItemMatrix
     word_tokenizer --mappingItemMatrix
     if %errorlevel% neq 0 (
         echo Error executing Mapping Item Matrix.
