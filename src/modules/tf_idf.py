@@ -91,7 +91,7 @@ def computeTFIDF():
     conn.close()
     print("TF-IDF computation completed.")
 
-def compute_item_matrix(top_k=5000, batch_size=20000, similarity_cutoff = 0.4):
+def compute_item_matrix(top_k=1000, batch_size=20000, similarity_cutoff = 0.3):
     conn = sqlite3.connect(chunk_database_path)
     cursor = conn.cursor()
 
@@ -105,7 +105,8 @@ def compute_item_matrix(top_k=5000, batch_size=20000, similarity_cutoff = 0.4):
     """)
 
     # --- Target table ---
-    cursor.execute("""
+    cursor.executescript("""
+    DROP TABLE IF EXISTS item_matrix;
     CREATE TABLE IF NOT EXISTS item_matrix(
         source_id TEXT NOT NULL,
         target_id TEXT NOT NULL,

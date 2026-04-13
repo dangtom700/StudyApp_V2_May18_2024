@@ -106,49 +106,45 @@ class DatabaseManager:
     def get_recommendations(self, file_name: str, count: int = 10) -> List[Tuple[str, float]]:
         """
         Get recommendations for a file based on item_matrix distances
-        Returns files with greatest distance (most dissimilar)
+        Returns files with greatest distance (most similar)
         Format: [(recommended_file_name, distance_score), ...]
         """
         try:
-            # First, try to get recommendations from item_matrix table
-            # This assumes item_matrix has columns: file_id1, file_id2, distance
-            # We need to join with file info to get file names
-            
-            self.cursor.execute("""
-                SELECT DISTINCT target_name FROM item_matrix 
-                WHERE source_name = (SELECT target_name FROM item_matrix WHERE source_name = ? LIMIT 1)
-                LIMIT 1
-            """, (file_name,))
-            
-            # Check if item_matrix exists and has the expected structure
-            self.cursor.execute("""
-                SELECT name FROM sqlite_master 
-                WHERE type='table' AND name='item_matrix'
-            """)
-            
+            # Check if item_matrix exists
+            self.cursor.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='item_matrix'")
             if not self.cursor.fetchone():
-                # Fallback: return random dissimilar files (all files except current)
+                return self.get_random_recommendations(file_name, count)
+
+            # 1. Get the ID for the current file_name
+            self.cursor.execute("SELECT id FROM file_info WHERE file_name = ?", (file_name,))
+            row = self.cursor.fetchone()
+            if not row:
                 return self.get_random_recommendations(file_name, count)
             
-            # Try to get distances from item_matrix
-            self.cursor.execute("""
-                SELECT 
-                    CASE 
-                        WHEN source_name = ? THEN target_name 
-                        ELSE source_name 
-                    END as other_file,
-                    distance
-                FROM item_matrix 
-                WHERE target_name = ? OR source_name = ?
-                ORDER BY distance DESC 
+            current_id = row['id'] if isinstance(row, sqlite3.Row) else row[0]
+            title_id = f"title_{current_id}"
+
+            # 2. Query item_matrix and join with file_info to get names
+            # We search both source_id and target_id because the matrix is upper-triangle only
+            query = """
+                WITH reco_ids AS (
+                    SELECT target_id as other_id, distance FROM item_matrix WHERE source_id = ?
+                    UNION ALL
+                    SELECT source_id as other_id, distance FROM item_matrix WHERE target_id = ?
+                )
+                SELECT f.file_name, r.distance
+                FROM reco_ids r
+                JOIN file_info f ON 'title_' || f.id = r.other_id
+                ORDER BY r.distance DESC
                 LIMIT ?
-            """, (file_name, file_name, file_name, count))
-            
+            """
+            self.cursor.execute(query, (title_id, title_id, count))
             results = self.cursor.fetchall()
+
             if results:
-                return [(row[0], row[1]) for row in results]
+                return [(row['file_name'] if isinstance(row, sqlite3.Row) else row[0], 
+                         row['distance'] if isinstance(row, sqlite3.Row) else row[1]) for row in results]
             
-            # Fallback if no results
             return self.get_random_recommendations(file_name, count)
             
         except sqlite3.Error as e:

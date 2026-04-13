@@ -95,7 +95,7 @@ class PDFViewerTab(QWidget):
             self.info_label.setText(info_text)
             
             # Get first chunk as preview
-            preview = self.db_manager.get_pdf_preview(pdf_name, chars=500)
+            preview = self.db_manager.get_pdf_preview(pdf_name, chars=1000)
             self.content_label.setText(preview if preview else "No content available")
         else:
             self.info_label.setText("File not found in database")
@@ -183,7 +183,7 @@ class FileSearchTab(QWidget):
 
 
 class RecommendationTab(QWidget):
-    """Tab for showing file recommendations based on dissimilarity"""
+    """Tab for showing file recommendations based on similarity"""
     
     def __init__(self, db_manager):
         super().__init__()
@@ -288,7 +288,7 @@ class RecommendationTab(QWidget):
                 <b>Distance Score:</b> {distance:.6f}<br>
                 <b>Total Chunks:</b> {chunk_count}<br>
                 <b>Path:</b> {file_path}<br>
-                <i>Higher distance indicates more dissimilar content</i>
+                <i>Higher distance indicates more similar content</i>
                 """
                 self.rec_detail.setText(detail_text)
 
