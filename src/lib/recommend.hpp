@@ -276,7 +276,7 @@ namespace RECOMMEND
 
     bool has_any_similarity(sqlite3 *db, const std::string &id)
     {
-        std::string sql = "SELECT 1 FROM comparison WHERE source_id = ? OR target_id = ? LIMIT 1";
+        std::string sql = "SELECT 1 FROM item_matrix WHERE source_id = ? OR target_id = ? LIMIT 1";
         sqlite3_stmt *stmt = prepareStatement(db, sql);
         if (!stmt)
             return false;
@@ -307,7 +307,7 @@ namespace RECOMMEND
         const std::vector<std::tuple<std::string, std::string, double>> &RESULT,
         sqlite3 *db)
     {
-        std::string insert_sql = "INSERT OR IGNORE INTO comparison (target_id, source_id, distance) VALUES (?, ?, ?);";
+        std::string insert_sql = "INSERT OR IGNORE INTO item_matrix (target_id, source_id, distance, distance_mod) VALUES (?, ?, ?, ?);";
         sqlite3_stmt *stmt = prepareStatement(db, insert_sql);
         if (!stmt)
             return;
@@ -319,6 +319,7 @@ namespace RECOMMEND
             sqlite3_bind_text(stmt, 1, target_id.c_str(), -1, SQLITE_STATIC);
             sqlite3_bind_text(stmt, 2, source_id.c_str(), -1, SQLITE_STATIC);
             sqlite3_bind_double(stmt, 3, distance);
+            sqlite3_bind_double(stmt, 4, distance); // Using same distance for distance_mod for now
             sqlite3_step(stmt);
             sqlite3_reset(stmt);
         }
@@ -350,30 +351,29 @@ namespace RECOMMEND
     void expand_degree(sqlite3 *db, int from_degree, int to_degree, double threshold)
     {
         const char *expand_sql = R"(
-            INSERT OR IGNORE INTO tags (name, ID, distance, topic, degree)
+            INSERT OR IGNORE INTO tags (ID, distance, topic, degree)
 
             SELECT
                 CASE
-                    WHEN im.source_name = t.name THEN im.target_name
-                    ELSE im.source_name
-                END AS new_name,
+                    WHEN im.source_id = t.ID THEN im.target_id
+                    ELSE im.source_id
+                END AS new_id,
 
-                tf.ID,
                 tf.distance,
                 t.topic,
                 ?
 
             FROM tags t
 
-            JOIN item_matrix_filtered im
-                ON (im.source_name = t.name
-                 OR im.target_name = t.name)
+            JOIN item_matrix im
+                ON (im.source_id = t.ID
+                 OR im.target_id = t.ID)
 
             JOIN tags_full tf
-                ON tf.name =
+                ON tf.ID =
                     CASE
-                        WHEN im.source_name = t.name THEN im.target_name
-                        ELSE im.source_name
+                        WHEN im.source_id = t.ID THEN im.target_id
+                        ELSE im.source_id
                     END
                 AND tf.topic = t.topic
 
