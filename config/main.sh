@@ -21,6 +21,7 @@ computeTFIDF=1
 runCutoffAnalysis=0
 ideation=0
 promptReference=0
+fastMappingItemMatrix=1
 mappingItemMatrix=1
 topicTokenize=1
 labelTopics=1
@@ -39,6 +40,7 @@ for arg in "$@"; do
         --runCutoffAnalysis) runCutoffAnalysis=1 ;;
         --ideation) ideation=1 ;;
         --promptReference) promptReference=1 ;;
+        --fastMappingItemMatrix) fastMappingItemMatrix=1 ;;
         --mappingItemMatrix) mappingItemMatrix=1 ;;
         --topicTokenize) topicTokenize=1 ;;
         --labelTopics) labelTopics=1 ;;
@@ -65,11 +67,8 @@ if [ $promptReference -eq 1 ]; then
     ./word_tokenizer --processPrompt
 fi
 
-if [ $mappingItemMatrix -eq 1 ]; then
-    python src/main.py --computeItemMatrix
-    ./word_tokenizer --mappingItemMatrix
-fi
-
+fi [ $fastMappingItemMatrix -eq 1]; then python src/main.py --computeItemMatrix; fi
+if [ $mappingItemMatrix -eq 1 ]; then ./word_tokenizer --mappingItemMatrix; fi
 if [ $topicTokenize -eq 1 ]; then python src/main.py --topicTokenize; fi
 if [ $labelTopics -eq 1 ]; then ./word_tokenizer --labelTopics; fi
 if [ $expandTopics -eq 1 ]; then ./word_tokenizer --expandTopics; fi

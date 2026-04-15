@@ -21,14 +21,15 @@ rem Function to execute tasks based on flags
 
 set "showComponents=0"
 set "renameFile=0"
-set "extractText=1"
-set "updateDatabaseInformation=1"
-set "processWordFreq=1"
-set "computeRelationalDistance=1"
-set "computeTFIDF=1"
+set "extractText=0"
+set "updateDatabaseInformation=0"
+set "processWordFreq=0"
+set "computeRelationalDistance=0"
+set "computeTFIDF=0"
 set "runCutoffAnalysis=0"
 set "ideation=0"
 set "promptReference=0"
+set "fastMappingItemMatrix=0"
 set "mappingItemMatrix=1"
 set "topicTokenize=1"
 set "labelTopics=1"
@@ -47,6 +48,7 @@ for %%A in (%*) do (
     if "%%A"=="--runCutoffAnalysis" set runCutoffAnalysis=1
     if "%%A"=="--ideation" set ideation=1
     if "%%A"=="--promptReference" set promptReference=1
+    if "%%A"=="--fastMappingItemMatrix" set fastMappingItemMatrix=1
     if "%%A"=="--mappingItemMatrix" set mappingItemMatrix=1
     if "%%A"=="--topicTokenize" set topicTokenize=1
     if "%%A"=="--labelTopics" set labelTopics=1
@@ -143,9 +145,16 @@ if %promptReference%==1 (
     )
 )
 
+rem Mapping Item Matrix (fast version)
+if %fastMappingItemMatrix%==1 (
+    python src/main.py --computeItemMatrix
+    if %errorlevel% neq 0 (
+        echo Error executing Mapping Item Matrix.
+    )
+)
+
 rem Mapping Item Matrix
 if %mappingItemMatrix%==1 (
-    python src/main.py --computeItemMatrix
     word_tokenizer --mappingItemMatrix
     if %errorlevel% neq 0 (
         echo Error executing Mapping Item Matrix.
