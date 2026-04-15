@@ -856,12 +856,11 @@ namespace FEATURE
         std::map<std::string, std::string> comparison_list = unique_ids; // Copy of unique_ids for comparison
 
         std::cout << "Found " << processing_ids.size() << " files to process\n";
-        std::ofstream file(ENV_HPP::low_similarity_files.string().c_str(), std::ofstream::app);
 
-        for (const auto &id_pair : processing_ids)
+        for (auto id_pair = processing_ids.rbegin(); id_pair != processing_ids.rend(); ++id_pair)
         {
             // If found, process the id_pair
-            const std::string &id = id_pair.first;
+            const std::string &id = id_pair->first;
             std::vector<std::tuple<std::string, std::string, double>> result;
 
             auto filtered_tokens = RECOMMEND::load_token_map(db, id);
@@ -885,15 +884,17 @@ namespace FEATURE
             // If the result is empty, check if it truly has no matches in the DB
             if (result.empty())
             {
-                if (!RECOMMEND::has_any_similarity(db, id))
-                {
+                std::ofstream file(ENV_HPP::low_similarity_files.string().c_str(), std::ofstream::app);
+                if (file.is_open())
                     file << id << "\n";
-                }
+                else
+                    std::cout << ENV_HPP::low_similarity_files.string() << " is fucked.\n";
+                file.close();
                 continue;
             }
 
             execute_sql(db, "BEGIN;");
-            RECOMMEND::insert_item_matrix(result, db);
+            RECOMMEND::insert_comparison(result, db);
             execute_sql(db, "COMMIT;");
 
             if (show_progress)
@@ -901,7 +902,6 @@ namespace FEATURE
         }
 
         sqlite3_close(db);
-        file.close();
     }
 
     void label_topics(bool show_progress, bool reset_table)

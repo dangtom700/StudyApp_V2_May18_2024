@@ -276,7 +276,7 @@ namespace RECOMMEND
 
     bool has_any_similarity(sqlite3 *db, const std::string &id)
     {
-        std::string sql = "SELECT 1 FROM item_matrix WHERE source_id = ? OR target_id = ? LIMIT 1";
+        std::string sql = "SELECT 1 FROM item_matrix WHERE source_id = ? LIMIT 1";
         sqlite3_stmt *stmt = prepareStatement(db, sql);
         if (!stmt)
             return false;
@@ -298,16 +298,15 @@ namespace RECOMMEND
         while (std::getline(file, item))
         {
             processing_ids.erase(item);
-            std::cout << "Remove: " << item << "\n";
         }
         file.close();
     }
 
-    void insert_item_matrix(
+    void insert_comparison(
         const std::vector<std::tuple<std::string, std::string, double>> &RESULT,
         sqlite3 *db)
     {
-        std::string insert_sql = "INSERT OR IGNORE INTO item_matrix (target_id, source_id, distance, distance_mod) VALUES (?, ?, ?, ?);";
+        std::string insert_sql = "INSERT OR IGNORE INTO comparison (target_id, source_id, distance) VALUES (?, ?, ?);";
         sqlite3_stmt *stmt = prepareStatement(db, insert_sql);
         if (!stmt)
             return;
@@ -319,7 +318,6 @@ namespace RECOMMEND
             sqlite3_bind_text(stmt, 1, target_id.c_str(), -1, SQLITE_STATIC);
             sqlite3_bind_text(stmt, 2, source_id.c_str(), -1, SQLITE_STATIC);
             sqlite3_bind_double(stmt, 3, distance);
-            sqlite3_bind_double(stmt, 4, distance); // Using same distance for distance_mod for now
             sqlite3_step(stmt);
             sqlite3_reset(stmt);
         }
