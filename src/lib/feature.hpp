@@ -12,6 +12,10 @@
 #include <mutex>
 #include <thread>
 #include <nlohmann/json.hpp>
+#include <time.h>
+#include <chrono>
+#include <algorithm>
+#include <random>
 
 using json = nlohmann::json;
 
@@ -857,10 +861,22 @@ namespace FEATURE
 
         std::cout << "Found " << processing_ids.size() << " files to process\n";
 
-        for (auto id_pair = processing_ids.rbegin(); id_pair != processing_ids.rend(); ++id_pair)
+        uint8_t update_freq = 50;
+        std::chrono::high_resolution_clock::time_point start_time = std::chrono::high_resolution_clock::now();
+        std::vector<std::pair<std::string, std::string>> items;
+
+        for (const auto &p : processing_ids)
+            items.emplace_back(p.first, p.second);
+
+        std::shuffle(items.begin(), items.end(), std::default_random_engine(std::random_device{}()));
+        processing_ids.clear();
+
+        uint16_t size = items.size(); // Update size after shuffling
+
+        for (size_t i = 0; i < size; ++i)
         {
-            // If found, process the id_pair
-            const std::string &id = id_pair->first;
+            const auto &id_pair = items[i];
+            const std::string &id = id_pair.first;
             std::vector<std::tuple<std::string, std::string, double>> result;
 
             auto filtered_tokens = RECOMMEND::load_token_map(db, id);
@@ -897,8 +913,23 @@ namespace FEATURE
             RECOMMEND::insert_comparison(result, db);
             execute_sql(db, "COMMIT;");
 
-            if (show_progress)
-                std::cout << id << std::endl;
+            if (show_progress && i % update_freq == 0 && i != 0)
+            {
+                std::chrono::high_resolution_clock::time_point end_time = std::chrono::high_resolution_clock::now();
+                double elapsed_sec = std::chrono::duration_cast<std::chrono::milliseconds>(end_time - start_time).count() / 1000.0;
+                double avg_sec_per_item = elapsed_sec / static_cast<double>(update_freq);
+                int estimated_time_left = static_cast<int>((size - (i + 1)) * avg_sec_per_item);
+                int seconds = estimated_time_left % 60;
+                int minutes = (estimated_time_left / 60) % 60;
+                int hours = estimated_time_left / 3600;
+                std::cout << "Estimated time left: "
+                          << hours << "Hr "
+                          << minutes << "Min "
+                          << seconds << "sec"
+                          << " (" << estimated_time_left << " seconds)"
+                          << std::endl;
+                start_time = end_time;
+            }
         }
 
         sqlite3_close(db);
