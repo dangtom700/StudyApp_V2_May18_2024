@@ -824,7 +824,8 @@ namespace FEATURE
     }
 
     void mappingItemMatrix(const bool &show_progress = true,
-                           const bool reset_table = true)
+                           const bool &reset_table = true,
+                           const uint8_t &update_freq = 50)
     {
         sqlite3 *db;
         if (sqlite3_open(ENV_HPP::database_path.string().c_str(), &db) != SQLITE_OK)
@@ -861,7 +862,6 @@ namespace FEATURE
 
         std::cout << "Found " << processing_ids.size() << " files to process\n";
 
-        uint8_t update_freq = 50;
         std::chrono::high_resolution_clock::time_point start_time = std::chrono::high_resolution_clock::now();
         std::vector<std::pair<std::string, std::string>> items;
 
@@ -923,10 +923,10 @@ namespace FEATURE
                 int minutes = (estimated_time_left / 60) % 60;
                 int hours = estimated_time_left / 3600;
                 std::cout << "Estimated time left: "
-                          << hours << "Hr "
+                          << hours << "HR "
                           << minutes << "Min "
                           << seconds << "sec"
-                          << " (" << estimated_time_left << " seconds)"
+                          << " (" << size - (i + 1) << " samples left)"
                           << std::endl;
                 start_time = end_time;
             }
