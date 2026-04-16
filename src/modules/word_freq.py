@@ -491,7 +491,7 @@ def tokenize_topics(TOPIC_LIST: set[str]):
     # STEP 2: Open DB
     print("Processing topics and storing tokens in the database...")
     conn = sqlite3.connect(chunk_database_path)
-    setup_database(conn, reset=True)
+    setup_database(conn, reset=False)
     cursor = conn.cursor()
 
     # prepare_filtered_table(reset=True)

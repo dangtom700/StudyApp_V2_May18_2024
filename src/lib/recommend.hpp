@@ -326,7 +326,6 @@ namespace RECOMMEND
 
     void insert_tags_full(
         const std::vector<std::tuple<std::string, std::string, double>> &RESULT,
-        const std::string &topic,
         sqlite3 *db)
     {
         std::string insert_sql = "INSERT OR IGNORE INTO tags_full (ID, distance, topic) VALUES (?, ?, ?);";
@@ -335,7 +334,7 @@ namespace RECOMMEND
             return;
 
         // SQLITE_STATIC: all strings live in RESULT / topic param for the loop duration.
-        for (const auto &[target_id, ignored_name, distance] : RESULT)
+        for (const auto &[target_id, topic, distance] : RESULT)
         {
             sqlite3_bind_text(stmt, 1, target_id.c_str(), -1, SQLITE_STATIC);
             sqlite3_bind_double(stmt, 2, distance);

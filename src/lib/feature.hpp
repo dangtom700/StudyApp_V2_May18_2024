@@ -935,7 +935,7 @@ namespace FEATURE
         sqlite3_close(db);
     }
 
-    void label_topics(bool show_progress, bool reset_table)
+    void label_topics(bool show_progress, bool reset_table, const float &threshold = 0.4)
     {
         sqlite3 *db;
         if (sqlite3_open(ENV_HPP::database_path.string().c_str(), &db) != SQLITE_OK)
@@ -982,9 +982,19 @@ namespace FEATURE
             RECOMMEND::apply_tfidf(db, filtered_tokens);
             auto relation_distance_map = RECOMMEND::load_related_tokens(db, filtered_tokens);
             std::vector<std::tuple<std::string, std::string, double>> recommendations = RECOMMEND::compute_recommendations(filtered_tokens, relation_distance_map, topic, processing_ids);
+            std::vector<std::tuple<std::string, std::string, double>> skimmy;
+
+            // Skim down the recommendation list
+            for (const auto &[target_id, target_name, distance] : recommendations)
+            {
+                if (distance < threshold)
+                    continue;
+                std::tuple<std::string, std::string, double> res = {target_id, topic, distance};
+                skimmy.emplace_back(res);
+            }
 
             execute_sql(db, "BEGIN;");
-            RECOMMEND::insert_tags_full(recommendations, topic, db);
+            RECOMMEND::insert_tags_full(skimmy, db);
             execute_sql(db, "COMMIT;");
 
             if (show_progress)
