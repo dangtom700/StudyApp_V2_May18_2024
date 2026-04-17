@@ -88,7 +88,8 @@ namespace FEATURE
     void computeRelationalDistance(const std::vector<std::filesystem::path> &filtered_files,
                                    const bool &show_progress = true,
                                    const bool &reset_table = true,
-                                   const bool &is_dumped = true)
+                                   const bool &is_dumped = true,
+                                   const int freq_thres = 50)
     {
         try
         {
@@ -127,7 +128,7 @@ namespace FEATURE
             execute_sql(db, create_sql);
 
             create_sql = R"(
-                CREATE TABLE IF NOT EXISTS relation_distance (
+                CREATE TABLE IF NOT EXISTS relation_distance_filtered (
                     file_name           TEXT    NOT NULL,
                     token               TEXT    NOT NULL,
                     frequency           INTEGER NOT NULL DEFAULT 0,
@@ -154,7 +155,7 @@ namespace FEATURE
             sqlite3_prepare_v2(db, insert_ft_sql.c_str(), -1, &stmt_ft, nullptr);
 
             const std::string insert_rd_sql = R"(
-                INSERT OR REPLACE INTO relation_distance (file_name, token, frequency, relational_distance)
+                INSERT OR REPLACE INTO relation_distance_filtered (file_name, token, frequency, relational_distance)
                 VALUES (?, ?, ?, ?);
             )";
             sqlite3_stmt *stmt_rd = nullptr;
@@ -214,10 +215,12 @@ namespace FEATURE
                 // Insert filtered tokens into relation_distance (reuse hoisted statement)
                 for (const auto &token : row.filtered_tokens)
                 {
-                    sqlite3_bind_text(stmt_rd, 1, row.path.c_str(), -1, SQLITE_STATIC);
-                    sqlite3_bind_text(stmt_rd, 2, std::get<0>(token).c_str(), -1, SQLITE_STATIC);
-                    sqlite3_bind_int(stmt_rd, 3, std::get<1>(token));
-                    sqlite3_bind_double(stmt_rd, 4, std::get<2>(token));
+                    if (std::get<1>(token) < freq_thres)
+                        continue;
+                    sqlite3_bind_text(stmt_rd, 1, row.path.c_str(), -1, SQLITE_STATIC);           // file_name
+                    sqlite3_bind_text(stmt_rd, 2, std::get<0>(token).c_str(), -1, SQLITE_STATIC); // token
+                    sqlite3_bind_int(stmt_rd, 3, std::get<1>(token));                             // frequency
+                    sqlite3_bind_double(stmt_rd, 4, std::get<2>(token));                          // relational_distance
                     sqlite3_step(stmt_rd);
                     sqlite3_reset(stmt_rd);
                 }
@@ -231,21 +234,6 @@ namespace FEATURE
 
             // Commit the transaction to apply all inserts
             execute_sql(db, "COMMIT TRANSACTION;");
-
-            // Re-enable synchronous mode (optional, depending on your use case)
-            execute_sql(db, "PRAGMA synchronous = FULL;");
-
-            // Create another table of relation_distance_filtered for prompt processing to speed up query time.
-            std::string create_filtered_sql = R"(
-                DROP TABLE IF EXISTS relation_distance_filtered;
-                CREATE TABLE IF NOT EXISTS relation_distance_filtered AS
-                SELECT * FROM relation_distance
-                WHERE frequency >= 50
-            )";
-
-            execute_sql(db, create_filtered_sql);
-
-            std::cout << "Create a filtered table for prompt processing finished" << std::endl;
 
             // Close the SQLite database connection
             sqlite3_close(db);
@@ -935,7 +923,7 @@ namespace FEATURE
         sqlite3_close(db);
     }
 
-    void label_topics(bool show_progress, bool reset_table, const float &threshold = 0.4)
+    void label_topics(bool show_progress, bool reset_table, const float &threshold = 0.3)
     {
         sqlite3 *db;
         if (sqlite3_open(ENV_HPP::database_path.string().c_str(), &db) != SQLITE_OK)
@@ -964,10 +952,6 @@ namespace FEATURE
             ) WITHOUT ROWID;
         )";
         execute_sql(db, create_full_table_sql);
-        // // Index used by iterative_topic_expansion when it queries tags_full(ID, topic)
-        // execute_sql(db,
-        //             "CREATE INDEX IF NOT EXISTS idx_tags_full_id_topic "
-        //             "ON tags_full(ID, topic);");
 
         std::map<std::string, std::string> unique_ids = RECOMMEND::collect_unique_id(db);
         std::vector<std::string> unique_topics = RECOMMEND::collect_unique_topic(db);
