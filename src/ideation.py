@@ -5,7 +5,9 @@ import subprocess
 import time
 import signal
 import json
+
 from datetime import datetime
+from modules.path import data_folder
 
 MODELS: List[str] = [
     "smollm:1.7b", "falcon3:7b", "orca-mini:7b", "mistral:7b",
@@ -13,9 +15,9 @@ MODELS: List[str] = [
     "phi3.5:latest", "deepseek-r1:8b", "gemma:latest"
 ]
 
-PROMPTS_FILE = "prompts.json"
-COMPLETED_MODELS_FILE = "completed_models.txt"
-RESUME_STATE_FILE = "resume_state.json"
+PROMPTS_FILE = os.path.join(data_folder, "prompts.json")
+COMPLETED_MODELS_FILE = os.path.join(data_folder, "completed_models.txt")
+RESUME_STATE_FILE = os.path.join(data_folder, "resume_state.json")
 
 
 def start_ollama() -> subprocess.Popen:
