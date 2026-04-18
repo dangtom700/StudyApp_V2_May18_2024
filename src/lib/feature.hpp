@@ -923,7 +923,7 @@ namespace FEATURE
         sqlite3_close(db);
     }
 
-    void label_topics(bool show_progress, bool reset_table, const float &threshold = 0.3)
+    void label_topics(bool show_progress, bool reset_table, const float &threshold = 0.2)
     {
         sqlite3 *db;
         if (sqlite3_open(ENV_HPP::database_path.string().c_str(), &db) != SQLITE_OK)
@@ -957,8 +957,10 @@ namespace FEATURE
         std::vector<std::string> unique_topics = RECOMMEND::collect_unique_topic(db);
         std::map<std::string, std::string> processing_ids = RECOMMEND::collect_processing_id(db, reset_table, unique_ids, "SELECT DISTINCT ID FROM tags_full");
 
-        for (const std::string &topic : unique_topics)
+        // std::shuffle(unique_topics.begin(), unique_topics.end(), std::default_random_engine(std::random_device{}()));
+        for (size_t i = 0; i < unique_topics.size(); ++i)
         {
+            std::string topic = unique_topics.at(i);
             auto filtered_tokens = RECOMMEND::load_topic_token_map(db, topic);
             if (filtered_tokens.empty())
                 continue;
@@ -982,7 +984,7 @@ namespace FEATURE
             execute_sql(db, "COMMIT;");
 
             if (show_progress)
-                std::cout << "Completed Topic: " << topic << ", Tokens: " << filtered_tokens.size() << std::endl;
+                std::cout << i << ". Completed Topic: " << topic << ", Samples: " << skimmy.size() << std::endl;
         }
 
         sqlite3_close(db);
