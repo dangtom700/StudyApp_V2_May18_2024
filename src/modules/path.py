@@ -23,3 +23,11 @@ token_json_path = os.path.join(data_folder, "token_json")
 log_file_path = os.path.join(data_folder, "process.log")
 buffer_json_path = os.path.join(data_folder, "buffer.json")
 dataset_path = os.path.join(data_folder, "dataset.txt")
+
+# Paths configuration
+DB_DIR = r"./vector_db"
+
+# Models configuration
+OLLAMA_BASE_URL = "http://localhost:11434"
+EMBEDDING_MODEL = "embeddinggemma:latest"
+LLM_MODEL = "gemma:e4b"

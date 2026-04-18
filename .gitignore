@@ -29,6 +29,7 @@ analysis/
 wiki_topics/
 compressed_vectors.csv
 scripts/*.csv
+vector_db/
 
 # ---------------------
 # Temporary / Test Files
