@@ -99,7 +99,7 @@ def main() -> None:
             ID_session = datetime.now().strftime("%Y_%m_%d_%H_%M_%S")
             print(f"Session ID set to current timestamp: {ID_session}")
 
-        session_file = f"conversation/{ID_session}.txt"
+        session_file = f"conversation/{ID_session}.md"
         if not os.path.exists(session_file):
             open(session_file, "w").close()
 
