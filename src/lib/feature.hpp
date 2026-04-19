@@ -923,7 +923,7 @@ namespace FEATURE
         sqlite3_close(db);
     }
 
-    void label_topics(bool show_progress, bool reset_table, const float &threshold = 0.2)
+    void label_topics(bool show_progress, bool reset_table, const float &threshold = 0.0, const uint8_t &update_freq = 50)
     {
         sqlite3 *db;
         if (sqlite3_open(ENV_HPP::database_path.string().c_str(), &db) != SQLITE_OK)
@@ -957,34 +957,73 @@ namespace FEATURE
         std::vector<std::string> unique_topics = RECOMMEND::collect_unique_topic(db);
         std::map<std::string, std::string> processing_ids = RECOMMEND::collect_processing_id(db, reset_table, unique_ids, "SELECT DISTINCT ID FROM tags_full");
 
-        // std::shuffle(unique_topics.begin(), unique_topics.end(), std::default_random_engine(std::random_device{}()));
-        for (size_t i = 0; i < unique_topics.size(); ++i)
+        std::map<std::string, std::string> pseudo_unique_ids;
+        for (const std::string &topic : unique_topics)
         {
-            std::string topic = unique_topics.at(i);
-            auto filtered_tokens = RECOMMEND::load_topic_token_map(db, topic);
+            pseudo_unique_ids[topic] = topic; // Create a pseudo unique ID for each topic to ensure they are included in the processing
+        }
+
+        std::vector<std::pair<std::string, std::string>> items;
+        for (const auto &p : processing_ids)
+            items.emplace_back(p.first, p.second);
+
+        std::shuffle(items.begin(), items.end(), std::default_random_engine(std::random_device{}()));
+        processing_ids.clear();
+
+        uint16_t size = items.size(); // Update size after shuffling
+
+        std::chrono::high_resolution_clock::time_point start_time = std::chrono::high_resolution_clock::now();
+        uint32_t item_accumulated = 0;
+        for (size_t i = 0; i < size; ++i)
+        {
+            const auto &id_pair = items[i];
+            const std::string &id = id_pair.first;
+            std::vector<std::tuple<std::string, std::string, double>> result;
+
+            auto filtered_tokens = RECOMMEND::load_token_map(db, id);
             if (filtered_tokens.empty())
                 continue;
 
             RECOMMEND::apply_tfidf(db, filtered_tokens);
-            auto relation_distance_map = RECOMMEND::load_related_tokens(db, filtered_tokens);
-            std::vector<std::tuple<std::string, std::string, double>> recommendations = RECOMMEND::compute_recommendations(filtered_tokens, relation_distance_map, topic, processing_ids);
-            std::vector<std::tuple<std::string, std::string, double>> skimmy;
+            auto relation_distance_map = RECOMMEND::load_related_tokens_topic(db, filtered_tokens);
+            std::cout << relation_distance_map.size() << std::endl;
+            std::vector<std::tuple<std::string, std::string, double>> results = RECOMMEND::compute_recommendations(filtered_tokens, relation_distance_map, id, pseudo_unique_ids);
 
-            // Skim down the recommendation list
-            for (const auto &[target_id, target_name, distance] : recommendations)
+            for (const auto &[target_id, target_name, distance] : results)
             {
                 if (distance < threshold)
                     continue;
-                std::tuple<std::string, std::string, double> res = {target_id, topic, distance};
-                skimmy.emplace_back(res);
+                std::tuple<std::string, std::string, double> row = {id, target_name, distance};
+                result.push_back(row);
             }
 
             execute_sql(db, "BEGIN;");
-            RECOMMEND::insert_tags_full(skimmy, db);
+            RECOMMEND::insert_tags_full(result, db);
             execute_sql(db, "COMMIT;");
 
             if (show_progress)
-                std::cout << i << ". Completed Topic: " << topic << ", Samples: " << skimmy.size() << std::endl;
+            {
+                item_accumulated += result.size();
+                if (i % update_freq == 0 && i != 0)
+                {
+                    std::chrono::high_resolution_clock::time_point end_time = std::chrono::high_resolution_clock::now();
+                    double elapsed_sec = std::chrono::duration_cast<std::chrono::milliseconds>(end_time - start_time).count() / 1000.0;
+                    double avg_sec_per_item = elapsed_sec / static_cast<double>(update_freq);
+                    int estimated_time_left = static_cast<int>((size - (i + 1)) * avg_sec_per_item);
+                    int seconds = estimated_time_left % 60;
+                    int minutes = (estimated_time_left / 60) % 60;
+                    int hours = estimated_time_left / 3600;
+                    std::cout << "Estimated time left: "
+                              << hours << "HR "
+                              << minutes << "Min "
+                              << seconds << "sec"
+                              << " (" << size - (i + 1) << " samples left)"
+                              << " | Items accumulated this batch: " << item_accumulated
+                              << std::endl;
+                    start_time = end_time;
+                    item_accumulated = 0;
+                }
+            }
         }
 
         sqlite3_close(db);

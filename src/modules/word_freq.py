@@ -15,6 +15,7 @@ from functools import partial
 from pathlib import Path
 from typing import Optional
 import time
+from itertools import permutations
 
 # Configurations and constants
 WIKI_FOLDER = Path("wiki_topics")
@@ -320,6 +321,7 @@ def setup_database(conn, reset = False):
             topic TEXT,
             token TEXT,
             frequency INTEGER,
+            relational_distance REAL,
             PRIMARY KEY (topic, token)
         )
     """)
@@ -427,7 +429,7 @@ def prepare_filtered_table(reset=True):
 # _________________________________________________________________________________
 # _________________________________________________________________________________
 
-def promptFindingReference(is_dumped = True) -> Optional[dict]:
+def promptFindingReference(is_dumped = True, file="PROMPT.txt") -> Optional[dict]:
     """Reads in a prompt from a text file, cleans the text, and stores the cleaned
     prompt in a JSON file. The prompt is cleaned by removing punctuation, converting
     to lowercase, tokenizing, removing stop words, removing words with repeated
@@ -435,7 +437,7 @@ def promptFindingReference(is_dumped = True) -> Optional[dict]:
     and the function returns early. Otherwise, the cleaned prompt is stored in the
     buffer.json file."""
     # Read in from prompt.txt
-    with open("PROMPT.txt", "r", encoding="utf-8", errors="ignore") as f:
+    with open(file, "r", encoding="utf-8", errors="ignore") as f:
         prompt = f.readlines()
 
     prompt = " ".join(prompt)
@@ -455,6 +457,44 @@ def promptFindingReference(is_dumped = True) -> Optional[dict]:
     # else return the cleaned prompt as a dictionary 
     return cleaned_prompt
 
+def permutate_topics() -> set[str]:
+    """
+    Reads a CSV of 'not found' topics (one per line), extracts unique words,
+    and generates new topic strings by permuting those words into phrases.
+
+    Args:
+        max_words: Maximum number of words per generated topic (1 or 2 recommended).
+
+    Returns:
+        Set of newly generated topic strings.
+    """
+    # Step 1: collect all tokens from the file
+    tokens = set()
+    csv_path = Path(not_found_topics_csv)
+    if csv_path.exists():
+        with open(csv_path, "r", encoding="utf-8") as f:
+            for line in f:
+                line = line.strip()
+                if line:
+                    # Split on whitespace; keep all parts
+                    for word in line.split():
+                        tokens.add(word)
+    else:
+        # If file doesn't exist, return empty set (or raise warning)
+        return set()
+
+    # Step 2: generate new topics from tokens
+    new_topics = set()
+
+    # Single‑word topics
+    new_topics.update(tokens)
+
+    # Two‑word ordered permutations (w1 w2) where w1 != w2
+    for w1, w2 in permutations(tokens, 2):
+        new_topics.add(f"{w1} {w2}")
+
+    return new_topics
+
 def tokenize_topics(TOPIC_LIST: set[str]):    
     WIKI_FOLDER.mkdir(exist_ok=True)
     # Retrieve the "not found" topics from the CSV file
@@ -465,8 +505,10 @@ def tokenize_topics(TOPIC_LIST: set[str]):
                 not_found_topics.add(line.strip())
     
     TOPIC_LIST = set(TOPIC_LIST) - not_found_topics
+    del not_found_topics  # Free memory
 
-    for topic in TOPIC_LIST:
+    size = len(TOPIC_LIST)
+    for index, topic in enumerate(TOPIC_LIST, start=1):
         filename = clean_filename(topic.replace(" ", "_").lower()) + ".txt"
         file_path = WIKI_FOLDER / filename
 
@@ -476,17 +518,14 @@ def tokenize_topics(TOPIC_LIST: set[str]):
         content = fetch_article(topic)
 
         if not content:
-            print(f"Wiki article not found: {topic}")
-            not_found_topics.add(topic)
+            # Update the "not found" topics CSV file
+            with open(not_found_topics_csv, "a", encoding="utf-8") as f:
+                f.write(topic + "\n")
             continue
 
         file_path.write_text(content, encoding="utf-8")
-        time.sleep(1)  # polite API delay
-
-    # Update the "not found" topics CSV file
-    with open(not_found_topics_csv, "w", encoding="utf-8") as f:
-        for topic in sorted(not_found_topics):
-            f.write(topic + "\n")
+        print(f"Processed ({index}/{size}): {topic}")
+        time.sleep(1)
     
     # STEP 2: Open DB
     print("Processing topics and storing tokens in the database...")
@@ -509,21 +548,27 @@ def tokenize_topics(TOPIC_LIST: set[str]):
             continue
         print(f"Processing topic: {tag_name}")
 
-        # Write prompt
-        PROMPT_FILE.write_text(
-            topic_file.read_text(encoding="utf-8"),
-            encoding="utf-8"
-        )
+        with open(topic_file, "r", encoding="utf-8", errors="ignore") as f:
+            content = f.read()
 
-        result = promptFindingReference(is_dumped=False)
+        result = clean_text(content)
+
         if not result:
             print(f"No valid tokens found for topic: {tag_name}")
             continue
+
+        distance = sum(freq ** 2 for freq in result.values())
+        
+        if distance > 0:
+            relation = [(token, freq, freq / distance) for token, freq in result.items()]
+        else:
+            relation = []
+
         # Insert tokens into the database
-        for token, freq in result.items():
+        for token, freq, rel in relation:
             cursor.execute(
-                "INSERT OR IGNORE INTO topic_token (topic, token, frequency) VALUES (?, ?, ?)",
-                (tag_name, token, freq)
+                "INSERT OR IGNORE INTO topic_token (topic, token, frequency, relational_distance) VALUES (?, ?, ?, ?)",
+                (tag_name, token, freq, rel)
             )
 
     conn.commit()

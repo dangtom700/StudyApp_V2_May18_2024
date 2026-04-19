@@ -48,12 +48,12 @@ def computeTFIDF():
 
     cursor.execute("""
         SELECT token, COUNT(DISTINCT file_name)
-        FROM relation_distance
+        FROM _filtered
         GROUP BY token
     """)
     word_doc_counts = dict(cursor.fetchall())
 
-    total_docs = cursor.execute("SELECT COUNT(DISTINCT file_name) FROM relation_distance").fetchone()[0]
+    total_docs = cursor.execute("SELECT COUNT(DISTINCT file_name) FROM _filtered").fetchone()[0]
 
     buffer = []
     conn.execute("BEGIN TRANSACTION;")  # Wrap all insertions
@@ -143,7 +143,7 @@ def compute_item_matrix(top_k=1000, batch_size=20000, similarity_cutoff = 0.3):
     rows, cols, data, data_mod = [], [], [], []
     query = """
     SELECT r.token, r.file_name, r.relational_distance, t.tf_idf
-    FROM relation_distance r
+    FROM relation_distance_filtered r
     JOIN selected_tokens t ON r.token = t.token
     JOIN selected_files f ON r.file_name = f.file_name
     """
