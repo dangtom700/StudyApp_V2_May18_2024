@@ -10,10 +10,10 @@ from datetime import datetime
 from modules.path import data_folder
 
 MODELS: List[str] = [
+    "gemma4:e2b", "lfm2.5-thinking:latest", "ministral-3:latest",
     "smollm:1.7b", "falcon3:7b", "orca-mini:7b", "mistral:7b",
-    "llama3.2:latest", "granite3.3:8b", "ministral-3:latest",
-    "phi3.5:latest", "deepseek-r1:8b", "gemma:latest",
-    "lfm2.5-thinking:latest", "gemma4:e4b"
+    "llama3.2:latest", "granite3.3:8b", "phi3.5:latest",
+    "deepseek-r1:8b", "gemma:latest"
 ]
 
 PROMPTS_FILE = os.path.join(data_folder, "prompts.json")
