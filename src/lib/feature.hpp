@@ -111,7 +111,7 @@ namespace FEATURE
                 // Only drop tables
                 std::string drop_sql = R"(
                     DROP TABLE IF EXISTS file_token;
-                    DROP TABLE IF EXISTS relation_distance;
+                    DROP TABLE IF EXISTS relation_distance_filtered;
                 )";
                 execute_sql(db, drop_sql);
             }
@@ -421,8 +421,8 @@ namespace FEATURE
             if (!token_in_clause.empty())
                 token_in_clause.pop_back();
 
-            std::string relation_sql = "SELECT file_name, Token, relational_distance FROM relation_distance WHERE Token IN (" + token_in_clause + ");";
-            sqlite3_stmt *rel_stmt = prepareStatement(db, relation_sql, "Error preparing statement (relation_distance)");
+            std::string relation_sql = "SELECT file_name, Token, relational_distance FROM relation_distance_filtered WHERE Token IN (" + token_in_clause + ");";
+            sqlite3_stmt *rel_stmt = prepareStatement(db, relation_sql, "Error preparing statement (relation_distance_filtered)");
             if (!rel_stmt)
             {
                 sqlite3_finalize(file_stmt);
@@ -562,7 +562,7 @@ namespace FEATURE
         {
             fetch_sql = R"(
                 SELECT DISTINCT file_name 
-                FROM relation_distance
+                FROM relation_distance_filtered
             )";
         }
         else
@@ -751,7 +751,7 @@ namespace FEATURE
 
         sqlite3_stmt *stmt;
         std::string query =
-            "SELECT token, COUNT(DISTINCT file_name) FROM relation_distance GROUP BY token;";
+            "SELECT token, COUNT(DISTINCT file_name) FROM relation_distance_filtered GROUP BY token;";
 
         if (sqlite3_prepare_v2(db, query.c_str(), -1, &stmt, nullptr) == SQLITE_OK)
         {
@@ -765,7 +765,7 @@ namespace FEATURE
         sqlite3_finalize(stmt);
 
         int total_docs = 0;
-        query = "SELECT COUNT(DISTINCT file_name) FROM relation_distance;";
+        query = "SELECT COUNT(DISTINCT file_name) FROM relation_distance_filtered;";
 
         if (sqlite3_prepare_v2(db, query.c_str(), -1, &stmt, nullptr) == SQLITE_OK &&
             sqlite3_step(stmt) == SQLITE_ROW)
@@ -1103,13 +1103,13 @@ namespace FEATURE
         std::cout << "[STEP 1] Creating indexes...\n";
         execute_sql(db, R"(
             CREATE INDEX IF NOT EXISTS idx_rd_token_freq 
-            ON relation_distance(token, frequency);
+            ON relation_distance_filtered(token, frequency);
 
             CREATE INDEX IF NOT EXISTS idx_rd_file_freq 
-            ON relation_distance(file_name, frequency);
+            ON relation_distance_filtered(file_name, frequency);
 
             CREATE INDEX IF NOT EXISTS idx_rd_freq 
-            ON relation_distance(frequency);
+            ON relation_distance_filtered(frequency);
 
             CREATE INDEX IF NOT EXISTS idx_tfidf_freq 
             ON tf_idf(freq);
@@ -1123,7 +1123,7 @@ namespace FEATURE
             DROP TABLE IF EXISTS freq_dist;
             CREATE TABLE freq_dist AS
             SELECT frequency AS freq, COUNT(*) AS cnt, SUM(frequency) AS total_freq
-            FROM relation_distance
+            FROM relation_distance_filtered
             GROUP BY frequency;
         )");
 
@@ -1133,7 +1133,7 @@ namespace FEATURE
             DROP TABLE IF EXISTS token_dist;
             CREATE TABLE token_dist AS
             SELECT MAX(frequency) AS freq, COUNT(*) AS cnt
-            FROM relation_distance
+            FROM relation_distance_filtered
             GROUP BY token;
         )");
 
@@ -1143,7 +1143,7 @@ namespace FEATURE
             DROP TABLE IF EXISTS file_dist;
             CREATE TABLE file_dist AS
             SELECT MAX(frequency) AS freq, COUNT(*) AS cnt
-            FROM relation_distance
+            FROM relation_distance_filtered
             GROUP BY file_name;
         )");
 
