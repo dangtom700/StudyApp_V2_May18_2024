@@ -923,7 +923,7 @@ namespace FEATURE
         sqlite3_close(db);
     }
 
-    void label_topics(bool show_progress, bool reset_table, const float &threshold = 0.2, const uint8_t &update_freq = 100)
+    void label_topics(bool show_progress, bool reset_table, const float &threshold = 0.4)
     {
         sqlite3 *db;
         if (sqlite3_open(ENV_HPP::database_path.string().c_str(), &db) != SQLITE_OK)
@@ -946,7 +946,7 @@ namespace FEATURE
         std::string create_full_table_sql = R"(
             CREATE TABLE IF NOT EXISTS tags_full (
                 ID       TEXT NOT NULL,
-                distance REAL NOT NULL DEFAULT 0.0 CHECK(distance > 0.0 AND distance <= 1.0),
+                distance REAL NOT NULL DEFAULT 0.0 CHECK(distance > 0.0),
                 topic    TEXT NOT NULL,
                 PRIMARY KEY (ID, topic)
             ) WITHOUT ROWID;
@@ -957,12 +957,8 @@ namespace FEATURE
         std::vector<std::string> unique_topics = RECOMMEND::collect_unique_topic(db);
         std::map<std::string, std::string> processing_ids = RECOMMEND::collect_processing_id(db, reset_table, unique_ids, "SELECT DISTINCT ID FROM tags_full");
 
-        std::shuffle(unique_topics.begin(), unique_topics.end(), std::default_random_engine(std::random_device{}()));
-        uint16_t size = unique_topics.size();
-        std::chrono::high_resolution_clock::time_point start_time = std::chrono::high_resolution_clock::now();
-        for (size_t i = 0; i < size; ++i)
+        for (const std::string &topic : unique_topics)
         {
-            std::string topic = unique_topics.at(i);
             auto filtered_tokens = RECOMMEND::load_topic_token_map(db, topic);
             if (filtered_tokens.empty())
                 continue;
@@ -984,25 +980,9 @@ namespace FEATURE
             execute_sql(db, "BEGIN;");
             RECOMMEND::insert_tags_full(skimmy, db);
             execute_sql(db, "COMMIT;");
-
-            if (show_progress && i % update_freq == 0 && i != 0)
-            {
-                std::chrono::high_resolution_clock::time_point end_time = std::chrono::high_resolution_clock::now();
-                double elapsed_sec = std::chrono::duration_cast<std::chrono::milliseconds>(end_time - start_time).count() / 1000.0;
-                double avg_sec_per_item = elapsed_sec / static_cast<double>(i + 1);
-                int estimated_time_left = static_cast<int>((size - (i + 1)) * avg_sec_per_item);
-                int seconds = estimated_time_left % 60;
-                int minutes = (estimated_time_left / 60) % 60;
-                int hours = estimated_time_left / 3600;
-                std::cout << "Estimated time left: "
-                          << hours << "HR "
-                          << minutes << "Min "
-                          << seconds << "sec"
-                          << " (" << size - (i + 1) << " samples left)"
-                          << std::endl;
-            }
+            if (show_progress)
+                std::cout << "Processed topic: " << topic << ", Labeled: " << skimmy.size() << std::endl;
         }
-
         sqlite3_close(db);
     }
 
