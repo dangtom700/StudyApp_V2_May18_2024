@@ -217,3 +217,29 @@ class DatabaseManager:
         except sqlite3.Error as e:
             print(f"Error getting table stats: {e}")
             return {}
+
+    def get_pdf_tags(self, file_name: str) -> List[Tuple[str, float]]:
+        """Get tags/topics for a PDF from tags_full table"""
+        try:
+            # 1. Get the ID for the current file_name
+            self.cursor.execute("SELECT id FROM file_info WHERE file_name = ?", (file_name,))
+            row = self.cursor.fetchone()
+            if not row:
+                return []
+            
+            current_id = row['id'] if isinstance(row, sqlite3.Row) else row[0]
+            title_id = f"title_{current_id}"
+
+            # 2. Query tags_full
+            self.cursor.execute("""
+                SELECT topic, distance FROM tags_full 
+                WHERE ID = ? 
+                ORDER BY distance DESC
+            """, (title_id,))
+            
+            results = self.cursor.fetchall()
+            return [(row['topic'] if isinstance(row, sqlite3.Row) else row[0], 
+                     row['distance'] if isinstance(row, sqlite3.Row) else row[1]) for row in results]
+        except sqlite3.Error as e:
+            print(f"Error fetching tags: {e}")
+            return []
