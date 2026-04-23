@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>April 2026 System Update | StudyApp</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap');
+
+        :root {
+            --bg-color: #0f172a;
+            --text-main: #f8fafc;
+            --text-muted: #cbd5e1;
+            --accent-1: #3b82f6;
+            --accent-2: #8b5cf6;
+            --glass-bg: rgba(255, 255, 255, 0.05);
+            --glass-border: rgba(255, 255, 255, 0.1);
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-color);
+            background-image: 
+                radial-gradient(at 0% 0%, rgba(59, 130, 246, 0.3) 0px, transparent 50%),
+                radial-gradient(at 100% 100%, rgba(139, 92, 246, 0.3) 0px, transparent 50%);
+            background-attachment: fixed;
+            color: var(--text-main);
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 40px auto;
+            padding: 40px;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 60px;
+            animation: fadeInDown 1s ease-out;
+        }
+
+        h1 {
+            font-size: 3.5rem;
+            font-weight: 800;
+            margin-bottom: 10px;
+            background: linear-gradient(to right, #60a5fa, #c084fc);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        header p {
+            font-size: 1.2rem;
+            color: var(--text-muted);
+        }
+
+        .glass-panel {
+            background: var(--glass-bg);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid var(--glass-border);
+            border-radius: 24px;
+            padding: 30px;
+            margin-bottom: 40px;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            animation: fadeInUp 0.8s ease-out both;
+        }
+
+        .glass-panel:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+            border-color: rgba(255, 255, 255, 0.2);
+        }
+
+        h2 {
+            font-size: 2rem;
+            border-bottom: 2px solid var(--glass-border);
+            padding-bottom: 10px;
+            margin-top: 0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .tag {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 99px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            background: rgba(59, 130, 246, 0.2);
+            color: #93c5fd;
+            margin-right: 8px;
+            margin-bottom: 15px;
+        }
+
+        .tag.python { background: rgba(234, 179, 8, 0.2); color: #fde047; }
+        .tag.cpp { background: rgba(59, 130, 246, 0.2); color: #93c5fd; }
+        .tag.sql { background: rgba(16, 185, 129, 0.2); color: #6ee7b7; }
+        .tag.ai { background: rgba(168, 85, 247, 0.2); color: #d8b4fe; }
+
+        .feature-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 20px;
+        }
+
+        @media(min-width: 768px) {
+            .feature-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+
+        .step {
+            display: flex;
+            margin-bottom: 20px;
+            background: rgba(0,0,0,0.2);
+            border-radius: 12px;
+            padding: 20px;
+        }
+
+        .step-number {
+            font-size: 2rem;
+            font-weight: 800;
+            color: var(--accent-1);
+            margin-right: 20px;
+            opacity: 0.8;
+        }
+
+        code {
+            background: rgba(0,0,0,0.4);
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-family: monospace;
+            color: #fbbf24;
+        }
+
+        @keyframes fadeInDown {
+            from { opacity: 0; transform: translateY(-30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .delay-1 { animation-delay: 0.2s; }
+        .delay-2 { animation-delay: 0.4s; }
+        .delay-3 { animation-delay: 0.6s; }
+
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <header>
+            <h1>April 2026 Update</h1>
+            <p>Comprehensive breakdown of features, architectures, and new workflows for the StudyApp PDF Manager.</p>
+        </header>
+
+        <section class="glass-panel delay-1">
+            <h2>🧠 Semantic Search Engine</h2>
+            <div>
+                <span class="tag python">Python</span>
+                <span class="tag ai">LangChain</span>
+                <span class="tag ai">Ollama</span>
+                <span class="tag sql">Chroma Vector DB</span>
+            </div>
+            <p>We completely overhauled the search logic. Instead of relying solely on exact keyword matches, the system now understands the <strong>meaning</strong> behind queries using local AI models.</p>
+            
+            <h3>The Process:</h3>
+            <ul>
+                <li><strong>Ingestion Bypassing:</strong> Text chunks are streamed directly from the SQLite database into the <code>Chroma Vector Store</code> inside <code>src/embed.py</code>, skipping redundant intermediate text-splitting loops.</li>
+                <li><strong>Parallel Processing:</strong> Batching algorithms handle bulk insertions, cutting down indexing times significantly.</li>
+                <li><strong>Semantic Routing:</strong> User queries from the PyQt5 UI are embedded using local LangChain pipelines via Ollama, pulling mathematically similar conceptual chunks rather than explicit string matches.</li>
+            </ul>
+        </section>
+
+        <section class="glass-panel delay-2">
+            <h2>📄 Native PDF Rendering & UI Upgrade</h2>
+            <div>
+                <span class="tag python">Python</span>
+                <span class="tag python">PyQt5</span>
+                <span class="tag python">PyMuPDF</span>
+            </div>
+            <p>The <strong>PDF Viewer Tab</strong> has transformed from a simple text previewer into a fully-fledged reading suite.</p>
+            
+            <h3>The Process:</h3>
+            <ul>
+                <li><strong>Actual Document Rendering:</strong> Integrated PyMuPDF (fitz) to process the raw PDF files dynamically inside the UI instead of rendering stripped `.txt` versions.</li>
+                <li><strong>Responsive Split-View:</strong> The app calculating the aspect ratio of the rendered document and utilizes an auto-fit width layout so the document adjusts optimally to any screen size.</li>
+                <li><strong>Contextual Sidebars:</strong> While reading, a new side-panel performs live lookups into the Item Matrix, offering immediate serendipitous recommendations based on the current document.</li>
+            </ul>
+        </section>
+
+        <section class="glass-panel delay-3">
+            <h2>⚙️ Core Pipeline Resiliency</h2>
+            <div>
+                <span class="tag cpp">C++</span>
+                <span class="tag sql">SQLite3</span>
+            </div>
+            <p>Handling thousands of documents computationally can take hours. The core NLP engine written in C++ (<code>feature.hpp</code>) now features stateful awareness.</p>
+            
+            <h3>The Process:</h3>
+            <ul>
+                <li><strong>Resumption Logic:</strong> The <code>label_topics</code> and <code>mappingItemMatrix</code> routines now map current progress via per-topic ID filtering. If execution drops, the pipeline reads the highest completed iteration and safely resumes without recomputing existing work.</li>
+                <li><strong>Bidirectional Query Fixes:</strong> Upgraded the recommendation engine to fetch unique IDs using advanced SQL mapping for the `comparison` table, correcting the A-B / B-A duplication bug when analyzing the "shrinking pool" datasets.</li>
+                <li><strong>Decoupled Tokenization:</strong> Removed the hard dependency on `wikipedia_api`. The `tokenize_topics` pipeline now utilizes local wiki articles formatted within the <code>wiki_topics</code> directory.</li>
+            </ul>
+        </section>
+
+        <section class="glass-panel delay-3">
+            <h2>🚀 New Workflow Walkthrough</h2>
+            <p>Experience the updated architecture by following these steps:</p>
+            
+            <div class="step">
+                <div class="step-number">1</div>
+                <div>
+                    <strong>Re-build your Envs</strong><br>
+                    Due to the addition of LangChain, Chroma, and PyMuPDF, ensure you update your environments. Run <code>conda env update -f app/env.yml</code>.
+                </div>
+            </div>
+
+            <div class="step">
+                <div class="step-number">2</div>
+                <div>
+                    <strong>Populate Vector Store</strong><br>
+                    In your terminal, execute the ingestion script via <code>python src/embed.py</code> to initialize your vector store based on existing sqlite data. This utilizes parallel batching.
+                </div>
+            </div>
+
+            <div class="step">
+                <div class="step-number">3</div>
+                <div>
+                    <strong>Launch the Application</strong><br>
+                    Run <code>run_app.bat</code> (Windows) or <code>bash run_app.sh</code> (Mac/Linux). 
+                </div>
+            </div>
+
+            <div class="step">
+                <div class="step-number">4</div>
+                <div>
+                    <strong>Experience the Magic</strong><br>
+                    Head to the <strong>PDF Viewer</strong> tab. Select a document. Notice the high-fidelity rendering. Click on the sidebar to instantly navigate to conceptually dissimilar files powered by your newly baked semantic engine!
+                </div>
+            </div>
+        </section>
+
+    </div>
+
+</body>
+</html>

@@ -10,6 +10,14 @@ A comprehensive suite for managing, searching, and discovering insights from you
 - **Semantic Search Engine**: Incorporates LangChain, LangGraph, Ollama, and a Chroma Vector Store for advanced semantic querying.
 - **Smart Recommendations**: Uses Item Matrix calculations to provide serendipitous document discovery based on content dissimilarity.
 
+## 🆕 Recent Updates (April 2026)
+
+- **Semantic Vector Storage**: Direct database-to-vector-store ingestion in Python using ChromaDB, bypassing legacy text-splitting.
+- **Local AI Integration**: Semantic queries powered by LangChain, LangGraph, and Ollama.
+- **True PDF Rendering**: The GUI now renders actual PDF pages instead of raw text chunks, complete with an auto-fit split view.
+- **Resilient NLP Pipelines**: The C++ topic modeling (`feature.hpp`) now supports robust resumption mechanisms to prevent redundant calculations during long batches.
+- **Bidirectional Relational Queries**: Advanced SQL queries perfectly handle the "shrinking pool" item matrix logic for hyper-accurate document recommendations.
+
 ## 📂 Project Structure
 
 - **`app/`**: Contains the PyQt5 desktop GUI application, dedicated setup scripts (`env.yml`, `run_app.bat`/`run_app.sh`), and App-specific documentation.

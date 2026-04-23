@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LearnCraft: Complete Documentation</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap');
+
+        :root {
+            --bg-color: #0f172a;
+            --text-main: #f8fafc;
+            --text-muted: #cbd5e1;
+            --accent-1: #3b82f6;
+            --accent-2: #8b5cf6;
+            --glass-bg: rgba(255, 255, 255, 0.05);
+            --glass-border: rgba(255, 255, 255, 0.1);
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-color);
+            background-image: 
+                radial-gradient(at 0% 0%, rgba(59, 130, 246, 0.3) 0px, transparent 50%),
+                radial-gradient(at 100% 100%, rgba(139, 92, 246, 0.3) 0px, transparent 50%);
+            background-attachment: fixed;
+            color: var(--text-main);
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 40px auto;
+            padding: 40px;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 60px;
+            animation: fadeInDown 1s ease-out;
+        }
+
+        h1 {
+            font-size: 3.5rem;
+            font-weight: 800;
+            margin-bottom: 10px;
+            background: linear-gradient(to right, #60a5fa, #c084fc);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        header p {
+            font-size: 1.2rem;
+            color: var(--text-muted);
+        }
+
+        .glass-panel {
+            background: var(--glass-bg);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid var(--glass-border);
+            border-radius: 24px;
+            padding: 30px;
+            margin-bottom: 40px;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            animation: fadeInUp 0.8s ease-out both;
+        }
+
+        .glass-panel:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+            border-color: rgba(255, 255, 255, 0.2);
+        }
+
+        h2 {
+            font-size: 2rem;
+            border-bottom: 2px solid var(--glass-border);
+            padding-bottom: 10px;
+            margin-top: 0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .tag {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 99px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            background: rgba(59, 130, 246, 0.2);
+            color: #93c5fd;
+            margin-right: 8px;
+            margin-bottom: 15px;
+        }
+
+        .tag.python { background: rgba(234, 179, 8, 0.2); color: #fde047; }
+        .tag.cpp { background: rgba(59, 130, 246, 0.2); color: #93c5fd; }
+        .tag.sql { background: rgba(16, 185, 129, 0.2); color: #6ee7b7; }
+        .tag.ai { background: rgba(168, 85, 247, 0.2); color: #d8b4fe; }
+
+        .step {
+            display: flex;
+            margin-bottom: 20px;
+            background: rgba(0,0,0,0.2);
+            border-radius: 12px;
+            padding: 20px;
+        }
+
+        .step-number {
+            font-size: 2rem;
+            font-weight: 800;
+            color: var(--accent-1);
+            margin-right: 20px;
+            opacity: 0.8;
+            min-width: 40px;
+            text-align: center;
+        }
+
+        code {
+            background: rgba(0,0,0,0.4);
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-family: monospace;
+            color: #fbbf24;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid var(--glass-border);
+        }
+
+        th {
+            background: rgba(255, 255, 255, 0.05);
+            color: var(--accent-1);
+            font-weight: 600;
+        }
+
+        ul {
+            padding-left: 20px;
+        }
+
+        li {
+            margin-bottom: 8px;
+        }
+
+        @keyframes fadeInDown {
+            from { opacity: 0; transform: translateY(-30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .delay-1 { animation-delay: 0.2s; }
+        .delay-2 { animation-delay: 0.4s; }
+        .delay-3 { animation-delay: 0.6s; }
+        .delay-4 { animation-delay: 0.8s; }
+
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <header>
+            <h1>LearnCraft: Track, Learn, Grow</h1>
+            <p>Complete System Architecture, Pipeline Documentation, and Project Evolution</p>
+        </header>
+
+        <section class="glass-panel delay-1">
+            <h2>Introduction</h2>
+            <p>LearnCraft (now expanded into the overarching StudyApp environment) is a revolutionary study companion designed to transform the way you learn and retain information. By combining the power of Natural Language Processing (NLP), semantic search engines, and interactive visual rendering, it provides a comprehensive platform for tracking your study progress and organizing your knowledge.</p>
+            <ul>
+                <li><strong>Manage Materials:</strong> Store, organize, and access your PDFs in a centralized pipeline.</li>
+                <li><strong>Discover Connections:</strong> Utilize powerful semantic search and vector retrieval to uncover hidden similarities between disparate disciplines.</li>
+                <li><strong>Deepen Understanding:</strong> Read materials alongside contextually aware AI recommendation engines that promote serendipitous discovery.</li>
+            </ul>
+        </section>
+
+        <section class="glass-panel delay-2">
+            <h2>Project Objectives</h2>
+            <div class="step">
+                <div class="step-number">🎯</div>
+                <div>
+                    <strong>Study Engagement & Document Retrieval</strong><br>
+                    Efficiently store every learning material and extract text for immediate availability. Stay on track by minimizing friction to finding related content.
+                </div>
+            </div>
+            <div class="step">
+                <div class="step-number">🔍</div>
+                <div>
+                    <strong>Semantic Search Engine</strong><br>
+                    A modern way to look up specific concepts using local Large Language Models and vector embeddings, drastically outperforming simple keyword/title searches.
+                </div>
+            </div>
+            <div class="step">
+                <div class="step-number">🤖</div>
+                <div>
+                    <strong>Interactive Application & Chatbots</strong><br>
+                    Providing visual PDF reading alongside text-based chat tools that utilize context to perform interactive retrieval and study progress check-ups.
+                </div>
+            </div>
+        </section>
+
+        <section class="glass-panel delay-3">
+            <h2>System Architecture & Data Pipeline</h2>
+            <div>
+                <span class="tag python">Python</span>
+                <span class="tag cpp">C++</span>
+                <span class="tag sql">SQLite3 / Chroma DB</span>
+                <span class="tag ai">LangChain / PyMuPDF</span>
+            </div>
+            <p>The LearnCraft pipeline operates on a powerful dual-language architecture. Python handles data ingestion, semantic NLP, and GUI interactions, while C++ performs highly optimized numerical computation and distance mapping.</p>
+            
+            <div class="step">
+                <div class="step-number">1</div>
+                <div>
+                    <strong>Data Ingestion (PDF Stack)</strong><br>
+                    Starting with raw PDFs, the system standardizes file names with a hashing algorithm and systematically extracts clean text chunks (~1024 characters) into the SQLite database using <code>src/main.py --extractText</code>.
+                </div>
+            </div>
+
+            <div class="step">
+                <div class="step-number">2</div>
+                <div>
+                    <strong>Text Processing & NLP Analysis</strong><br>
+                    The textual corpus is normalized, indexed by stems, and heavily analyzed for frequency. Predefined dictionaries are utilized for <code>--topicTokenize</code> to set authoritative baselines across scientific domains.
+                </div>
+            </div>
+
+            <div class="step">
+                <div class="step-number">3</div>
+                <div>
+                    <strong>High-Performance Computation (C++)</strong><br>
+                    The <code>word_tokenizer</code> C++ module computes Euclidean distance mapping, runs TF-IDF vector matrices, and projects relationship distances to enable hyper-accurate document clustering. Features resilient resumption logic to handle large datasets.
+                </div>
+            </div>
+
+            <div class="step">
+                <div class="step-number">4</div>
+                <div>
+                    <strong>Semantic Vector Store Insertion</strong><br>
+                    Extracted text chunks bypass legacy text-splitters and are embedded directly into a Chroma Vector Database via <code>src/embed.py</code>, utilizing parallel processing for rapid ingestion and LangChain for local concept routing.
+                </div>
+            </div>
+
+            <div class="step">
+                <div class="step-number">5</div>
+                <div>
+                    <strong>Interactive Desktop GUI & LLM Ideation</strong><br>
+                    The user interacts via a PyQt5 desktop app that renders true PDF pages with PyMuPDF. It seamlessly integrates the C++ item matrix calculations for live document recommendations while providing a context pipeline to local Ollama chat servers.
+                </div>
+            </div>
+        </section>
+
+        <section class="glass-panel delay-4">
+            <h2>Batch Configuration Flag Dictionary</h2>
+            <p>The orchestrator script (<code>config\main.bat</code>) controls the entire pipeline sequence.</p>
+            <table>
+                <tr>
+                    <th>Flag Variable</th>
+                    <th>Triggered Command</th>
+                    <th>Execution Step</th>
+                </tr>
+                <tr>
+                    <td><code>run_extractText</code></td>
+                    <td><code>python src/main.py --extractText</code></td>
+                    <td>Database Chunk Injection</td>
+                </tr>
+                <tr>
+                    <td><code>run_processWordFreq</code></td>
+                    <td><code>python src/main.py --processWordFreq</code></td>
+                    <td>Stemming & Word Extraction</td>
+                </tr>
+                <tr>
+                    <td><code>run_computeRelationalDistance</code></td>
+                    <td><code>word_tokenizer --computeRelationalDistance</code></td>
+                    <td>Euclidean Distance Mapping</td>
+                </tr>
+                <tr>
+                    <td><code>run_mappingItemMatrix</code></td>
+                    <td><code>word_tokenizer --mappingItemMatrix</code></td>
+                    <td>General Token Mapping</td>
+                </tr>
+                <tr>
+                    <td><code>run_labelTopics</code></td>
+                    <td><code>word_tokenizer --labelTopics</code></td>
+                    <td>Topic Clustering Labeling</td>
+                </tr>
+            </table>
+        </section>
+
+        <section class="glass-panel delay-4">
+            <h2>Timeline and Milestones</h2>
+            <ul>
+                <li><strong>Apr 29, 2024:</strong> Project documentation created; Obsidian vault established for study material logging.</li>
+                <li><strong>May 10, 2024:</strong> Project restructured to introduce Natural Language Processing for keyword clusterizers.</li>
+                <li><strong>May 29, 2024:</strong> Vector retrieval implemented for keyword search.</li>
+                <li><strong>Aug 28, 2024:</strong> Successfully implemented normalized vector similarities search.</li>
+                <li><strong>Oct 6, 2024:</strong> Core pipeline split into Python (NLP) and C++ (computation) for massive performance boosts.</li>
+                <li><strong>April 2026 Updates:</strong> 
+                    <ul>
+                        <li><strong>Semantic Search Engine:</strong> Replaced legacy Python/Obsidian queries with LangChain/Ollama and ChromaDB.</li>
+                        <li><strong>Native GUI Rendering:</strong> Developed a responsive PyQt5 Desktop UI capable of rendering true PDF pages alongside live, bidirectional distance recommendations.</li>
+                        <li><strong>Resilient Architecture:</strong> Implemented robust C++ batch-processing resumption mechanisms to prevent data loss.</li>
+                    </ul>
+                </li>
+            </ul>
+        </section>
+
+    </div>
+
+</body>
+</html>
