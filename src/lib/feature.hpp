@@ -867,13 +867,30 @@ namespace FEATURE
             const std::string &id = id_pair.first;
             std::vector<std::tuple<std::string, std::string, double>> result;
 
+            // Dynamically remove IDs that have already been compared with the current 'id'
+            std::map<std::string, std::string> current_comparison_list = comparison_list;
+            if (!reset_table)
+            {
+                std::string escaped_id = id;
+                size_t pos = 0;
+                while ((pos = escaped_id.find("'")) != std::string::npos && pos < escaped_id.length())
+                {
+                    escaped_id.replace(pos, 1, "''");
+                    pos += 2;
+                    if (pos >= escaped_id.length()) break;
+                }
+                
+                std::string check_sql = "SELECT target_id FROM comparison WHERE source_id = '" + escaped_id + "' UNION SELECT source_id FROM comparison WHERE target_id = '" + escaped_id + "'";
+                current_comparison_list = RECOMMEND::collect_processing_id(db, false, current_comparison_list, check_sql);
+            }
+
             auto filtered_tokens = RECOMMEND::load_token_map(db, id);
             if (filtered_tokens.empty())
                 continue;
 
             RECOMMEND::apply_tfidf(db, filtered_tokens);
             auto relation_distance_map = RECOMMEND::load_related_tokens(db, filtered_tokens);
-            std::vector<std::tuple<std::string, std::string, double>> results = RECOMMEND::compute_recommendations(filtered_tokens, relation_distance_map, id, comparison_list);
+            std::vector<std::tuple<std::string, std::string, double>> results = RECOMMEND::compute_recommendations(filtered_tokens, relation_distance_map, id, current_comparison_list);
 
             for (const auto &[target_id, target_name, distance] : results)
             {
@@ -955,17 +972,38 @@ namespace FEATURE
 
         std::map<std::string, std::string> unique_ids = RECOMMEND::collect_unique_id(db);
         std::vector<std::string> unique_topics = RECOMMEND::collect_unique_topic(db);
-        std::map<std::string, std::string> processing_ids = RECOMMEND::collect_processing_id(db, reset_table, unique_ids, "SELECT DISTINCT ID FROM tags_full");
 
         for (const std::string &topic : unique_topics)
         {
+            // Calculate which IDs need processing for THIS specific topic to support resuming correctly.
+            // Scenario 1: New topics will have no entries in tags_full, so all unique_ids are processed.
+            // Scenario 2: New file IDs will not be in tags_full for any topic, so they are processed for all.
+            std::string escaped_topic = topic;
+            size_t pos = 0;
+            while ((pos = escaped_topic.find("'")) != std::string::npos && pos < escaped_topic.length())
+            {
+                escaped_topic.replace(pos, 1, "''");
+                pos += 2;
+                if (pos >= escaped_topic.length()) break;
+            }
+
+            std::string check_sql = "SELECT ID FROM tags_full WHERE topic = '" + escaped_topic + "'";
+            std::map<std::string, std::string> topic_processing_ids = RECOMMEND::collect_processing_id(db, reset_table, unique_ids, check_sql);
+
+            if (topic_processing_ids.empty())
+                continue;
+
             auto filtered_tokens = RECOMMEND::load_topic_token_map(db, topic);
             if (filtered_tokens.empty())
                 continue;
 
             RECOMMEND::apply_tfidf(db, filtered_tokens);
             auto relation_distance_map = RECOMMEND::load_related_tokens(db, filtered_tokens);
-            std::vector<std::tuple<std::string, std::string, double>> recommendations = RECOMMEND::compute_recommendations(filtered_tokens, relation_distance_map, topic, processing_ids);
+            
+            // Only compute recommendations for the IDs that are missing for this topic
+            std::vector<std::tuple<std::string, std::string, double>> recommendations = 
+                RECOMMEND::compute_recommendations(filtered_tokens, relation_distance_map, topic, topic_processing_ids);
+            
             std::vector<std::tuple<std::string, std::string, double>> skimmy;
 
             // Skim down the recommendation list
@@ -977,9 +1015,13 @@ namespace FEATURE
                 skimmy.emplace_back(res);
             }
 
+            if (skimmy.empty())
+                continue;
+
             execute_sql(db, "BEGIN;");
             RECOMMEND::insert_tags_full(skimmy, db);
             execute_sql(db, "COMMIT;");
+            
             if (show_progress)
                 std::cout << "Processed topic: " << topic << ", Labeled: " << skimmy.size() << std::endl;
         }
