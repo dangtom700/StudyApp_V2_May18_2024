@@ -12,12 +12,13 @@ This desktop application helps you manage, search, and discover insights from yo
 
 ### 1. PDF Viewer Tab
 - **View all PDFs** in your database at a glance
-- **See file metadata**: name, file path, total chunks
-- **Preview content** of each PDF (first 500 chars)
-- **Refresh list** to sync with the latest database
+- **See file metadata**: name, file path, total chunks, and document tags
+- **Interactive Reading Experience**: Render actual PDF pages directly in the app side-by-side with document controls.
+- **Auto-fit Layout**: Seamless split-view with auto-fit width for rendered pages.
+- **In-Tab Recommendation Sidebar**: Quickly navigate between related reading materials while previewing a document.
 
 ### 2. Search Files Tab
-- **Full-text search** across all text chunks
+- **Semantic & Full-Text Search**: Leverage an integrated Semantic Search Engine utilizing LangChain and Chroma vector store alongside standard full-text matching.
 - **Instant results** displayed in a searchable list
 - **Configurable result count** (1-1000 results)
 - **Content preview** for each search result
@@ -70,10 +71,11 @@ The app uses three main database tables:
 - `file_name2`: Second file
 - `distance`: Cosine distance between files
 
-### Additional tables
+### Additional tables & Stores
 - Word frequency tables
-- TF-IDF vectors (if computed)
+- TF-IDF vectors
 - Topic indices
+- **Chroma Vector Store**: Semantic embeddings mapped directly from the database to enable advanced semantic queries.
 
 ## Usage Examples
 
@@ -164,7 +166,7 @@ app/pdf_app.py
 
 ## Future Enhancements
 
-- [ ] PDF content rendering (view actual PDF inside app)
+- [x] PDF content rendering (view actual PDF inside app)
 - [ ] Advanced search with boolean operators
 - [ ] Tag/category filtering
 - [ ] Reading history and bookmarks

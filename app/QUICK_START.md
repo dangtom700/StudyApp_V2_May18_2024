@@ -3,9 +3,9 @@
 ## What is this?
 
 You now have a **desktop app** that lets you:
-- 📄 **Preview PDFs** from your reading list
-- 🔍 **Search** for specific content across all PDFs
-- 💡 **Get recommendations** for similar/dissimilar PDFs
+- 📄 **Render and Read PDFs** with a beautiful split-view directly from your reading list.
+- 🔍 **Semantic & Full-Text Search** for specific content across all PDFs using a vector store engine.
+- 💡 **Get recommendations** for similar/dissimilar PDFs with an in-tab sidebar.
 
 ## How to Start?
 
@@ -35,12 +35,13 @@ A window opens with 3 tabs:
 
 ### Tab 1: 📄 PDF Viewer
 - See all PDFs in your collection
-- Get file info (path, number of chunks)
-- Read preview of first content
+- Get file info (path, number of chunks, tags)
+- Render the actual PDF pages seamlessly inside the app
+- Use the contextual sidebar to navigate related materials
 
 ### Tab 2: 🔍 Search Files
-- Search for keywords
-- Get matching chunks
+- Semantic Search using the vector store for concept matching
+- Standard Full-Text Search for exact keywords
 - See preview of matches
 
 ### Tab 3: 💡 Recommendations

@@ -6,7 +6,8 @@ A comprehensive suite for managing, searching, and discovering insights from you
 
 - **Advanced NLP Pipeline (C++ & Python)**: Heavy computation such as document text extraction, NLP tokenization, TF-IDF calculation, and relational distance computation is executed in an optimized C++ and Python pipeline. 
 - **Docker-Ready Pipeline**: Full Linux support via Docker and Docker Compose, natively mapping Windows/Linux directories to containerized volumes.
-- **Interactive Desktop App**: A comprehensive PyQt5 GUI (located in `app/`) for visualizing PDF library data, reading previews, and performing full-text searches across thousands of text chunks.
+- **Interactive Desktop App**: A comprehensive PyQt5 GUI (located in `app/`) for visually reading actual PDF pages, semantic content discovery, and performing full-text searches.
+- **Semantic Search Engine**: Incorporates LangChain, LangGraph, Ollama, and a Chroma Vector Store for advanced semantic querying.
 - **Smart Recommendations**: Uses Item Matrix calculations to provide serendipitous document discovery based on content dissimilarity.
 
 ## 📂 Project Structure
