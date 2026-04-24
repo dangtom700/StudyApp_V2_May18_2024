@@ -871,17 +871,8 @@ namespace FEATURE
             std::map<std::string, std::string> current_comparison_list = comparison_list;
             if (!reset_table)
             {
-                std::string escaped_id = id;
-                size_t pos = 0;
-                while ((pos = escaped_id.find("'")) != std::string::npos && pos < escaped_id.length())
-                {
-                    escaped_id.replace(pos, 1, "''");
-                    pos += 2;
-                    if (pos >= escaped_id.length()) break;
-                }
-                
-                std::string check_sql = "SELECT target_id FROM comparison WHERE source_id = '" + escaped_id + "' UNION SELECT source_id FROM comparison WHERE target_id = '" + escaped_id + "'";
-                current_comparison_list = RECOMMEND::collect_processing_id(db, false, current_comparison_list, check_sql);
+                std::string check_sql = "SELECT target_id FROM comparison WHERE source_id = ? UNION SELECT source_id FROM comparison WHERE target_id = ?";
+                current_comparison_list = RECOMMEND::collect_processing_id(db, false, current_comparison_list, check_sql, {id, id});
             }
 
             auto filtered_tokens = RECOMMEND::load_token_map(db, id);
@@ -942,90 +933,93 @@ namespace FEATURE
 
     void label_topics(bool show_progress, bool reset_table, const float &threshold = 0.4)
     {
-        sqlite3 *db;
-        if (sqlite3_open(ENV_HPP::database_path.string().c_str(), &db) != SQLITE_OK)
+        sqlite3 *db = nullptr;
+        try
         {
-            std::cerr << "Error opening database." << std::endl;
-            return;
-        }
-
-        execute_sql(db, "PRAGMA journal_mode=WAL;");
-        execute_sql(db, "PRAGMA synchronous=OFF;");
-        execute_sql(db, "PRAGMA temp_store=MEMORY;");
-
-        // Create or reset the tags table
-        if (reset_table)
-        {
-            std::string drop_table_sql = "DROP TABLE IF EXISTS tags_full";
-            execute_sql(db, drop_table_sql);
-        }
-
-        std::string create_full_table_sql = R"(
-            CREATE TABLE IF NOT EXISTS tags_full (
-                ID       TEXT NOT NULL,
-                distance REAL NOT NULL DEFAULT 0.0 CHECK(distance > 0.0),
-                topic    TEXT NOT NULL,
-                PRIMARY KEY (ID, topic)
-            ) WITHOUT ROWID;
-        )";
-        execute_sql(db, create_full_table_sql);
-
-        std::map<std::string, std::string> unique_ids = RECOMMEND::collect_unique_id(db);
-        std::vector<std::string> unique_topics = RECOMMEND::collect_unique_topic(db);
-
-        for (const std::string &topic : unique_topics)
-        {
-            // Calculate which IDs need processing for THIS specific topic to support resuming correctly.
-            // Scenario 1: New topics will have no entries in tags_full, so all unique_ids are processed.
-            // Scenario 2: New file IDs will not be in tags_full for any topic, so they are processed for all.
-            std::string escaped_topic = topic;
-            size_t pos = 0;
-            while ((pos = escaped_topic.find("'")) != std::string::npos && pos < escaped_topic.length())
+            if (sqlite3_open(ENV_HPP::database_path.string().c_str(), &db) != SQLITE_OK)
             {
-                escaped_topic.replace(pos, 1, "''");
-                pos += 2;
-                if (pos >= escaped_topic.length()) break;
+                std::cerr << "Error opening database: " << sqlite3_errmsg(db) << std::endl;
+                if (db)
+                    sqlite3_close(db);
+                return;
             }
 
-            std::string check_sql = "SELECT ID FROM tags_full WHERE topic = '" + escaped_topic + "'";
-            std::map<std::string, std::string> topic_processing_ids = RECOMMEND::collect_processing_id(db, reset_table, unique_ids, check_sql);
+            execute_sql(db, "PRAGMA journal_mode=WAL;");
+            execute_sql(db, "PRAGMA synchronous=OFF;");
+            execute_sql(db, "PRAGMA temp_store=MEMORY;");
 
-            if (topic_processing_ids.empty())
-                continue;
-
-            auto filtered_tokens = RECOMMEND::load_topic_token_map(db, topic);
-            if (filtered_tokens.empty())
-                continue;
-
-            RECOMMEND::apply_tfidf(db, filtered_tokens);
-            auto relation_distance_map = RECOMMEND::load_related_tokens(db, filtered_tokens);
-            
-            // Only compute recommendations for the IDs that are missing for this topic
-            std::vector<std::tuple<std::string, std::string, double>> recommendations = 
-                RECOMMEND::compute_recommendations(filtered_tokens, relation_distance_map, topic, topic_processing_ids);
-            
-            std::vector<std::tuple<std::string, std::string, double>> skimmy;
-
-            // Skim down the recommendation list
-            for (const auto &[target_id, target_name, distance] : recommendations)
+            // Create or reset the tags table
+            if (reset_table)
             {
-                if (distance < threshold)
+                execute_sql(db, "DROP TABLE IF EXISTS tags_full");
+            }
+
+            std::string create_full_table_sql = R"(
+                CREATE TABLE IF NOT EXISTS tags_full (
+                    ID       TEXT NOT NULL,
+                    distance REAL NOT NULL DEFAULT 0.0 CHECK(distance > 0.0),
+                    topic    TEXT NOT NULL,
+                    PRIMARY KEY (ID, topic)
+                ) WITHOUT ROWID;
+            )";
+            execute_sql(db, create_full_table_sql);
+
+            std::map<std::string, std::string> unique_ids = RECOMMEND::collect_unique_id(db);
+            std::vector<std::string> unique_topics = RECOMMEND::collect_unique_topic(db);
+
+            for (const std::string &topic : unique_topics)
+            {
+                // Calculate which IDs need processing for THIS specific topic to support resuming correctly.
+                // Scenario 1: New topics will have no entries in tags_full, so all unique_ids are processed.
+                // Scenario 2: New file IDs will not be in tags_full for any topic, so they are processed for all.
+                std::string check_sql = "SELECT ID FROM tags_full WHERE topic = ?";
+                std::map<std::string, std::string> topic_processing_ids = RECOMMEND::collect_processing_id(db, reset_table, unique_ids, check_sql, {topic});
+
+                if (topic_processing_ids.empty())
                     continue;
-                std::tuple<std::string, std::string, double> res = {target_id, topic, distance};
-                skimmy.emplace_back(res);
+
+                auto filtered_tokens = RECOMMEND::load_topic_token_map(db, topic);
+                if (filtered_tokens.empty())
+                    continue;
+
+                RECOMMEND::apply_tfidf(db, filtered_tokens);
+                auto relation_distance_map = RECOMMEND::load_related_tokens(db, filtered_tokens);
+
+                // Only compute recommendations for the IDs that are missing for this topic
+                std::vector<std::tuple<std::string, std::string, double>> recommendations =
+                    RECOMMEND::compute_recommendations(filtered_tokens, relation_distance_map, topic, topic_processing_ids);
+
+                std::vector<std::tuple<std::string, std::string, double>> skimmy;
+
+                // Skim down the recommendation list
+                for (const auto &[target_id, target_name, distance] : recommendations)
+                {
+                    if (distance < threshold)
+                        continue;
+                    std::tuple<std::string, std::string, double> res = {target_id, topic, distance};
+                    skimmy.emplace_back(res);
+                }
+
+                if (skimmy.empty())
+                    continue;
+
+                execute_sql(db, "BEGIN;");
+                RECOMMEND::insert_tags_full(skimmy, db);
+                execute_sql(db, "COMMIT;");
+
+                if (show_progress)
+                    std::cout << "Processed topic: " << topic << ", Labeled: " << skimmy.size() << std::endl;
             }
 
-            if (skimmy.empty())
-                continue;
-
-            execute_sql(db, "BEGIN;");
-            RECOMMEND::insert_tags_full(skimmy, db);
-            execute_sql(db, "COMMIT;");
-            
-            if (show_progress)
-                std::cout << "Processed topic: " << topic << ", Labeled: " << skimmy.size() << std::endl;
+            sqlite3_close(db);
+            db = nullptr;
         }
-        sqlite3_close(db);
+        catch (const std::exception &e)
+        {
+            std::cerr << "Error: " << e.what() << std::endl;
+            if (db)
+                sqlite3_close(db);
+        }
     }
 
     void iterative_topic_expansion(int max_degree,

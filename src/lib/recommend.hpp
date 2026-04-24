@@ -67,29 +67,32 @@ namespace RECOMMEND
         return unique_topics;
     }
 
-    std::map<std::string, std::string> collect_processing_id(sqlite3 *db, bool reset_table, std::map<std::string, std::string> unique_ids, std::string sql)
+    std::map<std::string, std::string> collect_processing_id(sqlite3 *db, bool reset_table, const std::map<std::string, std::string> &unique_ids, const std::string &sql, const std::vector<std::string> &params = {})
     {
-        // Remove key that already exists in item_matrix
         if (reset_table)
             return unique_ids;
-        else
-        {
-            sqlite3_stmt *stmt = prepareStatement(db, sql);
-            if (!stmt)
-                return unique_ids;
 
-            while (sqlite3_step(stmt) == SQLITE_ROW)
-            {
-                const unsigned char *id_txt = sqlite3_column_text(stmt, 0);
-                if (id_txt)
-                {
-                    std::string key = reinterpret_cast<const char *>(id_txt);
-                    unique_ids.erase(key);
-                }
-            }
-            sqlite3_finalize(stmt);
+        std::map<std::string, std::string> remaining_ids = unique_ids;
+        sqlite3_stmt *stmt = prepareStatement(db, sql);
+        if (!stmt)
+            return remaining_ids;
+
+        for (size_t i = 0; i < params.size(); ++i)
+        {
+            sqlite3_bind_text(stmt, static_cast<int>(i + 1), params[i].c_str(), -1, SQLITE_TRANSIENT);
         }
-        return unique_ids;
+
+        while (sqlite3_step(stmt) == SQLITE_ROW)
+        {
+            const unsigned char *id_txt = sqlite3_column_text(stmt, 0);
+            if (id_txt)
+            {
+                std::string key = reinterpret_cast<const char *>(id_txt);
+                remaining_ids.erase(key);
+            }
+        }
+        sqlite3_finalize(stmt);
+        return remaining_ids;
     }
 
     std::vector<std::tuple<std::string, int, double>> load_token_map(sqlite3 *db, const std::string &id)
