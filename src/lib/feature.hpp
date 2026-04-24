@@ -813,7 +813,7 @@ namespace FEATURE
 
     void mappingItemMatrix(const bool &show_progress = true,
                            const bool &reset_table = true,
-                           const uint8_t &update_freq = 50)
+                           const uint8_t &update_freq = 40)
     {
         sqlite3 *db;
         if (sqlite3_open(ENV_HPP::database_path.string().c_str(), &db) != SQLITE_OK)
@@ -966,6 +966,17 @@ namespace FEATURE
 
             std::map<std::string, std::string> unique_ids = RECOMMEND::collect_unique_id(db);
             std::vector<std::string> unique_topics = RECOMMEND::collect_unique_topic(db);
+            std::shuffle(unique_topics.begin(), unique_topics.end(), std::default_random_engine(std::random_device{}()));
+
+            // Open a buffer text file to remove processed topics from the list in case of interruption
+            std::ifstream buffer_file(ENV_HPP::processed_topics_buffer.string());
+            std::string topic;
+            while (std::getline(buffer_file, topic))
+            {
+                unique_topics.erase(std::remove(unique_topics.begin(), unique_topics.end(), topic), unique_topics.end());
+                std::cout << "Resuming, skipping already processed topic: " << topic << std::endl;
+            }
+            buffer_file.close();
 
             for (const std::string &topic : unique_topics)
             {
@@ -1007,12 +1018,20 @@ namespace FEATURE
                 RECOMMEND::insert_tags_full(skimmy, db);
                 execute_sql(db, "COMMIT;");
 
+                // Append the processed topic to the buffer file to support resuming in case of interruption
+                std::ofstream buffer_file(ENV_HPP::processed_topics_buffer.string(), std::ofstream::app);
+                buffer_file << topic << "\n";
+                buffer_file.close();
+
                 if (show_progress)
                     std::cout << "Processed topic: " << topic << ", Labeled: " << skimmy.size() << std::endl;
             }
 
             sqlite3_close(db);
             db = nullptr;
+            // Clear the buffer file after successful completion
+            std::ofstream clear_buffer(ENV_HPP::processed_topics_buffer.string(), std::ofstream::trunc);
+            clear_buffer.close();
         }
         catch (const std::exception &e)
         {
