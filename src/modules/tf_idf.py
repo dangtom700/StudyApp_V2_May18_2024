@@ -11,7 +11,7 @@ MIN_THRES_FREQ = 4
 BUFFER_SIZE = 1000
 
 def computeTFIDF():
-    conn = sqlite3.connect(chunk_database_path)
+    conn = sqlite3.connect(chunk_database_path, timeout=60.0)
     cursor = conn.cursor()
 
     # Speed-boosting pragmas
@@ -92,16 +92,15 @@ def computeTFIDF():
     print("TF-IDF computation completed.")
 
 def compute_item_matrix(top_k=1000, batch_size=20000, similarity_cutoff = 0.2):
-    conn = sqlite3.connect(chunk_database_path)
+    conn = sqlite3.connect(chunk_database_path, timeout=60.0)
     cursor = conn.cursor()
 
     # --- Aggressive write optimization ---
     cursor.executescript("""
-    PRAGMA journal_mode=OFF;
+    PRAGMA journal_mode=WAL;
     PRAGMA synchronous=OFF;
     PRAGMA temp_store=MEMORY;
     PRAGMA cache_size=-300000;
-    PRAGMA locking_mode=EXCLUSIVE;
     """)
 
     # --- Target table ---
