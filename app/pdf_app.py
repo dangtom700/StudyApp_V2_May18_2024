@@ -60,6 +60,10 @@ class PDFViewerTab(QWidget):
         refresh_btn.clicked.connect(self.refresh_pdf_list)
         top_layout.addWidget(refresh_btn)
         
+        self.export_btn = QPushButton("Export Note")
+        self.export_btn.clicked.connect(self.export_note)
+        top_layout.addWidget(self.export_btn)
+        
         left_v_layout.addLayout(top_layout)
         
         # Info panel
@@ -179,6 +183,55 @@ class PDFViewerTab(QWidget):
             item = QListWidgetItem(f"🏷️ {topic}")
             item.setToolTip(f"Relevance: {score:.4f}")
             self.tag_list.addItem(item)
+
+    def export_note(self):
+        """Export the current PDF note as Markdown"""
+        if not self.current_pdf:
+            QMessageBox.warning(self, "Export Error", "No PDF selected to export.")
+            return
+
+        pdf_name = self.current_pdf
+        title = pdf_name
+        source_filename = f"{pdf_name}.pdf"
+
+        # Get tags
+        tags = self.db_manager.get_pdf_tags(pdf_name)
+        labels = [tag[0] for tag in tags]
+
+        # Get recommendations
+        recommendations = self.db_manager.get_recommendations(pdf_name, 20)
+        rec_list = [f"{rec[0]}.pdf" for rec in recommendations]
+
+        # Get save path from user
+        default_name = f"{title}.md"
+        save_path, _ = QFileDialog.getSaveFileName(self, "Export Note", default_name, "Markdown Files (*.md);;All Files (*)")
+
+        if not save_path:
+            return
+
+        try:
+            with open(save_path, "w", encoding="utf-8") as f:
+                f.write(f"# {title}\n\n")
+                f.write(f"Source: [[{source_filename}]]\n\n")
+                
+                f.write("> This is an auto-generated note based on content extracted from the PDF. It may contain errors or omissions. Please verify with the original source.\n\n")
+
+                if labels:
+                    f.write(f"Labels: #{', #'.join(labels)}\n\n")
+                else:
+                    f.write("Labels: #untagged\n\n")
+                    
+                f.write("### Recommended for further reading:\n\n")
+
+                if rec_list:
+                    for rec_index, rec in enumerate(rec_list, start=1):
+                        f.write(f"{rec_index}. [[{rec}]]\n")
+                else:
+                    f.write("No recommendations found.\n")
+
+            QMessageBox.information(self, "Export Successful", f"Note exported successfully to\n{save_path}")
+        except Exception as e:
+            QMessageBox.critical(self, "Export Error", f"Failed to export note:\n{e}")
 
     def load_pdf(self, file_path):
         """Open PDF file and show first page"""
