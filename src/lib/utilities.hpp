@@ -7,10 +7,11 @@
 #include <vector>
 #include <iostream>
 #include <tuple>
-#include "env.hpp"  // Include ENV_HPP definition
+#include "env.hpp" // Include ENV_HPP definition
 #include <algorithm>
 
-struct DataEntry {  // Make sure this struct is defined
+struct DataEntry
+{ // Make sure this struct is defined
     std::string path;
     int sum;
     int num_unique_tokens;
@@ -18,7 +19,8 @@ struct DataEntry {  // Make sure this struct is defined
     double relational_distance;
 };
 
-struct DataInfo {
+struct DataInfo
+{
     std::string id;
     std::string file_name;
     std::string file_path;
@@ -28,19 +30,24 @@ struct DataInfo {
     int ending_id;
 };
 
-struct TFIDFRecord {
+struct TFIDFRecord
+{
     std::string word;
     int freq;
     int doc_count;
     double tf_idf;
 };
 
-namespace UTILITIES_HPP {
-    namespace Basic {
+namespace UTILITIES_HPP
+{
+    namespace Basic
+    {
 
         // List the files in the given directory and return them in a vector
-        std::vector<std::filesystem::path> list_directory(const std::filesystem::path& path, bool show_index = false) {
-            if (!std::filesystem::exists(path)) {
+        std::vector<std::filesystem::path> list_directory(const std::filesystem::path &path, bool show_index = false)
+        {
+            if (!std::filesystem::exists(path))
+            {
                 std::cout << "Path does not exist" << std::endl;
                 std::cout << "Path: " << path << std::endl;
                 return {};
@@ -48,9 +55,11 @@ namespace UTILITIES_HPP {
 
             std::vector<std::filesystem::path> files;
             int count = (show_index) ? 1 : 0;
-            for (const auto& entry : std::filesystem::directory_iterator(path)) {
+            for (const auto &entry : std::filesystem::directory_iterator(path))
+            {
                 files.push_back(entry.path());
-                if (show_index) {
+                if (show_index)
+                {
                     std::cout << count << ": " << entry.path() << std::endl;
                     count++;
                 }
@@ -60,10 +69,13 @@ namespace UTILITIES_HPP {
         }
 
         // Filter a vector of file paths by extension
-        std::vector<std::filesystem::path> filter_by_extension(const std::vector<std::filesystem::path>& files, const std::string& extension) {
+        std::vector<std::filesystem::path> filter_by_extension(const std::vector<std::filesystem::path> &files, const std::string &extension)
+        {
             std::vector<std::filesystem::path> filtered_files;
-            for (const auto& file : files) {
-                if (file.extension() == extension) {
+            for (const auto &file : files)
+            {
+                if (file.extension() == extension)
+                {
                     filtered_files.push_back(file);
                 }
             }
@@ -71,16 +83,19 @@ namespace UTILITIES_HPP {
         }
 
         // Reset data dumper
-        void reset_data_dumper(const std::filesystem::path& path) {
+        void reset_data_dumper(const std::filesystem::path &path)
+        {
             std::ofstream file(path);
-            if (!file.is_open()) {
+            if (!file.is_open())
+            {
                 std::cout << "Could not open file" << std::endl;
                 return;
             }
             file << "Path, Sum, Unique Tokens, Relational Distance" << std::endl;
 
             std::ofstream filtered_file(ENV_HPP::filtered_data_path.string());
-            if (!filtered_file.is_open()) {
+            if (!filtered_file.is_open())
+            {
                 std::cout << "Could not open filtered file" << std::endl;
                 return;
             }
@@ -89,9 +104,11 @@ namespace UTILITIES_HPP {
         }
 
         // reset file info dumper
-        void reset_file_info_dumper(const std::filesystem::path& path) {
+        void reset_file_info_dumper(const std::filesystem::path &path)
+        {
             std::ofstream file(path);
-            if (!file.is_open()) {
+            if (!file.is_open())
+            {
                 std::cout << "Could not open file" << std::endl;
                 return;
             }
@@ -99,34 +116,40 @@ namespace UTILITIES_HPP {
         }
 
         // Dump the contents of a DataEntry to a file
-        void data_entry_dump(const DataEntry& entry) {
+        void data_entry_dump(const DataEntry &entry)
+        {
             std::ofstream main_file(ENV_HPP::data_dumper_path.string(), std::ios::app); // Append to file
-            if (!main_file.is_open()) {
+            if (!main_file.is_open())
+            {
                 std::cout << "Could not open main file" << std::endl;
                 return;
             }
             main_file << entry.path << ", " << entry.sum << ", " << entry.num_unique_tokens << ", " << entry.relational_distance << std::endl;
 
             // Construct the path for the filtered file
-            std::ofstream filtered_file(ENV_HPP::filtered_data_path.string(), std::ios::app);// Append to file
-            if (!filtered_file.is_open()) {
+            std::ofstream filtered_file(ENV_HPP::filtered_data_path.string(), std::ios::app); // Append to file
+            if (!filtered_file.is_open())
+            {
                 std::cout << "Could not open filtered file" << std::endl;
                 return;
             }
 
-            for (const std::tuple<std::string, int, double>& token : entry.filtered_tokens) {
-                filtered_file << entry.path << ", " 
-                              << std::get<0>(token) << ", " 
-                              << std::get<1>(token) << ", " 
+            for (const std::tuple<std::string, int, double> &token : entry.filtered_tokens)
+            {
+                filtered_file << entry.path << ", "
+                              << std::get<0>(token) << ", "
+                              << std::get<1>(token) << ", "
                               << std::get<2>(token)
                               << std::endl;
             }
         }
 
         // Dump the contents of a DataInfo to a file
-        void data_info_dump(const DataInfo& info) {
+        void data_info_dump(const DataInfo &info)
+        {
             std::ofstream file(ENV_HPP::data_info_path.string(), std::ios::app | std::ios::binary);
-            if (!file.is_open()) {
+            if (!file.is_open())
+            {
                 std::cout << "Could not open file" << std::endl;
                 return;
             }
@@ -139,11 +162,31 @@ namespace UTILITIES_HPP {
         }
 
         // Extract specific data from given directory with other instructions
-        std::vector<std::filesystem::path> extract_data_files(const std::filesystem::path& target_folder, const bool& show_index, const std::string& extension) {
+        std::vector<std::filesystem::path> extract_data_files(const std::filesystem::path &target_folder, const bool &show_index, const std::string &extension)
+        {
             std::vector<std::filesystem::path> collected_files = UTILITIES_HPP::Basic::list_directory(target_folder, show_index);
             return UTILITIES_HPP::Basic::filter_by_extension(collected_files, extension);
         }
     } // namespace Basic
+    namespace Timer
+    {
+        void show_update(const uint16_t &i, const uint16_t &size, const std::chrono::high_resolution_clock::time_point &start_time, const uint16_t &update_freq, const std::string &item_name = "items")
+        {
+            std::cout << "Processed: (" << i << "/" << size << ") " << item_name << "\n";
+            if (i % update_freq == 0 && i != 0)
+            {
+                std::chrono::high_resolution_clock::time_point end_time = std::chrono::high_resolution_clock::now();
+                double elapsed_sec = std::chrono::duration_cast<std::chrono::milliseconds>(end_time - start_time).count() / 1000.0;
+                double avg_sec_per_item = elapsed_sec / static_cast<double>(i);
+                int estimated_time_left = static_cast<int>((size - (i)) * avg_sec_per_item);
+                int seconds = estimated_time_left % 60;
+                int minutes = (estimated_time_left / 60) % 60;
+                int hours = estimated_time_left / 3600;
+                std::printf("Estimated time left: %02dHR %02dMin %02dSec (%d samples left)\n",
+                            hours, minutes, seconds, static_cast<int>(size - (i)));
+            }
+        }
+    }
 } // namespace UTILITIES_HPP
 
 #endif // UTILITIES_HPP

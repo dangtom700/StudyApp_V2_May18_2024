@@ -15,6 +15,7 @@
 #include <time.h>
 #include <chrono>
 #include <algorithm>
+#include <print>
 #include <random>
 
 using json = nlohmann::json;
@@ -89,7 +90,7 @@ namespace FEATURE
                                    const bool &show_progress = true,
                                    const bool &reset_table = true,
                                    const bool &is_dumped = true,
-                                   const int freq_thres = 50)
+                                   const int freq_thres = 30)
     {
         try
         {
@@ -813,7 +814,7 @@ namespace FEATURE
 
     void mappingItemMatrix(const bool &show_progress = true,
                            const bool &reset_table = true,
-                           const uint8_t &update_freq = 40)
+                           const uint8_t &update_freq = 50)
     {
         sqlite3 *db;
         if (sqlite3_open(ENV_HPP::database_path.string().c_str(), &db) != SQLITE_OK)
@@ -856,7 +857,6 @@ namespace FEATURE
         for (const auto &p : processing_ids)
             items.emplace_back(p.first, p.second);
 
-        std::shuffle(items.begin(), items.end(), std::default_random_engine(std::random_device{}()));
         processing_ids.clear();
 
         uint16_t size = items.size(); // Update size after shuffling
@@ -909,29 +909,14 @@ namespace FEATURE
             RECOMMEND::insert_comparison(result, db);
             execute_sql(db, "COMMIT;");
 
-            if (show_progress && i % update_freq == 0 && i != 0)
-            {
-                std::chrono::high_resolution_clock::time_point end_time = std::chrono::high_resolution_clock::now();
-                double elapsed_sec = std::chrono::duration_cast<std::chrono::milliseconds>(end_time - start_time).count() / 1000.0;
-                double avg_sec_per_item = elapsed_sec / static_cast<double>(update_freq);
-                int estimated_time_left = static_cast<int>((size - (i + 1)) * avg_sec_per_item);
-                int seconds = estimated_time_left % 60;
-                int minutes = (estimated_time_left / 60) % 60;
-                int hours = estimated_time_left / 3600;
-                std::cout << "Estimated time left: "
-                          << hours << "HR "
-                          << minutes << "Min "
-                          << seconds << "sec"
-                          << " (" << size - (i + 1) << " samples left)"
-                          << std::endl;
-                start_time = end_time;
-            }
+            if (show_progress)
+                UTILITIES_HPP::Timer::show_update(i + 1, size, start_time, update_freq, id);
         }
 
         sqlite3_close(db);
     }
 
-    void label_topics(bool show_progress, bool reset_table, const float &threshold = 0.4)
+    void label_topics(bool show_progress, bool reset_table, const float &threshold = 0.4, bool clear_buffer = false, uint8_t update_freq = 50)
     {
         sqlite3 *db = nullptr;
         try
@@ -966,20 +951,27 @@ namespace FEATURE
 
             std::map<std::string, std::string> unique_ids = RECOMMEND::collect_unique_id(db);
             std::vector<std::string> unique_topics = RECOMMEND::collect_unique_topic(db);
-            std::shuffle(unique_topics.begin(), unique_topics.end(), std::default_random_engine(std::random_device{}()));
 
             // Open a buffer text file to remove processed topics from the list in case of interruption
-            std::ifstream buffer_file(ENV_HPP::processed_topics_buffer.string());
-            std::string topic;
-            while (std::getline(buffer_file, topic))
+            if (clear_buffer)
             {
-                unique_topics.erase(std::remove(unique_topics.begin(), unique_topics.end(), topic), unique_topics.end());
-                std::cout << "Resuming, skipping already processed topic: " << topic << std::endl;
+                std::ofstream buffer_file(ENV_HPP::processed_topics_buffer.string(), std::ofstream::trunc);
+                buffer_file.close();
             }
-            buffer_file.close();
-
-            for (const std::string &topic : unique_topics)
+            else
             {
+                std::ifstream buffer_file(ENV_HPP::processed_topics_buffer.string());
+                std::string topic;
+                while (std::getline(buffer_file, topic))
+                    unique_topics.erase(std::remove(unique_topics.begin(), unique_topics.end(), topic), unique_topics.end());
+                buffer_file.close();
+            }
+
+            uint16_t size = unique_topics.size();
+            std::chrono::high_resolution_clock::time_point start_time = std::chrono::high_resolution_clock::now();
+            for (size_t i = 0; i < unique_topics.size(); ++i)
+            {
+                std::string topic = unique_topics[i];
                 // Calculate which IDs need processing for THIS specific topic to support resuming correctly.
                 // Scenario 1: New topics will have no entries in tags_full, so all unique_ids are processed.
                 // Scenario 2: New file IDs will not be in tags_full for any topic, so they are processed for all.
@@ -1024,7 +1016,7 @@ namespace FEATURE
                 buffer_file.close();
 
                 if (show_progress)
-                    std::cout << "Processed topic: " << topic << ", Labeled: " << skimmy.size() << std::endl;
+                    UTILITIES_HPP::Timer::show_update(i + 1, size, start_time, update_freq, topic);
             }
 
             sqlite3_close(db);
