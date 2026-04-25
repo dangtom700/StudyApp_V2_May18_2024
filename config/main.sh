@@ -67,7 +67,7 @@ if [ $promptReference -eq 1 ]; then
     ./word_tokenizer --processPrompt
 fi
 
-fi [ $fastMappingItemMatrix -eq 1]; then python src/main.py --computeItemMatrix; fi
+if [ $fastMappingItemMatrix -eq 1 ]; then python src/main.py --computeItemMatrix; fi
 if [ $mappingItemMatrix -eq 1 ]; then ./word_tokenizer --mappingItemMatrix; fi
 if [ $topicTokenize -eq 1 ]; then python src/main.py --topicTokenize; fi
 if [ $labelTopics -eq 1 ]; then ./word_tokenizer --labelTopics; fi
