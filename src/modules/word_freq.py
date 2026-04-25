@@ -356,6 +356,39 @@ def fetch_article(title: str) -> Optional[str]:
         print(f"Wiki request failed for {title}: {e}")
         return None
 
+def get_random_wikipedia_topics(limit=10):
+    """Fetch random article titles from Wikipedia."""
+    params = {
+        "action": "query",
+        "format": "json",
+        "list": "random",
+        "rnnamespace": 0, # Only main articles
+        "rnlimit": limit
+    }
+    try:
+        response = requests.get(API_URL, params=params, headers=HEADERS)
+        response.raise_for_status()
+        data = response.json()
+        return {item["title"] for item in data.get("query", {}).get("random", [])}
+    except Exception as e:
+        print(f"Error fetching random topics from Wikipedia: {e}")
+        return set()
+
+def get_related_topics(seed: str, limit=50):
+    """Fetch topics related to a specific subject using Datamuse API."""
+    url = "https://api.datamuse.com/words"
+    params = {
+        "ml": seed,
+        "max": limit
+    }
+    try:
+        response = requests.get(url, params=params, headers=HEADERS)
+        response.raise_for_status()
+        return {item["word"] for item in response.json()}
+    except Exception as e:
+        print(f"Error fetching related topics from Datamuse: {e}")
+        return set()
+
 def prepare_filtered_table(reset=True):
     with get_connection() as db:
 

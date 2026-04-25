@@ -9,6 +9,7 @@ A comprehensive suite for managing, searching, and discovering insights from you
 - **Interactive Desktop App**: A comprehensive PyQt5 GUI (located in `app/`) for visually reading actual PDF pages, semantic content discovery, and performing full-text searches.
 - **Semantic Search Engine**: Incorporates LangChain, LangGraph, Ollama, and a Chroma Vector Store for advanced semantic querying.
 - **Smart Recommendations**: Uses Item Matrix calculations to provide serendipitous document discovery based on content dissimilarity.
+- **Dynamic Topic Generation**: Automatically expands the topic dataset using Wikipedia's Random API and Datamuse's related-word engine. Now features **Smart Defaults** (e.g., "topology" and 50 random topics) for effortless execution.
 
 ## 🆕 Recent Updates (April 2026)
 
@@ -100,6 +101,9 @@ bash config/main.sh --extractText --processWordFreq --computeRelationalDistance
 - `--processWordFreq`
 - `--computeTFIDF`
 - `--promptReference`
+- `--topicTokenize`: Process the topic labeling pipeline.
+    - *Default behavior*: Fetches 50 random topics and articles related to "topology".
+    - *Override*: Use `--randomTopics <N>` or `--seedTopics "<seed>"` to customize the expansion.
 *(Refer to `config/main.bat` or `main.sh` for the full list of supported flags).*
 
 ### 2. Using the Interactive Desktop App
