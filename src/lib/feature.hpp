@@ -902,13 +902,14 @@ namespace FEATURE
                 else
                     std::cout << ENV_HPP::low_similarity_files.string() << " is fucked.\n";
                 file.close();
-                continue;
             }
+            else
+            {
 
-            execute_sql(db, "BEGIN;");
-            RECOMMEND::insert_comparison(result, db);
-            execute_sql(db, "COMMIT;");
-
+                execute_sql(db, "BEGIN;");
+                RECOMMEND::insert_comparison(result, db);
+                execute_sql(db, "COMMIT;");
+            }
             if (show_progress)
                 UTILITIES_HPP::Timer::show_update(i + 1, size, start_time, update_freq, id);
         }
@@ -1003,12 +1004,12 @@ namespace FEATURE
                     skimmy.emplace_back(res);
                 }
 
-                if (skimmy.empty())
-                    continue;
-
-                execute_sql(db, "BEGIN;");
-                RECOMMEND::insert_tags_full(skimmy, db);
-                execute_sql(db, "COMMIT;");
+                if (!skimmy.empty())
+                {
+                    execute_sql(db, "BEGIN;");
+                    RECOMMEND::insert_tags_full(skimmy, db);
+                    execute_sql(db, "COMMIT;");
+                }
 
                 // Append the processed topic to the buffer file to support resuming in case of interruption
                 std::ofstream buffer_file(ENV_HPP::processed_topics_buffer.string(), std::ofstream::app);
