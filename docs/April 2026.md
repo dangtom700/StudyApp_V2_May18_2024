@@ -9,6 +9,7 @@ This document summarizes the significant features and workflow improvements inte
 
 ## 2. Topic Labeling and Tokenization Refinements
 * **Resumption Mechanisms**: Engineered a bullet-proof resumption mechanism for the `label_topics` and `mappingItemMatrix` pipeline logic in `src/lib/feature.hpp`. This ensures processes gracefully recover from interruptions without causing duplicate computations, drastically increasing resilience for long-running batch jobs.
+* **Topic-to-Topic Similarity**: Introduced an experimental `--TopicSimilarity` feature that automatically compares topic pairs, computing and storing their relational distances in the database using efficient, bidirectionally inserted scores.
 * **Refined Topic Tokenization**: Adjusted `src/modules/word_freq.py`'s `tokenize_topics` function to reliably process wiki topic files locally from the `wiki_topics` directory, standardizing topic extraction without over-relying on external APIs like `wikipedia_api`. The distance metrics have also been calibrated to compute based on the sum of squared frequencies.
 * **Bidirectional Recommendation Queries**: Advanced SQL queries have been introduced to retrieve distinct related IDs from both sides of the `comparison` table, perfectly managing the "shrinking pool" relational storage pattern and guaranteeing top-100 unique recommendations.
 

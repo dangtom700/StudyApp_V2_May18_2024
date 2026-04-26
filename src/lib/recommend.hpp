@@ -348,6 +348,26 @@ namespace RECOMMEND
         sqlite3_finalize(stmt);
     }
 
+    void insert_topic_similarity(
+        const std::vector<std::tuple<std::string, std::string, double>> &RESULT,
+        sqlite3 *db)
+    {
+        std::string insert_sql = "INSERT OR IGNORE INTO topic_similarity (source_topic, target_topic, distance) VALUES (?, ?, ?);";
+        sqlite3_stmt *stmt = prepareStatement(db, insert_sql);
+        if (!stmt)
+            return;
+
+        for (const auto &[source, target, distance] : RESULT)
+        {
+            sqlite3_bind_text(stmt, 1, source.c_str(), -1, SQLITE_STATIC);
+            sqlite3_bind_text(stmt, 2, target.c_str(), -1, SQLITE_STATIC);
+            sqlite3_bind_double(stmt, 3, distance);
+            sqlite3_step(stmt);
+            sqlite3_reset(stmt);
+        }
+        sqlite3_finalize(stmt);
+    }
+
     void expand_degree(sqlite3 *db, int from_degree, int to_degree, double threshold)
     {
         const char *expand_sql = R"(

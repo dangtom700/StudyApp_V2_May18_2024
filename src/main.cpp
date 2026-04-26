@@ -102,6 +102,13 @@ void expandTopics()
     std::cout << "Finished: Topics expanded." << std::endl;
 }
 
+void topicSimilarity()
+{
+    std::cout << "Computing topic similarity..." << std::endl;
+    FEATURE::topicSimilarity(true, reset_table);
+    std::cout << "Finished: Topic similarity computed." << std::endl;
+}
+
 int main(int argc, char *argv[])
 {
     // Check if any command-line arguments were provided
@@ -121,7 +128,8 @@ int main(int argc, char *argv[])
         {"--runcutoffanalysis", runCutoffAnalysis},
         {"--mappingitemmatrix", mappingItemMatrix},
         {"--labeltopics", labelTopics},
-        {"--expandtopics", expandTopics}};
+        {"--expandtopics", expandTopics},
+        {"--topicsimilarity", topicSimilarity}};
 
     // Iterate through the provided command-line arguments and execute corresponding actions
     for (int i = 1; i < argc; ++i)

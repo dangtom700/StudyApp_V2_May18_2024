@@ -31,9 +31,10 @@ set "ideation=0"
 set "promptReference=0"
 set "fastMappingItemMatrix=0"
 set "mappingItemMatrix=0"
-set "topicTokenize=1"
-set "labelTopics=1"
+set "topicTokenize=0"
+set "labelTopics=0"
 set "expandTopics=0"
+set "topicSimilarity=0"
 
 rem Process flags
 :process_flags
@@ -53,6 +54,7 @@ for %%A in (%*) do (
     if "%%A"=="--topicTokenize" set topicTokenize=1
     if "%%A"=="--labelTopics" set labelTopics=1
     if "%%A"=="--expandTopics" set expandTopics=1
+    if "%%A"=="--topicSimilarity" set topicSimilarity=1
 )
 
 rem Show Components
@@ -182,6 +184,14 @@ if %expandTopics%==1 (
     word_tokenizer --expandTopics
     if %errorlevel% neq 0 (
         echo Error executing Expand Topics.
+    )
+)
+
+rem Topic Similarity
+if %topicSimilarity%==1 (
+    word_tokenizer --topicSimilarity
+    if %errorlevel% neq 0 (
+        echo Error executing Topic Similarity.
     )
 )
 

@@ -207,6 +207,7 @@
             <h3>The Process:</h3>
             <ul>
                 <li><strong>Resumption Logic:</strong> The <code>label_topics</code> and <code>mappingItemMatrix</code> routines now map current progress via per-topic ID filtering. If execution drops, the pipeline reads the highest completed iteration and safely resumes without recomputing existing work.</li>
+                <li><strong>Topic-to-Topic Similarity:</strong> Introduced an experimental <code>--TopicSimilarity</code> feature that automatically compares topic pairs, computing and storing their relational distances in the database using efficient, bidirectionally inserted scores.</li>
                 <li><strong>Bidirectional Query Fixes:</strong> Upgraded the recommendation engine to fetch unique IDs using advanced SQL mapping for the `comparison` table, correcting the A-B / B-A duplication bug when analyzing the "shrinking pool" datasets.</li>
                 <li><strong>Decoupled Tokenization:</strong> Removed the hard dependency on `wikipedia_api`. The `tokenize_topics` pipeline now utilizes local wiki articles formatted within the <code>wiki_topics</code> directory.</li>
             </ul>

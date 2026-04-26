@@ -17,6 +17,7 @@ A comprehensive suite for managing, searching, and discovering insights from you
 - **Local AI Integration**: Semantic queries powered by LangChain, LangGraph, and Ollama.
 - **True PDF Rendering**: The GUI now renders actual PDF pages instead of raw text chunks, complete with an auto-fit split view.
 - **Resilient NLP Pipelines**: The C++ topic modeling (`feature.hpp`) now supports robust resumption mechanisms to prevent redundant calculations during long batches.
+- **Topic-to-Topic Similarity**: Added an experimental feature that performs bidirectional comparisons between unique topics based on TF-IDF scoring.
 - **Bidirectional Relational Queries**: Advanced SQL queries perfectly handle the "shrinking pool" item matrix logic for hyper-accurate document recommendations.
 
 ## 📂 Project Structure
@@ -104,6 +105,7 @@ bash config/main.sh --extractText --processWordFreq --computeRelationalDistance
 - `--topicTokenize`: Process the topic labeling pipeline.
     - *Default behavior*: Fetches 50 random topics and articles related to "topology".
     - *Override*: Use `--randomTopics <N>` or `--seedTopics "<seed>"` to customize the expansion.
+- `--topicSimilarity`: Compute relational distances directly between topic pairs and store bidirectional similarity scores.
 *(Refer to `config/main.bat` or `main.sh` for the full list of supported flags).*
 
 ### 2. Using the Interactive Desktop App
