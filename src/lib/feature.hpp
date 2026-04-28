@@ -910,10 +910,10 @@ namespace FEATURE
                 RECOMMEND::insert_comparison(result, db);
                 execute_sql(db, "COMMIT;");
             }
-            if (show_progress)
-                UTILITIES_HPP::Timer::show_update(i + 1, size, start_time, update_freq, id);
-        }
 
+            if (show_progress)
+                start_time = UTILITIES_HPP::Timer::show_update(i + 1, size, start_time, update_freq, id); // Reset start time after each update to get accurate ETA for next batch}
+        }
         sqlite3_close(db);
     }
 
@@ -1017,7 +1017,7 @@ namespace FEATURE
                 buffer_file.close();
 
                 if (show_progress)
-                    UTILITIES_HPP::Timer::show_update(i + 1, size, start_time, update_freq, topic);
+                    start_time = UTILITIES_HPP::Timer::show_update(i + 1, size, start_time, update_freq, topic); // Reset start time after each update to get accurate ETA for next batch}
             }
 
             sqlite3_close(db);
@@ -1040,7 +1040,8 @@ namespace FEATURE
         if (sqlite3_open(ENV_HPP::database_path.string().c_str(), &db) != SQLITE_OK)
         {
             std::cerr << "Error opening database: " << sqlite3_errmsg(db) << std::endl;
-            if (db) sqlite3_close(db);
+            if (db)
+                sqlite3_close(db);
             return;
         }
 
@@ -1064,16 +1065,19 @@ namespace FEATURE
         execute_sql(db, create_table_sql);
 
         std::vector<std::string> unique_topics = RECOMMEND::collect_unique_topic(db);
-        
+
         // Let's filter out processed pairs to support resuming
         std::map<std::string, std::vector<std::string>> processed_pairs;
-        if (!reset_table) {
+        if (!reset_table)
+        {
             std::string sql = "SELECT source_topic, target_topic FROM topic_similarity";
             sqlite3_stmt *stmt = prepareStatement(db, sql, "");
-            if (stmt) {
-                while (sqlite3_step(stmt) == SQLITE_ROW) {
-                    std::string src = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 0));
-                    std::string tgt = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 1));
+            if (stmt)
+            {
+                while (sqlite3_step(stmt) == SQLITE_ROW)
+                {
+                    std::string src = reinterpret_cast<const char *>(sqlite3_column_text(stmt, 0));
+                    std::string tgt = reinterpret_cast<const char *>(sqlite3_column_text(stmt, 1));
                     processed_pairs[src].push_back(tgt);
                 }
                 sqlite3_finalize(stmt);
@@ -1082,7 +1086,8 @@ namespace FEATURE
 
         // Load all topic tokens into memory
         std::map<std::string, std::vector<std::tuple<std::string, int, double>>> topic_tokens_map;
-        for (const auto& topic : unique_topics) {
+        for (const auto &topic : unique_topics)
+        {
             auto tokens = RECOMMEND::load_topic_token_map(db, topic);
             RECOMMEND::apply_tfidf(db, tokens);
             topic_tokens_map[topic] = tokens;
@@ -1094,11 +1099,12 @@ namespace FEATURE
         for (size_t i = 0; i < size; ++i)
         {
             std::string source_topic = unique_topics[i];
-            const auto& source_tokens = topic_tokens_map[source_topic];
-            
+            const auto &source_tokens = topic_tokens_map[source_topic];
+
             // Convert to fast map for dot product
             std::unordered_map<std::string, double> source_weights;
-            for (const auto& [tok, _, dist] : source_tokens) {
+            for (const auto &[tok, _, dist] : source_tokens)
+            {
                 source_weights[tok] = dist;
             }
 
@@ -1108,38 +1114,44 @@ namespace FEATURE
             {
                 std::string target_topic = unique_topics[j];
 
-                if (!reset_table) {
-                    auto& processed = processed_pairs[source_topic];
-                    if (std::find(processed.begin(), processed.end(), target_topic) != processed.end()) {
+                if (!reset_table)
+                {
+                    auto &processed = processed_pairs[source_topic];
+                    if (std::find(processed.begin(), processed.end(), target_topic) != processed.end())
+                    {
                         continue;
                     }
                 }
 
-                const auto& target_tokens = topic_tokens_map[target_topic];
-                
+                const auto &target_tokens = topic_tokens_map[target_topic];
+
                 double score = 0.0;
-                for (const auto& [tok, _, dist] : target_tokens) {
+                for (const auto &[tok, _, dist] : target_tokens)
+                {
                     auto it = source_weights.find(tok);
-                    if (it != source_weights.end()) {
+                    if (it != source_weights.end())
+                    {
                         score += dist * it->second;
                     }
                 }
 
-                if (score >= threshold) {
+                if (score >= threshold)
+                {
                     results.emplace_back(source_topic, target_topic, score);
-                    results.emplace_back(target_topic, source_topic, score);
                 }
             }
 
-            if (!results.empty()) {
+            topic_tokens_map.erase(source_topic); // Free memory as we go
+
+            if (!results.empty())
+            {
                 execute_sql(db, "BEGIN;");
                 RECOMMEND::insert_topic_similarity(results, db);
                 execute_sql(db, "COMMIT;");
             }
 
-            if (show_progress) {
-                UTILITIES_HPP::Timer::show_update(i + 1, size, start_time, 1, source_topic);
-            }
+            if (show_progress)
+                start_time = UTILITIES_HPP::Timer::show_update(i + 1, size, start_time, 50, source_topic); // Reset start time after each update to get accurate ETA for next batch}
         }
 
         sqlite3_close(db);

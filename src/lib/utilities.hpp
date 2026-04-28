@@ -170,21 +170,24 @@ namespace UTILITIES_HPP
     } // namespace Basic
     namespace Timer
     {
-        void show_update(const uint16_t &i, const uint16_t &size, const std::chrono::high_resolution_clock::time_point &start_time, const uint16_t &update_freq, const std::string &item_name = "items")
+        std::chrono::high_resolution_clock::time_point show_update(const uint16_t &i, const uint16_t &size, const std::chrono::high_resolution_clock::time_point &start_time, const uint16_t &update_freq, const std::string &item_name = "items")
         {
             std::cout << "Processed: (" << i << "/" << size << ") " << item_name << "\n";
             if (i % update_freq == 0 && i != 0)
             {
                 std::chrono::high_resolution_clock::time_point end_time = std::chrono::high_resolution_clock::now();
                 double elapsed_sec = std::chrono::duration_cast<std::chrono::milliseconds>(end_time - start_time).count() / 1000.0;
-                double avg_sec_per_item = elapsed_sec / static_cast<double>(i);
+                double avg_sec_per_item = elapsed_sec / static_cast<double>(update_freq);
                 int estimated_time_left = static_cast<int>((size - (i)) * avg_sec_per_item);
                 int seconds = estimated_time_left % 60;
                 int minutes = (estimated_time_left / 60) % 60;
                 int hours = estimated_time_left / 3600;
                 std::printf("Estimated time left: %02dHR %02dMin %02dSec (%d samples left)\n",
                             hours, minutes, seconds, static_cast<int>(size - (i)));
+                return end_time;
             }
+
+            return start_time;
         }
     }
 } // namespace UTILITIES_HPP
