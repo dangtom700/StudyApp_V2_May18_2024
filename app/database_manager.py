@@ -105,13 +105,13 @@ class DatabaseManager:
     
     def get_recommendations(self, file_name: str, count: int = 10) -> List[Tuple[str, float]]:
         """
-        Get recommendations for a file based on item_matrix distances
+        Get recommendations for a file based on comparison distances
         Returns files with greatest distance (most similar)
         Format: [(recommended_file_name, distance_score), ...]
         """
         try:
-            # Check if item_matrix exists
-            self.cursor.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='item_matrix'")
+            # Check if comparison exists
+            self.cursor.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='comparison'")
             if not self.cursor.fetchone():
                 return self.get_random_recommendations(file_name, count)
 
@@ -124,13 +124,13 @@ class DatabaseManager:
             current_id = row['id'] if isinstance(row, sqlite3.Row) else row[0]
             title_id = f"title_{current_id}"
 
-            # 2. Query item_matrix and join with file_info to get names
+            # 2. Query comparison and join with file_info to get names
             # We search both source_id and target_id because the matrix is upper-triangle only
             query = """
                 WITH reco_ids AS (
-                    SELECT target_id as other_id, distance FROM item_matrix WHERE source_id = ?
+                    SELECT target_id as other_id, distance FROM comparison WHERE source_id = ?
                     UNION ALL
-                    SELECT source_id as other_id, distance FROM item_matrix WHERE target_id = ?
+                    SELECT source_id as other_id, distance FROM comparison WHERE target_id = ?
                 )
                 SELECT f.file_name, r.distance
                 FROM reco_ids r

@@ -91,7 +91,7 @@ def computeTFIDF():
     conn.close()
     print("TF-IDF computation completed.")
 
-def compute_item_matrix(top_k=1000, batch_size=20000, similarity_cutoff = 0.2):
+def compute_item_matrix(top_k=1000, batch_size=20000, similarity_cutoff = 0.3):
     conn = sqlite3.connect(chunk_database_path, timeout=60.0)
     cursor = conn.cursor()
 
