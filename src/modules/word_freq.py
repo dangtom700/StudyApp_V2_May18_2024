@@ -7,7 +7,7 @@ from shutil import rmtree
 from modules.path import chunk_database_path, token_json_path, buffer_json_path
 from nltk.stem import PorterStemmer
 from nltk.corpus import stopwords
-from concurrent.futures import ThreadPoolExecutor
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from json import dump
 import string
 import requests
@@ -16,13 +16,16 @@ from pathlib import Path
 from typing import Optional
 import time
 from itertools import permutations
+import hashlib
+from threading import Lock
+from collections import deque
 
 # Configurations and constants
 WIKI_FOLDER = Path("wiki_topics")
 PROMPT_FILE = Path("Prompt.txt")
 OUTPUT_FILE = Path("outputPrompt.txt")
 API_URL = "https://en.wikipedia.org/w/api.php"
-HEADERS = {"User-Agent": "TopicDatasetBuilder/1.0 (godKnows@how.com)"}
+HEADERS = {"User-Agent": "TopicDatasetBuilder/1.0 ()"}
 CONFIG = {
     "DB_PATH": Path("data/pdf_text.db"),
     "SOURCE_FOLDER": Path("D:/READING LIST"),
@@ -353,7 +356,6 @@ def fetch_article(title: str) -> Optional[str]:
         return None if "missing" in page else page.get("extract", "")
 
     except requests.RequestException as e:
-        print(f"Wiki request failed for {title}: {e}")
         return None
 
 def get_random_wikipedia_topics(limit=10):
@@ -517,6 +519,7 @@ def permutate_topics() -> set[str]:
         return set()
 
     # Step 2: generate new topics from tokens
+    tokens = tokens - stop_words  # Remove stop words from tokens
     new_topics = set()
 
     # Single‑word topics
@@ -528,7 +531,60 @@ def permutate_topics() -> set[str]:
 
     return new_topics
 
-def tokenize_topics(TOPIC_LIST: set[str]):    
+
+def deduplicate_topic_files():
+    """Deduplicate identical files in the wiki_topics folder.
+
+    Keeps the shortest file name for each unique piece of content and removes
+    the rest. Duplicate topic names are appended to the not_found_topics file so
+    they will be skipped in future processing.
+    """
+    file_groups = {}
+
+    for topic_file in WIKI_FOLDER.glob("*.txt"):
+        try:
+            raw_text = topic_file.read_text(encoding="utf-8", errors="ignore")
+        except OSError as exc:
+            print(f"Unable to read {topic_file}: {exc}")
+            continue
+
+        normalized_text = re.sub(r"\s+", " ", raw_text).strip()
+        content_hash = hashlib.sha256(normalized_text.encode("utf-8")).hexdigest()
+        file_groups.setdefault(content_hash, []).append(topic_file)
+
+    duplicate_topics = []
+    for files in file_groups.values():
+        if len(files) <= 1:
+            continue
+
+        files.sort(key=lambda p: (len(p.name), p.name.lower()))
+        keeper = files[0]
+        duplicates = files[1:]
+
+        for duplicate in duplicates:
+            duplicate_topic = duplicate.stem.replace("_", " ")
+            duplicate_topics.append(duplicate_topic)
+            try:
+                duplicate.unlink()
+            except OSError as exc:
+                print(f"Failed to remove duplicate file {duplicate.name}: {exc}")
+
+    if duplicate_topics:
+        with open(not_found_topics_csv, "a", encoding="utf-8") as f:
+            for topic in sorted(set(duplicate_topics)):
+                f.write(topic + "\n")
+        print(f"Appended {len(set(duplicate_topics))} duplicate topics to {not_found_topics_csv}")
+
+
+def tokenize_topics(TOPIC_LIST: set[str], max_workers: int = 4, wait_time: float = 0.5):    
+    """
+    Tokenize topics and fetch Wikipedia articles in parallel.
+    
+    Args:
+        TOPIC_LIST: Set of topic strings to fetch and tokenize
+        max_workers: Number of concurrent threads for fetching (default: 4)
+        wait_time: Time to wait between requests (default: 0.5 seconds)
+    """
     WIKI_FOLDER.mkdir(exist_ok=True)
     # Retrieve the "not found" topics from the CSV file
     not_found_topics = set()
@@ -540,33 +596,41 @@ def tokenize_topics(TOPIC_LIST: set[str]):
     TOPIC_LIST = set(TOPIC_LIST) - not_found_topics
     del not_found_topics  # Free memory
 
-    size = len(TOPIC_LIST)
-    for index, topic in enumerate(TOPIC_LIST, start=1):
-        filename = clean_filename(topic.replace(" ", "_").lower()) + ".txt"
-        file_path = WIKI_FOLDER / filename
-
-        if file_path.exists() or len(topic) == 0: # skip if file already exists or topic is empty
-            continue
-
-        content = fetch_article(topic)
-
-        if not content:
-            # Update the "not found" topics CSV file
-            with open(not_found_topics_csv, "a", encoding="utf-8") as f:
-                f.write(topic + "\n")
-            continue
-
-        file_path.write_text(content, encoding="utf-8")
-        print(f"Processed ({index}/{size}): {topic}")
-        time.sleep(1)
+    # Filter topics that don't need fetching
+    topics_to_fetch = [
+        topic for topic in TOPIC_LIST
+        if topic and not (WIKI_FOLDER / (clean_filename(topic.replace(" ", "_").lower()) + ".txt")).exists()
+    ]
     
-    # STEP 2: Open DB
+    if not topics_to_fetch:
+        print("All topics already exist. Skipping fetch phase.")
+    else:
+        print(f"Fetching {len(topics_to_fetch)} topics using {max_workers} concurrent workers...")
+        _fetch_topics_parallel(topics_to_fetch, max_workers, wait_time)
+    
+    # STEP 2: Open DB and process tokens
     print("Processing topics and storing tokens in the database...")
     conn = sqlite3.connect(chunk_database_path)
     setup_database(conn, reset=False)
     cursor = conn.cursor()
 
-    # prepare_filtered_table(reset=True)
+    # Deduplicate wiki topic files with identical content.
+    # Keep the shortest filename and record duplicate topics as not found.
+    deduplicate_topic_files()
+    remove_below_2KB_files = [f for f in WIKI_FOLDER.glob("*.txt") if f.stat().st_size < 2048]
+    for f in remove_below_2KB_files:
+        topic_name = f.stem.replace("_", " ")
+        with open(not_found_topics_csv, "a", encoding="utf-8") as nf:
+            nf.write(topic_name + "\n")
+        try:
+            f.unlink()
+        except OSError as exc:
+            print(f"Failed to remove small file {f.name}: {exc}")
+    
+
+    with open('topics.txt', 'w') as f:
+        topics = (file.replace('_', ' ').removesuffix('.txt') for file in os.listdir('wiki_topics') if file.endswith('.txt'))
+        f.write('\n'.join(topics))
 
     processed_tags = {
         row[0] for row in
@@ -607,3 +671,67 @@ def tokenize_topics(TOPIC_LIST: set[str]):
     conn.commit()
     conn.close()
     print("\nPipeline completed successfully.")
+
+
+def _fetch_topics_parallel(topics_list: list, max_workers: int = 4, wait_time: float = 0.5):
+    """
+    Fetch multiple Wikipedia articles in parallel with aggressive rate limiting.
+    Writes failed topics to not_found_topics.txt immediately on failure.
+    
+    Args:
+        topics_list: List of topic titles to fetch
+        max_workers: Number of concurrent threads (default: 4)
+        wait_time: Time to wait between requests (default: 0.5 seconds)
+    """
+    lock = Lock()
+    size = len(topics_list)
+    
+    # Rate limiting: maintain request timestamps per thread
+    def fetch_with_rate_limit(topic: str, worker_id: int) -> tuple:
+        """Fetch a single topic with per-worker rate limiting."""
+        # Stagger initial requests based on worker ID (1-3 seconds per worker)
+        time.sleep(worker_id * wait_time)
+        
+        filename = clean_filename(topic.replace(" ", "_").lower()) + ".txt"
+        file_path = WIKI_FOLDER / filename
+        
+        try:
+            content = fetch_article(topic)
+            
+            if not content:
+                # Write failed topic to file immediately
+                with lock:
+                    with open(not_found_topics_csv, "a", encoding="utf-8") as f:
+                        f.write(topic + "\n")
+                return topic, None
+            
+            # Write file
+            file_path.write_text(content, encoding="utf-8")
+            
+            # # Add delay after successful fetch to respect API limits
+            # time.sleep(0.5)
+            
+            return topic, True
+            
+        except Exception as e:
+            # Write failed topic to file immediately
+            with lock:
+                with open(not_found_topics_csv, "a", encoding="utf-8") as f:
+                    f.write(topic + "\n")
+            return topic, None
+    
+    completed = 0
+    with ThreadPoolExecutor(max_workers=max_workers) as executor:
+        # Submit all tasks
+        futures = {
+            executor.submit(fetch_with_rate_limit, topic, idx % max_workers): topic
+            for idx, topic in enumerate(topics_list)
+        }
+        
+        # Process results as they complete
+        for future in as_completed(futures):
+            topic, success = future.result()
+            completed += 1
+            
+            if success:
+                print(f"Fetched ({completed}/{size}): {topic}")
