@@ -59,6 +59,14 @@ class PDFViewerTab(QWidget):
         refresh_btn = QPushButton("Refresh List")
         refresh_btn.clicked.connect(self.refresh_pdf_list)
         top_layout.addWidget(refresh_btn)
+
+        self.prev_pdf_btn = QPushButton("⬆ Back")
+        self.prev_pdf_btn.clicked.connect(self.prev_pdf)
+        top_layout.addWidget(self.prev_pdf_btn)
+
+        self.next_pdf_btn = QPushButton("Next ⬇")
+        self.next_pdf_btn.clicked.connect(self.next_pdf_file)
+        top_layout.addWidget(self.next_pdf_btn)
         
         self.export_btn = QPushButton("Export Note")
         self.export_btn.clicked.connect(self.export_note)
@@ -137,7 +145,17 @@ class PDFViewerTab(QWidget):
         
         self.pdf_combo.blockSignals(False)
         if pdfs:
+            self.pdf_combo.setCurrentIndex(0)
             self.on_pdf_selected(pdfs[0])
+        else:
+            self.update_pdf_nav_buttons()
+    
+    def update_pdf_nav_buttons(self):
+        """Enable or disable PDF list navigation buttons"""
+        current_index = self.pdf_combo.currentIndex()
+        total = self.pdf_combo.count()
+        self.prev_pdf_btn.setEnabled(current_index > 0)
+        self.next_pdf_btn.setEnabled(current_index >= 0 and current_index < total - 1)
     
     def on_pdf_selected(self, pdf_name):
         """Display selected PDF info and preview"""
@@ -167,6 +185,9 @@ class PDFViewerTab(QWidget):
             
             # Load tags
             self.update_tags(pdf_name)
+            
+            # Update navigation controls for the PDF list
+            self.update_pdf_nav_buttons()
         else:
             self.info_label.setText("File not found in database")
             self.content_label.setText("")
@@ -306,6 +327,20 @@ class PDFViewerTab(QWidget):
         """Show next page"""
         if self.current_doc and self.current_page < len(self.current_doc) - 1:
             self.show_page(self.current_page + 1)
+
+    def prev_pdf(self):
+        """Select the previous PDF in the list"""
+        current_index = self.pdf_combo.currentIndex()
+        if current_index > 0:
+            self.pdf_combo.setCurrentIndex(current_index - 1)
+            self.update_pdf_nav_buttons()
+
+    def next_pdf_file(self):
+        """Select the next PDF in the list"""
+        current_index = self.pdf_combo.currentIndex()
+        if current_index < self.pdf_combo.count() - 1:
+            self.pdf_combo.setCurrentIndex(current_index + 1)
+            self.update_pdf_nav_buttons()
 
 
 class FileSearchTab(QWidget):
