@@ -3,21 +3,78 @@
 
 #include <filesystem>
 #include <cstdlib>
+#include <fstream>
+#include <string>
+#include <sstream>
+#include <map>
 
 namespace ENV_HPP
 {
-    // Helper function to safely read environment variables with a fallback
-    inline std::filesystem::path get_env_path(const char *var_name, const char *fallback)
+    // Helper function to read .env file with fallback
+    inline std::map<std::string, std::string> load_env_file(const std::filesystem::path &env_file_path)
     {
+        std::map<std::string, std::string> env_vars;
+        std::ifstream env_file(env_file_path);
+
+        if (!env_file.is_open())
+        {
+            return env_vars;
+        }
+
+        std::string line;
+        while (std::getline(env_file, line))
+        {
+            // Skip empty lines and comments
+            if (line.empty() || line[0] == '#')
+                continue;
+
+            // Find the '=' separator
+            size_t pos = line.find('=');
+            if (pos != std::string::npos)
+            {
+                std::string key = line.substr(0, pos);
+                std::string value = line.substr(pos + 1);
+
+                // Trim whitespace
+                key.erase(0, key.find_first_not_of(" \t"));
+                key.erase(key.find_last_not_of(" \t") + 1);
+                value.erase(0, value.find_first_not_of(" \t"));
+                value.erase(value.find_last_not_of(" \t") + 1);
+
+                env_vars[key] = value;
+            }
+        }
+
+        return env_vars;
+    }
+
+    // Helper function to safely read environment variables or .env file with fallback
+    inline std::filesystem::path get_env_path(const char *var_name, const char *fallback, const std::map<std::string, std::string> &env_vars = {})
+    {
+        // First, check system environment variables
         if (const char *env_p = std::getenv(var_name))
         {
             return std::filesystem::path(env_p);
         }
+
+        // Then, check loaded .env variables
+        auto it = env_vars.find(var_name);
+        if (it != env_vars.end())
+        {
+            return std::filesystem::path(it->second);
+        }
+
+        // Fall back to default
         return std::filesystem::path(fallback);
     }
 
+    // Load .env variables once at the start of the program
+    inline const std::map<std::string, std::string> env_vars = load_env_file(std::filesystem::current_path() / ".env");
+
     // Use inline const to prevent Multiple Definition Linker Errors
-    inline const std::filesystem::path resource_path = get_env_path("READING_LIST_PATH", "D:\\READING LIST");
+    inline const std::filesystem::path resource_path = get_env_path("READING_LIST_PATH", "pdfs", env_vars);
+    inline const std::filesystem::path raw_data_path = get_env_path("RAW_DATA_PATH", "D:\\reading_raw_dataset", env_vars);
+    inline const std::filesystem::path refined_data_path = get_env_path("REFINED_DATA_PATH", "D:\\reading_refined_dataset", env_vars);
 
     // Ideally, pass the executable path via argv[0] in main(), but current_path can work
     // IF you strictly guarantee you'll always run the terminal command from the project root.
