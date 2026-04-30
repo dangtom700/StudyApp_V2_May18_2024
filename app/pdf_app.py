@@ -356,7 +356,22 @@ class FileSearchTab(QWidget):
     def init_ui(self):
         layout = QVBoxLayout()
         
-        # Search controls
+        # Search mode selection
+        mode_layout = QHBoxLayout()
+        mode_layout.addWidget(QLabel("Search Mode:"))
+        
+        self.search_mode = QComboBox()
+        self.search_mode.addItems(["Content Search", "Tag Search"])
+        self.search_mode.currentTextChanged.connect(self.on_search_mode_changed)
+        mode_layout.addWidget(self.search_mode)
+        mode_layout.addStretch()
+        
+        layout.addLayout(mode_layout)
+        
+        # Content Search Controls
+        self.content_search_widget = QWidget()
+        content_layout = QVBoxLayout(self.content_search_widget)
+        
         search_layout = QHBoxLayout()
         search_layout.addWidget(QLabel("Search:"))
         
@@ -368,7 +383,28 @@ class FileSearchTab(QWidget):
         search_btn.clicked.connect(self.perform_search)
         search_layout.addWidget(search_btn)
         
-        layout.addLayout(search_layout)
+        content_layout.addLayout(search_layout)
+        layout.addWidget(self.content_search_widget)
+        
+        # Tag Search Controls
+        self.tag_search_widget = QWidget()
+        tag_layout = QVBoxLayout(self.tag_search_widget)
+        
+        tag_select_layout = QHBoxLayout()
+        tag_select_layout.addWidget(QLabel("Select Tag:"))
+        
+        self.tag_combo = QComboBox()
+        self.tag_combo.addItem("-- Load tags --")
+        self.load_tags()
+        tag_select_layout.addWidget(self.tag_combo)
+        
+        search_tag_btn = QPushButton("Search by Tag")
+        search_tag_btn.clicked.connect(self.perform_tag_search)
+        tag_select_layout.addWidget(search_tag_btn)
+        
+        tag_layout.addLayout(tag_select_layout)
+        self.tag_search_widget.setVisible(False)
+        layout.addWidget(self.tag_search_widget)
         
         # Search filters
         filter_layout = QHBoxLayout()
@@ -428,15 +464,79 @@ class FileSearchTab(QWidget):
         
         self.result_detail.setText(f"Found {len(results)} results")
     
+    def on_search_mode_changed(self, mode):
+        """Handle search mode selection"""
+        is_tag_mode = mode == "Tag Search"
+        self.content_search_widget.setVisible(not is_tag_mode)
+        self.tag_search_widget.setVisible(is_tag_mode)
+        self.results_list.clear()
+        self.result_detail.setText("")
+    
+    def load_tags(self):
+        """Load available tags from database"""
+        tags = self.db_manager.get_all_tags()
+        self.tag_combo.clear()
+        self.tag_combo.addItems(tags)
+        if not tags:
+            self.tag_combo.addItem("-- No tags available --")
+    
+    def perform_tag_search(self):
+        """Search for files by selected tag"""
+        tag = self.tag_combo.currentText()
+        if not tag or tag.startswith("--"):
+            QMessageBox.warning(self, "Input Error", "Please select a valid tag")
+            return
+        
+        max_results = self.max_results.value()
+        results = self.db_manager.search_files_by_tag(tag, max_results)
+        
+        self.results_list.clear()
+        for file_name, relevance_score in results:
+            # Get the stem for display (no extensions)
+            display_name = Path(file_name).stem
+            
+            item = QListWidgetItem(f"📄 {display_name} (relevance: {relevance_score:.4f})")
+            # Store just file_name for tag search
+            item.setData(Qt.UserRole, (file_name, relevance_score, None))
+            self.results_list.addItem(item)
+        
+        self.result_detail.setText(f"Found {len(results)} results for tag: {tag}")
+    
     def on_result_selected(self, item):
         """Display selected search result"""
         data = item.data(Qt.UserRole)
         if data:
-            file_name, chunk_text, chunk_id = data
+            file_name, info_b, info_c = data
             self.selected_pdf = file_name
             self.view_pdf_btn.setEnabled(True)
-            preview = chunk_text[:1000] if chunk_text else "No content"
-            self.result_detail.setText(f"<b>File:</b> {file_name}<br><b>Chunk ID:</b> {chunk_id}<br><br><b>Content:</b><br>{preview}")
+            
+            # For content search results
+            if info_c is not None:
+                chunk_text = info_b
+                chunk_id = info_c
+                preview = chunk_text[:1000] if chunk_text else "No content"
+                self.result_detail.setText(f"<b>File:</b> {file_name}<br><b>Chunk ID:</b> {chunk_id}<br><br><b>Content:</b><br>{preview}")
+            # For tag search results
+            else:
+                relevance_score = info_b
+                file_info = self.db_manager.get_pdf_info(file_name)
+                tags = self.db_manager.get_pdf_tags(file_name)
+                
+                tag_str = ", ".join([f"#{tag}" for tag, _ in tags[:5]]) if tags else "No tags"
+                
+                if file_info:
+                    file_path, chunk_count = file_info
+                    detail_text = f"""
+                    <b>File:</b> {file_name}<br>
+                    <b>Tag Relevance:</b> {relevance_score:.6f}<br>
+                    <b>Total Chunks:</b> {chunk_count}<br>
+                    <b>Tags:</b> {tag_str}<br>
+                    <b>Path:</b> {file_path}
+                    """
+                else:
+                    detail_text = f"<b>File:</b> {file_name}<br><b>Tag Relevance:</b> {relevance_score:.6f}"
+                
+                self.result_detail.setText(detail_text)
 
     def on_view_full_pdf(self):
         """Emit signal to view the selected PDF"""

@@ -243,3 +243,89 @@ class DatabaseManager:
         except sqlite3.Error as e:
             print(f"Error fetching tags: {e}")
             return []
+
+    def get_all_tags(self) -> List[str]:
+        """Get all unique tags/topics available in the database"""
+        try:
+            self.cursor.execute("""
+                SELECT DISTINCT topic FROM tags_full 
+                ORDER BY topic
+            """)
+            results = self.cursor.fetchall()
+            return [row['topic'] if isinstance(row, sqlite3.Row) else row[0] for row in results]
+        except sqlite3.Error as e:
+            print(f"Error fetching all tags: {e}")
+            return []
+
+    def search_files_by_tag(self, tag: str, max_results: int = 50) -> List[Tuple[str, float]]:
+        """
+        Search for files that have a specific tag
+        Returns: [(file_name, tag_relevance_score), ...]
+        """
+        try:
+            self.cursor.execute("""
+                SELECT DISTINCT f.file_name, t.distance
+                FROM tags_full t
+                JOIN file_info f ON 'title_' || f.id = t.ID
+                WHERE LOWER(t.topic) = LOWER(?)
+                ORDER BY t.distance DESC
+                LIMIT ?
+            """, (tag, max_results))
+            
+            results = self.cursor.fetchall()
+            return [(row['file_name'] if isinstance(row, sqlite3.Row) else row[0],
+                     row['distance'] if isinstance(row, sqlite3.Row) else row[1]) for row in results]
+        except sqlite3.Error as e:
+            print(f"Error searching files by tag: {e}")
+            return []
+
+    def search_files_by_tags(self, tags: List[str], match_all: bool = False, max_results: int = 50) -> List[Tuple[str, float]]:
+        """
+        Search for files that have specific tags
+        Args:
+            tags: List of tag names to search for
+            match_all: If True, returns only files with ALL tags; if False, returns files with ANY tag
+            max_results: Maximum number of results
+        Returns: [(file_name, combined_relevance_score), ...]
+        """
+        try:
+            if not tags:
+                return []
+            
+            # Create placeholders for SQL
+            placeholders = ','.join(['?' for _ in tags])
+            lower_tags = [t.lower() for t in tags]
+            
+            if match_all:
+                # Files must have ALL specified tags
+                query = f"""
+                    SELECT f.file_name, AVG(t.distance) as avg_distance
+                    FROM tags_full t
+                    JOIN file_info f ON 'title_' || f.id = t.ID
+                    WHERE LOWER(t.topic) IN ({placeholders})
+                    GROUP BY f.file_name
+                    HAVING COUNT(DISTINCT LOWER(t.topic)) = ?
+                    ORDER BY avg_distance DESC
+                    LIMIT ?
+                """
+                self.cursor.execute(query, lower_tags + [len(tags), max_results])
+            else:
+                # Files can have ANY of the specified tags
+                query = f"""
+                    SELECT f.file_name, MAX(t.distance) as max_distance
+                    FROM tags_full t
+                    JOIN file_info f ON 'title_' || f.id = t.ID
+                    WHERE LOWER(t.topic) IN ({placeholders})
+                    GROUP BY f.file_name
+                    ORDER BY max_distance DESC
+                    LIMIT ?
+                """
+                self.cursor.execute(query, lower_tags + [max_results])
+            
+            results = self.cursor.fetchall()
+            return [(row['file_name'] if isinstance(row, sqlite3.Row) else row[0],
+                     row['avg_distance'] if match_all else row['max_distance'] if isinstance(row, sqlite3.Row) else row[1]) 
+                    for row in results]
+        except sqlite3.Error as e:
+            print(f"Error searching files by multiple tags: {e}")
+            return []

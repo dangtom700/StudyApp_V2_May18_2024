@@ -79,6 +79,7 @@ antimatter
 antiseptic
 antivirus
 aorta
+apartment
 app
 applications language
 applied ecology
@@ -88,6 +89,7 @@ applied linguistics
 applied materials
 applied psychology
 applied science
+appx
 app development
 arabist
 archaeology
@@ -129,6 +131,7 @@ audio engineering
 augmented
 augmented reality
 augmented web
+authority
 automation
 automotive
 automotive repair
@@ -1728,6 +1731,7 @@ software intelligence
 software metrics
 software process
 software productivity
+software program
 software project
 software quality
 software services
