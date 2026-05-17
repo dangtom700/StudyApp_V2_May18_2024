@@ -13,9 +13,9 @@ src_dir = os.path.dirname(module_dir) # src
 StudyApp_root_path = os.path.dirname(src_dir) + "\\" # project root with trailing slash
 data_folder = os.path.join(StudyApp_root_path, "data")
 
-pdf_path = os.getenv("READING_LIST_PATH", "D:\\READING LIST")
-source_data = os.getenv("RAW_DATA_PATH", "D:\\reading_raw_dataset")
-dest_data = os.getenv("REFINED_DATA_PATH", "D:\\reading_refined_dataset")
+pdf_path    = os.getenv("READING_LIST_PATH", "D:\\READING LIST")
+source_data = os.getenv("RAW_DATA_PATH",      os.path.join(data_folder, "raw_text"))
+dest_data   = os.getenv("REFINED_DATA_PATH",  os.path.join(data_folder, "refined_text"))
 
 chunk_database_path = os.path.join(data_folder, "pdf_text.db")
 token_json_path = os.path.join(data_folder, "token_json")

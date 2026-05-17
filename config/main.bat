@@ -21,6 +21,7 @@ rem Function to execute tasks based on flags
 
 set "showComponents=0"
 set "renameFile=0"
+set "pdfToText=1"
 set "extractText=1"
 set "updateDatabaseInformation=1"
 set "processWordFreq=1"
@@ -41,6 +42,7 @@ rem Process flags
 for %%A in (%*) do (
     if "%%A"=="--showComponents" set showComponents=1
     if "%%A"=="--renameFile" set renameFile=1
+    if "%%A"=="--pdfToText" set pdfToText=1
     if "%%A"=="--extractText" set extractText=1
     if "%%A"=="--updateDatabaseInformation" set updateDatabaseInformation=1
     if "%%A"=="--processWordFreq" set processWordFreq=1
@@ -72,6 +74,15 @@ if %renameFile%==1 (
     python src/main.py --renameFile
     if %errorlevel% neq 0 (
         echo Error executing Rename File.
+        goto end
+    )
+)
+
+rem PDF to TXT
+if %pdfToText%==1 (
+    python src/main.py --pdfToText
+    if %errorlevel% neq 0 (
+        echo Error converting PDFs to text files.
         goto end
     )
 )

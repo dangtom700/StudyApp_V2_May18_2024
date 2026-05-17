@@ -32,6 +32,12 @@ scripts/*.csv
 vector_db/
 
 # ---------------------
+# Pipeline data folders (now inside project)
+# ---------------------
+data/raw_text/
+data/refined_text/
+
+# ---------------------
 # Temporary / Test Files
 # ---------------------
 archived/

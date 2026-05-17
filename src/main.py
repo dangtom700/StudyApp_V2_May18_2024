@@ -5,6 +5,7 @@ import modules.word_freq as word_freq
 import modules.tf_idf as tf_idf
 # import modules.ideation as ideation
 import modules.extract_text as extract_text
+import modules.pdf_to_txt as pdf_to_txt
 from random import choice
 from os import listdir
 
@@ -17,7 +18,8 @@ def app():
     
     parser.add_argument("--displayHelp", action= 'store_true', help= 'Display help message')
     parser.add_argument("--renameFile", action= 'store_true', help= 'Encode the file name with hashing algorithm')
-    parser.add_argument("--extractText", action= 'store_true', help= 'Extract text from PDF files and store in database')
+    parser.add_argument("--pdfToText", action= 'store_true', help= 'Convert PDFs in READING_LIST_PATH to .txt files in RAW_DATA_PATH')
+    parser.add_argument("--extractText", action= 'store_true', help= 'Chunk .txt files from RAW_DATA_PATH and store in database')
     parser.add_argument("--processWordFreq", action= 'store_true', help="Create index tables and analyze word frequencies all in one")
     parser.add_argument("--tokenizePrompt", action= 'store_true', help="Prompt to find references in full database based on context of search")
     parser.add_argument("--computeTFIDF", action= 'store_true', help="Compute TF-IDF of all tokens in database")
@@ -31,6 +33,9 @@ def app():
 
     if args.renameFile:
         extract_text.rename_files(path.pdf_path)
+
+    if args.pdfToText:
+        pdf_to_txt.convert_all()
 
     if args.extractText: # function is functioning properly
         

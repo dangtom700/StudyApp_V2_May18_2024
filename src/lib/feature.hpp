@@ -90,7 +90,7 @@ namespace FEATURE
                                    const bool &show_progress = true,
                                    const bool &reset_table = true,
                                    const bool &is_dumped = true,
-                                   const int freq_thres = 30)
+                                   const int freq_thres = 1)
     {
         try
         {

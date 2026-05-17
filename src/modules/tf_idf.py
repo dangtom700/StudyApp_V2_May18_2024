@@ -7,7 +7,7 @@ from modules.path import chunk_database_path, token_json_path
 from os import listdir, path
 
 GLOBAL_JSON_PATH = "data/global_word_freq.json"
-MIN_THRES_FREQ = 4
+MIN_THRES_FREQ = 1
 BUFFER_SIZE = 1000
 
 def computeTFIDF():
@@ -94,6 +94,20 @@ def computeTFIDF():
 def compute_item_matrix(top_k=1000, batch_size=20000, similarity_cutoff = 0.3):
     conn = sqlite3.connect(chunk_database_path, timeout=60.0)
     cursor = conn.cursor()
+
+    # Guard: these tables are populated by the C++ pipeline steps.
+    # Run `word_tokenizer --computeRelationalDistance` before this function.
+    required = ["file_token", "relation_distance_filtered", "tf_idf"]
+    missing = [t for t in required
+               if not cursor.execute(
+                   "SELECT 1 FROM sqlite_master WHERE type='table' AND name=?", (t,)
+               ).fetchone()]
+    if missing:
+        conn.close()
+        print(f"[ERROR] compute_item_matrix: missing tables: {missing}")
+        print("  Run the C++ pipeline first:")
+        print("    word_tokenizer --computeRelationalDistance --computeTFIDF")
+        return
 
     # --- Aggressive write optimization ---
     cursor.executescript("""
