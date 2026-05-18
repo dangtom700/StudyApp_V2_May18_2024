@@ -7,7 +7,7 @@ from modules.path import chunk_database_path, token_json_path
 from os import listdir, path
 
 GLOBAL_JSON_PATH = "data/global_word_freq.json"
-MIN_THRES_FREQ = 1
+MIN_THRES_FREQ = 4
 BUFFER_SIZE = 1000
 
 def computeTFIDF():
