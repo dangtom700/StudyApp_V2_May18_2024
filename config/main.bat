@@ -7,7 +7,7 @@ rem Record start time
 set start_time=%time%
 
 rem Compile C++ code
-g++ src/main.cpp -o word_tokenizer -I./src -lm -l sqlite3 -lssl -lcrypto -Wall -Werror
+g++ -std=c++17 src/main.cpp -o word_tokenizer -I./src -lm -l sqlite3 -lssl -lcrypto -Wall -Werror
 if %errorlevel% neq 0 (
     echo C++ compilation failed.
     goto :eof
@@ -19,23 +19,42 @@ call conda activate StudyAssistant
 rem Function to execute tasks based on flags
 :execute_tasks
 
+rem Every stage is off by default: the arguments decide what runs.
 set "showComponents=0"
 set "renameFile=0"
-set "pdfToText=1"
-set "extractText=1"
-set "updateDatabaseInformation=1"
-set "processWordFreq=1"
-set "computeRelationalDistance=1"
-set "computeTFIDF=1"
+set "pdfToText=0"
+set "extractText=0"
+set "updateDatabaseInformation=0"
+set "processWordFreq=0"
+set "computeRelationalDistance=0"
+set "computeTFIDF=0"
 set "runCutoffAnalysis=0"
 set "ideation=0"
 set "promptReference=0"
-set "fastMappingItemMatrix=1"
-set "mappingItemMatrix=1"
-set "topicTokenize=1"
-set "labelTopics=1"
+set "fastMappingItemMatrix=0"
+set "mappingItemMatrix=0"
+set "topicTokenize=0"
+set "labelTopics=0"
 set "expandTopics=0"
-set "topicSimilarity=1"
+set "topicSimilarity=0"
+
+rem With no arguments, run the standard end-to-end pipeline.
+if "%~1"=="" (
+    echo No stage selected - running the standard end-to-end pipeline.
+    echo Pass stage flags to run only those stages, e.g. main.bat --extractText --processWordFreq
+    echo.
+    set "pdfToText=1"
+    set "extractText=1"
+    set "updateDatabaseInformation=1"
+    set "processWordFreq=1"
+    set "computeRelationalDistance=1"
+    set "computeTFIDF=1"
+    set "fastMappingItemMatrix=1"
+    set "mappingItemMatrix=1"
+    set "topicTokenize=1"
+    set "labelTopics=1"
+    set "topicSimilarity=1"
+)
 
 rem Process flags
 :process_flags

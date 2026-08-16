@@ -1,8 +1,13 @@
+import os
 import sqlite3
 import sys
 
+# Share the pipeline's path resolution instead of pinning an absolute drive path.
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "src"))
+from modules.path import chunk_database_path
+
 try:
-    conn = sqlite3.connect('d:/project/StudyApp_V2_May18_2024/data/pdf_text.db')
+    conn = sqlite3.connect(chunk_database_path)
     cursor = conn.cursor()
     cursor.execute("SELECT name, sql FROM sqlite_master WHERE type='table';")
     tables = cursor.fetchall()

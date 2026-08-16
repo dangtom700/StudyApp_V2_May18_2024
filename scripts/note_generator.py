@@ -1,13 +1,18 @@
 import os
 import sqlite3
+import sys
 
 # ======================
 # PATH SETUP
 # ======================
-DATA_DIR = os.path.join(os.getcwd(), "data")
-DB_PATH = os.path.join(DATA_DIR, "pdf_text.db")
+# Share the pipeline's path resolution so .env (READING_LIST_PATH) is honoured.
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "src"))
+from modules.path import chunk_database_path, pdf_path, data_folder
 
-PDF_FOLDER = r"D:\READING LIST"
+DATA_DIR = data_folder
+DB_PATH = chunk_database_path
+
+PDF_FOLDER = pdf_path
 NOTE_FOLDER = os.path.join(PDF_FOLDER, "notes")
 
 # ======================

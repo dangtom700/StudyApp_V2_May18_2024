@@ -4,7 +4,7 @@ import re
 import nltk
 from collections import defaultdict
 from shutil import rmtree
-from modules.path import chunk_database_path, token_json_path, buffer_json_path
+from modules.path import chunk_database_path, token_json_path, buffer_json_path, pdf_path, data_folder
 from nltk.stem import PorterStemmer
 from nltk.corpus import stopwords
 from concurrent.futures import ThreadPoolExecutor, as_completed
@@ -27,15 +27,16 @@ OUTPUT_FILE = Path("outputPrompt.txt")
 API_URL = "https://en.wikipedia.org/w/api.php"
 HEADERS = {"User-Agent": "TopicDatasetBuilder/1.0 ()"}
 CONFIG = {
-    "DB_PATH": Path("data/pdf_text.db"),
-    "SOURCE_FOLDER": Path("D:/READING LIST"),
+    # Resolved from .env (READING_LIST_PATH) via modules.path -- never hardcode a drive.
+    "DB_PATH": Path(chunk_database_path),
+    "SOURCE_FOLDER": Path(pdf_path),
     "NOTES_FOLDER_NAME": "notes",
     "DISTANCE_THRESHOLD": 0.5,
     "RECOMMEND_LIMIT": 150,
     "CHUNK_SAMPLE_SIZE": 3,
     "BATCH_SIZE": 200_000
 }
-not_found_topics_csv = Path("data\\not_found_topics.txt")
+not_found_topics_csv = Path(data_folder) / "not_found_topics.txt"
 CONFIG["DESTINATION_FOLDER"] = CONFIG["SOURCE_FOLDER"] / CONFIG["NOTES_FOLDER_NAME"]
 
 # One-time compiled regex pattern
@@ -333,30 +334,111 @@ def setup_database(conn, reset = False):
 def clean_filename(name: str) -> str:
     return re.sub(r"[^\w\-. ]", "_", name)
 
-def fetch_article(title: str) -> Optional[str]:
+# Outcomes of a single article fetch. The distinction matters: a topic is only
+# ever written to not_found_topics.txt (a permanent blacklist) when Wikipedia
+# positively reports the page as missing. A throttled or failed request tells us
+# nothing about whether the article exists, so it must never blacklist a topic.
+FETCH_OK = "ok"
+FETCH_MISSING = "missing"
+FETCH_UNAVAILABLE = "unavailable"
+
+MAX_FETCH_ATTEMPTS = 4
+INITIAL_BACKOFF = 2.0
+
+# One session for the whole module: connection reuse keeps us well inside
+# Wikipedia's rate limits and cuts per-request TLS overhead.
+_session = requests.Session()
+_session.headers.update(HEADERS)
+
+# Requests are spaced globally rather than per-thread, so raising max_workers
+# cannot accidentally raise the request rate.
+_rate_lock = Lock()
+_last_request = 0.0
+_min_interval = 0.5
+
+def set_request_interval(seconds: float):
+    """Set the minimum spacing between outbound API requests (all threads)."""
+    global _min_interval
+    _min_interval = max(0.0, seconds)
+
+def _throttle():
+    """Block until at least _min_interval has passed since the last request."""
+    global _last_request
+    with _rate_lock:
+        wait = _min_interval - (time.monotonic() - _last_request)
+        if wait > 0:
+            time.sleep(wait)
+        _last_request = time.monotonic()
+
+def _api_get(url: str, params: dict, timeout: int = 30):
+    """
+    Rate-limited GET with backoff on throttling (429) and server errors (5xx).
+    Returns a Response on success, or None if it never got through.
+    """
+    backoff = INITIAL_BACKOFF
+
+    for attempt in range(MAX_FETCH_ATTEMPTS):
+        _throttle()
+        try:
+            response = _session.get(url, params=params, timeout=timeout)
+
+            if response.status_code == 429 or response.status_code >= 500:
+                # Honour Retry-After when the server sends it, else back off.
+                retry_after = response.headers.get("Retry-After")
+                delay = float(retry_after) if retry_after and retry_after.isdigit() else backoff
+                if attempt < MAX_FETCH_ATTEMPTS - 1:
+                    time.sleep(delay)
+                    backoff *= 2
+                continue
+
+            response.raise_for_status()
+            return response
+
+        except requests.RequestException:
+            if attempt < MAX_FETCH_ATTEMPTS - 1:
+                time.sleep(backoff)
+                backoff *= 2
+
+    return None
+
+def fetch_article(title: str) -> tuple[Optional[str], str]:
+    """
+    Fetch the plain-text extract of a Wikipedia article.
+
+    Returns
+    -------
+    tuple[Optional[str], str]
+        (text, FETCH_OK)          - article retrieved
+        (None, FETCH_MISSING)     - Wikipedia reports no such page; safe to blacklist
+        (None, FETCH_UNAVAILABLE) - throttled/unreachable; retry later, do NOT blacklist
+    """
+    response = _api_get(
+        API_URL,
+        {
+            "action": "query",
+            "format": "json",
+            "titles": title,
+            "prop": "extracts",
+            "explaintext": True,
+            "redirects": 1,
+        },
+        timeout=30,
+    )
+
+    if response is None:
+        return None, FETCH_UNAVAILABLE
+
     try:
-        response = requests.get(
-            API_URL,
-            params={
-                "action": "query",
-                "format": "json",
-                "titles": title,
-                "prop": "extracts",
-                "explaintext": True,
-                "redirects": 1,
-            },
-            headers=HEADERS,
-            timeout=15,
-        )
-        response.raise_for_status()
-
         pages = response.json().get("query", {}).get("pages", {})
-        page = next(iter(pages.values()), {})
+    except ValueError:
+        return None, FETCH_UNAVAILABLE
 
-        return None if "missing" in page else page.get("extract", "")
+    page = next(iter(pages.values()), {})
 
-    except requests.RequestException as e:
-        return None
+    if "missing" in page:
+        return None, FETCH_MISSING
+
+    return page.get("extract", ""), FETCH_OK
 
 def get_random_wikipedia_topics(limit=10):
     """Fetch random article titles from Wikipedia."""
@@ -367,9 +449,11 @@ def get_random_wikipedia_topics(limit=10):
         "rnnamespace": 0, # Only main articles
         "rnlimit": limit
     }
+    response = _api_get(API_URL, params)
+    if response is None:
+        print("Error fetching random topics from Wikipedia: request did not get through.")
+        return set()
     try:
-        response = requests.get(API_URL, params=params, headers=HEADERS)
-        response.raise_for_status()
         data = response.json()
         return {item["title"] for item in data.get("query", {}).get("random", [])}
     except Exception as e:
@@ -383,9 +467,11 @@ def get_related_topics(seed: str, limit=50):
         "ml": seed,
         "max": limit
     }
+    response = _api_get(url, params)
+    if response is None:
+        print("Error fetching related topics from Datamuse: request did not get through.")
+        return set()
     try:
-        response = requests.get(url, params=params, headers=HEADERS)
-        response.raise_for_status()
         return {item["word"] for item in response.json()}
     except Exception as e:
         print(f"Error fetching related topics from Datamuse: {e}")
@@ -576,14 +662,14 @@ def deduplicate_topic_files():
         print(f"Appended {len(set(duplicate_topics))} duplicate topics to {not_found_topics_csv}")
 
 
-def tokenize_topics(TOPIC_LIST: set[str], max_workers: int = 4, wait_time: float = 0.5):    
+def tokenize_topics(TOPIC_LIST: set[str], max_workers: int = 2, wait_time: float = 0.5):
     """
     Tokenize topics and fetch Wikipedia articles in parallel.
-    
+
     Args:
         TOPIC_LIST: Set of topic strings to fetch and tokenize
-        max_workers: Number of concurrent threads for fetching (default: 4)
-        wait_time: Time to wait between requests (default: 0.5 seconds)
+        max_workers: Number of concurrent threads for fetching (default: 2)
+        wait_time: Minimum seconds between requests, across all threads (default: 0.5)
     """
     WIKI_FOLDER.mkdir(exist_ok=True)
     # Retrieve the "not found" topics from the CSV file
@@ -673,65 +759,66 @@ def tokenize_topics(TOPIC_LIST: set[str], max_workers: int = 4, wait_time: float
     print("\nPipeline completed successfully.")
 
 
-def _fetch_topics_parallel(topics_list: list, max_workers: int = 4, wait_time: float = 0.5):
+def _fetch_topics_parallel(topics_list: list, max_workers: int = 2, wait_time: float = 0.5):
     """
-    Fetch multiple Wikipedia articles in parallel with aggressive rate limiting.
-    Writes failed topics to not_found_topics.txt immediately on failure.
-    
+    Fetch multiple Wikipedia articles, spacing requests globally so the API does
+    not throttle us.
+
+    Only topics Wikipedia positively reports as missing are written to
+    not_found_topics.txt. Topics that merely failed to download (429, timeout,
+    connection reset) are left out of that file so a later run retries them --
+    treating those as "missing" is what silently shrank the topic set before.
+
     Args:
         topics_list: List of topic titles to fetch
-        max_workers: Number of concurrent threads (default: 4)
-        wait_time: Time to wait between requests (default: 0.5 seconds)
+        max_workers: Number of concurrent threads (default: 2)
+        wait_time: Minimum seconds between requests, across all threads (default: 0.5)
     """
     lock = Lock()
     size = len(topics_list)
-    
-    # Rate limiting: maintain request timestamps per thread
-    def fetch_with_rate_limit(topic: str, worker_id: int) -> tuple:
-        """Fetch a single topic with per-worker rate limiting."""
-        # Stagger initial requests based on worker ID (1-3 seconds per worker)
-        time.sleep(worker_id * wait_time)
-        
+    set_request_interval(wait_time)
+
+    def fetch_one(topic: str) -> tuple:
         filename = clean_filename(topic.replace(" ", "_").lower()) + ".txt"
         file_path = WIKI_FOLDER / filename
-        
+
         try:
-            content = fetch_article(topic)
-            
-            if not content:
-                # Write failed topic to file immediately
-                with lock:
-                    with open(not_found_topics_csv, "a", encoding="utf-8") as f:
-                        f.write(topic + "\n")
-                return topic, None
-            
-            # Write file
-            file_path.write_text(content, encoding="utf-8")
-            
-            # # Add delay after successful fetch to respect API limits
-            # time.sleep(0.5)
-            
-            return topic, True
-            
+            content, status = fetch_article(topic)
         except Exception as e:
-            # Write failed topic to file immediately
+            # Unexpected local failure: report it, but never blacklist on it.
+            print(f"[ERROR] {topic}: {e}")
+            return topic, FETCH_UNAVAILABLE
+
+        if status == FETCH_MISSING or (status == FETCH_OK and not content):
+            # Confirmed absent (or present but empty) -- safe to skip in future runs.
             with lock:
                 with open(not_found_topics_csv, "a", encoding="utf-8") as f:
                     f.write(topic + "\n")
-            return topic, None
-    
-    completed = 0
+            return topic, FETCH_MISSING
+
+        if status != FETCH_OK:
+            return topic, FETCH_UNAVAILABLE
+
+        file_path.write_text(content, encoding="utf-8")
+        return topic, FETCH_OK
+
+    completed = fetched = missing = unavailable = 0
     with ThreadPoolExecutor(max_workers=max_workers) as executor:
-        # Submit all tasks
-        futures = {
-            executor.submit(fetch_with_rate_limit, topic, idx % max_workers): topic
-            for idx, topic in enumerate(topics_list)
-        }
-        
-        # Process results as they complete
+        futures = {executor.submit(fetch_one, topic): topic for topic in topics_list}
+
         for future in as_completed(futures):
-            topic, success = future.result()
+            topic, status = future.result()
             completed += 1
-            
-            if success:
+
+            if status == FETCH_OK:
+                fetched += 1
                 print(f"Fetched ({completed}/{size}): {topic}")
+            elif status == FETCH_MISSING:
+                missing += 1
+            else:
+                unavailable += 1
+
+    print(f"\nFetch summary: {fetched} fetched, {missing} missing (blacklisted), "
+          f"{unavailable} unavailable (will be retried on the next run).")
+    if unavailable:
+        print("Re-run --topicTokenize later to pick up the unavailable topics.")

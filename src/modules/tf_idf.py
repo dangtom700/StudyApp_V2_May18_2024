@@ -11,6 +11,12 @@ MIN_THRES_FREQ = 4
 BUFFER_SIZE = 1000
 
 def computeTFIDF():
+    """
+    Legacy Python TF-IDF. NOT wired into main.py: it reads a `_filtered` table
+    that no current pipeline stage creates, so it raises OperationalError.
+    The maintained implementation is the C++ one -- `word_tokenizer --computeTFIDF`
+    -- which is what config/main.bat and config/main.sh invoke.
+    """
     conn = sqlite3.connect(chunk_database_path, timeout=60.0)
     cursor = conn.cursor()
 

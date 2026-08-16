@@ -22,9 +22,10 @@ def app():
     parser.add_argument("--extractText", action= 'store_true', help= 'Chunk .txt files from RAW_DATA_PATH and store in database')
     parser.add_argument("--processWordFreq", action= 'store_true', help="Create index tables and analyze word frequencies all in one")
     parser.add_argument("--tokenizePrompt", action= 'store_true', help="Prompt to find references in full database based on context of search")
-    parser.add_argument("--computeTFIDF", action= 'store_true', help="Compute TF-IDF of all tokens in database")
+    # TF-IDF is computed by the C++ side: word_tokenizer --computeTFIDF
     parser.add_argument("--computeItemMatrix", action= 'store_true', help="Compute item matrix similarity and output comparison table based on TF-IDF")
     parser.add_argument("--topicTokenize", action= 'store_true', help="Tokenize topics and store in database")
+    parser.add_argument("--expandTopicSeeds", action= 'store_true', help="With --topicTokenize, grow the topic list with ~50 Datamuse related words (off by default)")
 
     args = parser.parse_args()
 
@@ -65,23 +66,24 @@ def app():
     if args.tokenizePrompt: # function is functioning properly
         word_freq.promptFindingReference()
 
-    if args.computeTFIDF:
-        tf_idf.computeTFIDF()
-
     if args.computeItemMatrix:
         tf_idf.compute_item_matrix()
 
     if args.topicTokenize:
         with open('topics.txt', 'r') as f:
             lines = f.readlines()
-        TOPICS = set(line.strip() for line in lines)
-        SeedTopics = choice(list(TOPICS))
+        TOPICS = set(line.strip() for line in lines if line.strip())
 
-        if SeedTopics:
-            print(f"Fetching related topics for: {SeedTopics}")
-            TOPICS.update(word_freq.get_related_topics(SeedTopics, limit=50))
-        
-        # 4. Tokenize and Permutate
+        # Seed expansion is opt-in. Datamuse returns related *vocabulary*, not article
+        # titles, so most of what it adds has no Wikipedia page -- it grows topics.txt
+        # with dead entries every run. Without this flag --topicTokenize is idempotent:
+        # it only processes what topics.txt already lists.
+        if args.expandTopicSeeds:
+            SeedTopics = choice(list(TOPICS))
+            if SeedTopics:
+                print(f"Fetching related topics for: {SeedTopics}")
+                TOPICS.update(word_freq.get_related_topics(SeedTopics, limit=50))
+
         word_freq.tokenize_topics(TOPIC_LIST=TOPICS)
 
 if __name__ == "__main__":
