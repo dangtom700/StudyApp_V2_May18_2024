@@ -51,8 +51,8 @@ assign_topics.ipynb
 # Logs & Output
 # ---------------------
 logs/
-outputPrompt.txt
-PROMPT.txt
+outputPrompt.*
+PROMPT.*
 conversation/
 
 # ---------------------

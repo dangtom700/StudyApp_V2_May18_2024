@@ -6,7 +6,7 @@ Provides PDF preview, file lookup, and recommendation features
 import sys
 import os
 import sqlite3
-from pathlib import Path
+from collections import Counter
 from PyQt5.QtWidgets import (
     QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout,
     QTabWidget, QLabel, QLineEdit, QPushButton, QListWidget, QListWidgetItem,
@@ -19,6 +19,20 @@ import fitz  # PyMuPDF for PDF rendering
 
 chunk_database_path = os.getcwd() + "\\" + "data\\pdf_text.db"
 from database_manager import DatabaseManager
+
+
+def disambiguate(labelled):
+    """
+    Make dropdown labels unique.
+
+    Different editions, re-scans and re-typesets of a book share a title but have
+    different content hashes, so the catalog legitimately holds several rows under one
+    name. Two identical entries in a dropdown are indistinguishable, so repeats get a
+    short hash suffix; unique titles are left clean.
+    """
+    counts = Counter(label for _, label in labelled)
+    return [(hash_id, f"{label}  [{hash_id[:8]}]" if counts[label] > 1 else label)
+            for hash_id, label in labelled]
 
 
 class PDFViewerTab(QWidget):
@@ -53,7 +67,9 @@ class PDFViewerTab(QWidget):
         top_layout.addWidget(QLabel("PDF File:"))
         
         self.pdf_combo = QComboBox()
-        self.pdf_combo.currentTextChanged.connect(self.on_pdf_selected)
+        # The combo shows book titles but carries the hash as item data, so selection
+        # has to go through the index rather than the visible text.
+        self.pdf_combo.currentIndexChanged.connect(self.on_pdf_index_changed)
         top_layout.addWidget(self.pdf_combo)
         
         refresh_btn = QPushButton("Refresh List")
@@ -136,20 +152,32 @@ class PDFViewerTab(QWidget):
         self.refresh_pdf_list()
     
     def refresh_pdf_list(self):
-        """Load list of PDFs from database"""
+        """Load list of PDFs from database, labelled by title where the catalog has one"""
         self.pdf_combo.blockSignals(True)
         self.pdf_combo.clear()
-        
+
         pdfs = self.db_manager.get_all_pdfs()
-        self.pdf_combo.addItems(pdfs)
-        
+        for hash_id, label in disambiguate(pdfs):
+            self.pdf_combo.addItem(label, hash_id)
+
         self.pdf_combo.blockSignals(False)
         if pdfs:
             self.pdf_combo.setCurrentIndex(0)
-            self.on_pdf_selected(pdfs[0])
+            self.on_pdf_selected(pdfs[0][0])
         else:
             self.update_pdf_nav_buttons()
-    
+
+    def select_pdf_by_hash(self, hash_id):
+        """Select a book by hash, whatever label the combo is displaying for it"""
+        index = self.pdf_combo.findData(hash_id)
+        if index >= 0:
+            self.pdf_combo.setCurrentIndex(index)
+
+    def on_pdf_index_changed(self, index):
+        """Combo selection changed -- resolve the visible title back to its hash"""
+        if index >= 0:
+            self.on_pdf_selected(self.pdf_combo.itemData(index))
+
     def update_pdf_nav_buttons(self):
         """Enable or disable PDF list navigation buttons"""
         current_index = self.pdf_combo.currentIndex()
@@ -169,11 +197,25 @@ class PDFViewerTab(QWidget):
         
         if info:
             file_path, chunk_count = info
-            info_text = f"""
-            <b>File Name:</b> {pdf_name}<br>
-            <b>Path:</b> {file_path}<br>
-            <b>Total Chunks:</b> {chunk_count}
-            """
+            book = self.db_manager.get_catalog_row(pdf_name)
+
+            if book:
+                pages = book.get('page_count') or '?'
+                info_text = f"""
+                <b>{book.get('title') or pdf_name}</b><br>
+                <b>Domain:</b> {book.get('domain') or '-'}
+                &nbsp;&nbsp;<b>Pages:</b> {pages}
+                &nbsp;&nbsp;<b>Chunks:</b> {chunk_count}<br>
+                <b>Author:</b> {book.get('pdf_author') or '-'}<br>
+                <b>Hash:</b> <span style="color:#888">{pdf_name}</span><br>
+                <b>Path:</b> {file_path}
+                """
+            else:
+                info_text = f"""
+                <b>File Name:</b> {pdf_name}<br>
+                <b>Path:</b> {file_path}<br>
+                <b>Total Chunks:</b> {chunk_count}
+                """
             self.info_label.setText(info_text)
             
             # Get first chunk as preview
@@ -361,7 +403,7 @@ class FileSearchTab(QWidget):
         mode_layout.addWidget(QLabel("Search Mode:"))
         
         self.search_mode = QComboBox()
-        self.search_mode.addItems(["Content Search", "Tag Search"])
+        self.search_mode.addItems(["Content Search", "Tag Search", "Book Search"])
         self.search_mode.currentTextChanged.connect(self.on_search_mode_changed)
         mode_layout.addWidget(self.search_mode)
         mode_layout.addStretch()
@@ -405,6 +447,30 @@ class FileSearchTab(QWidget):
         tag_layout.addLayout(tag_select_layout)
         self.tag_search_widget.setVisible(False)
         layout.addWidget(self.tag_search_widget)
+
+        # Book Search Controls -- title/topic + subject domain, straight off the catalog.
+        # Unlike Content Search this reads metadata only, so it answers "what do I own
+        # about X" instantly instead of scanning every chunk of text.
+        self.book_search_widget = QWidget()
+        book_layout = QHBoxLayout(self.book_search_widget)
+
+        book_layout.addWidget(QLabel("Title / topic:"))
+        self.book_input = QLineEdit()
+        self.book_input.setPlaceholderText("Leave blank to list a whole domain...")
+        self.book_input.returnPressed.connect(self.perform_book_search)
+        book_layout.addWidget(self.book_input)
+
+        book_layout.addWidget(QLabel("Domain:"))
+        self.domain_combo = QComboBox()
+        self.load_domains()
+        book_layout.addWidget(self.domain_combo)
+
+        book_btn = QPushButton("Find Books")
+        book_btn.clicked.connect(self.perform_book_search)
+        book_layout.addWidget(book_btn)
+
+        self.book_search_widget.setVisible(False)
+        layout.addWidget(self.book_search_widget)
         
         # Search filters
         filter_layout = QHBoxLayout()
@@ -451,27 +517,28 @@ class FileSearchTab(QWidget):
         max_results = self.max_results.value()
         results = self.db_manager.search_files(query, max_results)
         
+        # pdf_chunks keys carry a .txt suffix that file_info's do not -- strip it once,
+        # here, so everything downstream deals in plain hashes.
+        hits = [(f.removesuffix('.txt'), text, cid) for f, text, cid in results]
+        labels = self.db_manager.display_names([h for h, _, _ in hits])
+
         self.results_list.clear()
-        for file_name, chunk_text, chunk_id in results:
-            # Get the base PDF name (remove .txt)
-            pdf_name = file_name.removesuffix('.txt')
-            # Get the stem for display (no extensions)
-            display_name = Path(pdf_name).stem
-            
-            item = QListWidgetItem(f"📄 {display_name}")
+        for pdf_name, chunk_text, chunk_id in hits:
+            item = QListWidgetItem(f"📄 {labels[pdf_name]}")
+            item.setToolTip(pdf_name)
             item.setData(Qt.UserRole, (pdf_name, chunk_text, chunk_id))
             self.results_list.addItem(item)
-        
+
         self.result_detail.setText(f"Found {len(results)} results")
     
     def on_search_mode_changed(self, mode):
         """Handle search mode selection"""
-        is_tag_mode = mode == "Tag Search"
-        self.content_search_widget.setVisible(not is_tag_mode)
-        self.tag_search_widget.setVisible(is_tag_mode)
+        self.content_search_widget.setVisible(mode == "Content Search")
+        self.tag_search_widget.setVisible(mode == "Tag Search")
+        self.book_search_widget.setVisible(mode == "Book Search")
         self.results_list.clear()
         self.result_detail.setText("")
-    
+
     def load_tags(self):
         """Load available tags from database"""
         tags = self.db_manager.get_all_tags()
@@ -479,6 +546,35 @@ class FileSearchTab(QWidget):
         self.tag_combo.addItems(tags)
         if not tags:
             self.tag_combo.addItem("-- No tags available --")
+
+    def load_domains(self):
+        """Load subject domains from the book catalog"""
+        self.domain_combo.clear()
+        self.domain_combo.addItem("All domains", None)
+        for domain in self.db_manager.get_domains():
+            self.domain_combo.addItem(domain, domain)
+
+    def perform_book_search(self):
+        """Search the catalog by title/topic and subject domain"""
+        if not self.db_manager.has_catalog():
+            QMessageBox.information(
+                self, "Catalog not built",
+                "Run  python src/main.py --buildCatalog  to build the book catalog first.")
+            return
+
+        results = self.db_manager.search_catalog(
+            text=self.book_input.text().strip(),
+            domain=self.domain_combo.currentData(),
+            max_results=self.max_results.value())
+
+        self.results_list.clear()
+        for hash_id, title in results:
+            item = QListWidgetItem(f"📕 {title}")
+            item.setToolTip(hash_id)
+            item.setData(Qt.UserRole, (hash_id, None, None))
+            self.results_list.addItem(item)
+
+        self.result_detail.setText(f"Found {len(results)} books")
     
     def perform_tag_search(self):
         """Search for files by selected tag"""
@@ -490,16 +586,16 @@ class FileSearchTab(QWidget):
         max_results = self.max_results.value()
         results = self.db_manager.search_files_by_tag(tag, max_results)
         
+        labels = self.db_manager.display_names([r[0] for r in results])
+
         self.results_list.clear()
         for file_name, relevance_score in results:
-            # Get the stem for display (no extensions)
-            display_name = Path(file_name).stem
-            
-            item = QListWidgetItem(f"📄 {display_name} (relevance: {relevance_score:.4f})")
+            item = QListWidgetItem(f"📄 {labels[file_name]} (relevance: {relevance_score:.4f})")
+            item.setToolTip(file_name)
             # Store just file_name for tag search
             item.setData(Qt.UserRole, (file_name, relevance_score, None))
             self.results_list.addItem(item)
-        
+
         self.result_detail.setText(f"Found {len(results)} results for tag: {tag}")
     
     def on_result_selected(self, item):
@@ -516,26 +612,34 @@ class FileSearchTab(QWidget):
                 chunk_id = info_c
                 preview = chunk_text[:1000] if chunk_text else "No content"
                 self.result_detail.setText(f"<b>File:</b> {file_name}<br><b>Chunk ID:</b> {chunk_id}<br><br><b>Content:</b><br>{preview}")
-            # For tag search results
+            # For tag search results (relevance_score) and book search results (None)
             else:
                 relevance_score = info_b
                 file_info = self.db_manager.get_pdf_info(file_name)
                 tags = self.db_manager.get_pdf_tags(file_name)
-                
+                book = self.db_manager.get_catalog_row(file_name)
+
                 tag_str = ", ".join([f"#{tag}" for tag, _ in tags[:5]]) if tags else "No tags"
-                
+                heading = (book.get('title') or file_name) if book else file_name
+                relevance = (f"<b>Tag Relevance:</b> {relevance_score:.6f}<br>"
+                             if relevance_score is not None else "")
+                subject = (f"<b>Domain:</b> {book.get('domain') or '-'} "
+                           f"&nbsp;&nbsp;<b>Pages:</b> {book.get('page_count') or '?'}<br>"
+                           if book else "")
+
                 if file_info:
                     file_path, chunk_count = file_info
                     detail_text = f"""
-                    <b>File:</b> {file_name}<br>
-                    <b>Tag Relevance:</b> {relevance_score:.6f}<br>
+                    <b>{heading}</b><br>
+                    {subject}{relevance}
                     <b>Total Chunks:</b> {chunk_count}<br>
                     <b>Tags:</b> {tag_str}<br>
                     <b>Path:</b> {file_path}
                     """
                 else:
-                    detail_text = f"<b>File:</b> {file_name}<br><b>Tag Relevance:</b> {relevance_score:.6f}"
-                
+                    detail_text = (f"<b>{heading}</b><br>{subject}{relevance}"
+                                   f"<i>Not text-extracted yet.</i>")
+
                 self.result_detail.setText(detail_text)
 
     def on_view_full_pdf(self):
@@ -563,7 +667,8 @@ class RecommendationTab(QWidget):
         select_layout.addWidget(QLabel("Select Base File:"))
         
         self.file_combo = QComboBox()
-        self.file_combo.currentTextChanged.connect(self.on_file_selected)
+        # Shows titles, carries hashes -- select by index, not by visible text.
+        self.file_combo.currentIndexChanged.connect(self.on_file_index_changed)
         select_layout.addWidget(self.file_combo)
         
         refresh_btn = QPushButton("Refresh")
@@ -619,32 +724,40 @@ class RecommendationTab(QWidget):
         self.file_combo.clear()
         
         files = self.db_manager.get_all_pdfs()
-        self.file_combo.addItems(files)
-        
+        for hash_id, label in disambiguate(files):
+            self.file_combo.addItem(label, hash_id)
+
         self.file_combo.blockSignals(False)
         if files:
-            self.on_file_selected(files[0])
-    
+            self.on_file_selected(files[0][0])
+
+    def on_file_index_changed(self, index):
+        """Combo selection changed -- resolve the visible title back to its hash"""
+        if index >= 0:
+            self.on_file_selected(self.file_combo.itemData(index))
+
     def on_file_selected(self, file_name):
         """Store selected file"""
         self.current_file = file_name if file_name else None
-    
+
     def generate_recommendations(self):
         """Generate recommendations for selected file"""
         if not self.current_file:
             QMessageBox.warning(self, "No File", "Please select a file first")
             return
-        
+
         count = self.rec_count.value()
         recommendations = self.db_manager.get_recommendations(self.current_file, count)
-        
+
+        labels = self.db_manager.display_names([r[0] for r in recommendations])
+
         self.rec_list.clear()
         for file_name, distance in recommendations:
-            display_name = Path(file_name).stem
-            item = QListWidgetItem(f"📄 {display_name} (score: {distance:.4f})")
+            item = QListWidgetItem(f"📄 {labels[file_name]} (score: {distance:.4f})")
+            item.setToolTip(file_name)
             item.setData(Qt.UserRole, (file_name, distance))
             self.rec_list.addItem(item)
-        
+
         self.rec_detail.setText(f"Showing {len(recommendations)} recommendations")
     
     def on_rec_selected(self, item):
@@ -736,7 +849,7 @@ class StudyAppWindow(QMainWindow):
     def show_pdf_in_viewer(self, pdf_name):
         """Switch to PDF viewer tab and select the specified PDF"""
         self.tabs.setCurrentIndex(0)
-        self.pdf_viewer.pdf_combo.setCurrentText(pdf_name)
+        self.pdf_viewer.select_pdf_by_hash(pdf_name)
     
     def closeEvent(self, event):
         """Clean up on close"""

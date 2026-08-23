@@ -2,6 +2,7 @@ import concurrent.futures as cf
 import os
 import sqlite3
 import re
+import json
 import hashlib
 
 from modules.path import chunk_database_path
@@ -9,6 +10,17 @@ from modules.path import chunk_database_path
 # --- Config ---
 HASH_NAME_PATTERN = re.compile(r"^[a-f0-9]{64}\.pdf$")
 BATCH_SIZE = 100
+
+# Chunking parameters -- the single source of truth for the whole pipeline.
+# text_to_chunks splits by WORDS, not characters. modules/catalog.py records these
+# as dataset provenance, so keep them here rather than inline at the call site.
+DEFAULT_CHUNK_SIZE = 1024      # words per chunk
+CHUNK_OVERLAP_RATIO = 0.3      # sliding-window overlap, as a fraction of the chunk size
+CHUNK_UNIT = "words"
+
+# The map of content hash -> original filename(s). Written by rename_files, read by
+# modules/catalog.py to give every hash-named book a human-readable title.
+NAME_MAP_FILE = "_original_names.json"
 
 # -----------------------------------------------------------------------------------------------
 
@@ -139,7 +151,7 @@ def insert_chunks_into_db(dataset_folder, db_path):
 # -----------------------------------------------------------------------------------------------
 # -----------------------------------------------------------------------------------------------
 
-def extract_text(SOURCE_FOLDER, DEST_FOLDER, CHUNK_SIZE=512, DB_PATH=chunk_database_path):
+def extract_text(SOURCE_FOLDER, DEST_FOLDER, CHUNK_SIZE=DEFAULT_CHUNK_SIZE, DB_PATH=chunk_database_path):
     """
     Processes .txt files in SOURCE_FOLDER by chunking their text and storing the results
     in a SQLite database at DB_PATH.
@@ -168,7 +180,7 @@ def extract_text(SOURCE_FOLDER, DEST_FOLDER, CHUNK_SIZE=512, DB_PATH=chunk_datab
     
     num_raw_files = len(raw_files)
     num_zero = len(zero_byte_files)
-    overlap_size = int(CHUNK_SIZE * 0.3)
+    overlap_size = int(CHUNK_SIZE * CHUNK_OVERLAP_RATIO)
 
     del raw_files
     del zero_byte_files
@@ -202,32 +214,104 @@ def hash_file_content(path):
             hasher.update(chunk)
     return hasher.hexdigest()
 
-import re
+def name_map_path(folder):
+    return os.path.join(folder, NAME_MAP_FILE)
 
-HASH_NAME_PATTERN = re.compile(r"^[a-f0-9]{64}\.pdf$")
+
+def load_name_map(folder):
+    """
+    Load the {sha256: [original filename, ...]} map.
+
+    A missing map is fine (first run). A *corrupt* map is not: it is the only copy of
+    every original filename, so we refuse to continue rather than silently start from
+    empty and overwrite it on the way out.
+    """
+    path = name_map_path(folder)
+
+    try:
+        with open(path, "r", encoding="utf-8") as f:
+            data = json.load(f)
+    except FileNotFoundError:
+        return {}
+    except (json.JSONDecodeError, OSError) as e:
+        raise RuntimeError(
+            f"Could not read {path}: {e}\n"
+            f"Refusing to overwrite it -- restore from {NAME_MAP_FILE}.bak before re-running."
+        ) from e
+
+    # Historical entries are lists; tolerate the odd bare string.
+    return {k: (v if isinstance(v, list) else [v]) for k, v in data.items()}
+
+
+def save_name_map(folder, name_map):
+    """Write the map atomically -- a half-written file loses titles permanently."""
+    path = name_map_path(folder)
+    tmp = path + ".tmp"
+
+    with open(tmp, "w", encoding="utf-8") as f:
+        json.dump(name_map, f, ensure_ascii=False, indent=1, sort_keys=True)
+    os.replace(tmp, path)
+
+
+def record_original_name(name_map, file_hash, original_name):
+    """Append original_name under file_hash. Returns True if the map changed."""
+    names = name_map.setdefault(file_hash, [])
+    if original_name in names:
+        return False
+    names.append(original_name)
+    return True
+
 
 def rename_files(folder):
-    for file in os.listdir(folder):
-        if not file.lower().endswith(".pdf"):
-            continue
+    """
+    Rename every PDF in `folder` to <sha256 of its content>.pdf.
 
-        if HASH_NAME_PATTERN.match(file):
-            continue
+    The original filename is the only human-readable record of what a book is, and
+    hashing throws it away -- so it is appended to _original_names.json *before* the
+    file is renamed or a duplicate is deleted. That map is what gives modules/catalog.py
+    its titles and its download_copies count; if this stops running, title coverage
+    decays with every new batch of downloads.
+    """
+    name_map = load_name_map(folder)
+    dirty = False
+    renamed = duplicates = 0
 
-        old_path = os.path.join(folder, file)
-
-        try:
-            file_hash = hash_file_content(old_path)
-            new_name = f"{file_hash}.pdf"
-            new_path = os.path.join(folder, new_name)
-
-            if os.path.exists(new_path):
-                print(f"[SKIP] Duplicate detected: {file} -> {new_name}")
-                os.remove(old_path)
+    try:
+        for file in os.listdir(folder):
+            if not file.lower().endswith(".pdf"):
                 continue
 
-            os.rename(old_path, new_path)
-            print(f"[RENAMED] {file} -> {new_name}")
+            if HASH_NAME_PATTERN.match(file):
+                continue
 
-        except Exception as e:
-            print(f"[ERROR] Failed to process {file}: {e}")
+            old_path = os.path.join(folder, file)
+
+            try:
+                file_hash = hash_file_content(old_path)
+                new_name = f"{file_hash}.pdf"
+                new_path = os.path.join(folder, new_name)
+
+                # Record first: once the file is renamed or removed below, its original
+                # name is unrecoverable. A second entry under the same hash is exactly
+                # what makes download_copies > 1 a measured fact.
+                dirty |= record_original_name(name_map, file_hash, file)
+
+                if os.path.exists(new_path):
+                    print(f"[SKIP] Duplicate detected: {file} -> {new_name}")
+                    os.remove(old_path)
+                    duplicates += 1
+                    continue
+
+                os.rename(old_path, new_path)
+                print(f"[RENAMED] {file} -> {new_name}")
+                renamed += 1
+
+            except Exception as e:
+                print(f"[ERROR] Failed to process {file}: {e}")
+    finally:
+        # Save whatever was recorded even if the walk above blew up part-way.
+        if dirty:
+            save_name_map(folder, name_map)
+
+    print(f"[INFO] {renamed} renamed, {duplicates} duplicates removed. "
+          f"{NAME_MAP_FILE} holds {len(name_map)} titles.")

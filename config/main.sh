@@ -28,6 +28,7 @@ topicTokenize=0
 labelTopics=0
 expandTopics=0
 topicSimilarity=0
+buildCatalog=0
 
 # With no arguments, run the standard end-to-end pipeline.
 if [ $# -eq 0 ]; then
@@ -45,6 +46,7 @@ if [ $# -eq 0 ]; then
     topicTokenize=1
     labelTopics=1
     topicSimilarity=1
+    buildCatalog=1
 fi
 
 # Process flags
@@ -67,6 +69,7 @@ for arg in "$@"; do
         --labelTopics) labelTopics=1 ;;
         --expandTopics) expandTopics=1 ;;
         --topicSimilarity) topicSimilarity=1 ;;
+        --buildCatalog) buildCatalog=1 ;;
         *) echo "Unknown option: $arg" ;;
     esac
 done
@@ -97,6 +100,9 @@ if [ $topicTokenize -eq 1 ]; then python src/main.py --topicTokenize; fi
 if [ $labelTopics -eq 1 ]; then ./word_tokenizer --labelTopics; fi
 if [ $expandTopics -eq 1 ]; then ./word_tokenizer --expandTopics; fi
 if [ $topicSimilarity -eq 1 ]; then ./word_tokenizer --topicSimilarity; fi
+
+# Runs last: the catalog consumes the topic tags produced above.
+if [ $buildCatalog -eq 1 ]; then python src/main.py --buildCatalog; fi
 
 # Print elapsed time
 end_time=$(date +%s)

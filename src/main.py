@@ -6,6 +6,7 @@ import modules.tf_idf as tf_idf
 # import modules.ideation as ideation
 import modules.extract_text as extract_text
 import modules.pdf_to_txt as pdf_to_txt
+import modules.catalog as catalog
 from random import choice
 from os import listdir
 
@@ -26,6 +27,9 @@ def app():
     parser.add_argument("--computeItemMatrix", action= 'store_true', help="Compute item matrix similarity and output comparison table based on TF-IDF")
     parser.add_argument("--topicTokenize", action= 'store_true', help="Tokenize topics and store in database")
     parser.add_argument("--expandTopicSeeds", action= 'store_true', help="With --topicTokenize, grow the topic list with ~50 Datamuse related words (off by default)")
+    parser.add_argument("--buildCatalog", action= 'store_true', help="Build the book_catalog table + export catalog.csv/json")
+    parser.add_argument("--catalogStats", action= 'store_true', help="Print book_catalog coverage without rebuilding it")
+    parser.add_argument("--noProbe", action= 'store_true', help="With --buildCatalog, skip reading page counts from the PDFs (fast metadata-only rebuild)")
 
     args = parser.parse_args()
 
@@ -56,7 +60,10 @@ def app():
         descriptions. They are more challenging to search but provide deeper 
         understanding.
         """
-        chunk_size = 1024
+        # NOTE: text_to_chunks splits by WORDS, not characters -- the sizes described
+        # above are the intent, DEFAULT_CHUNK_SIZE is what actually runs. It lives in
+        # extract_text so modules/catalog.py can record it as dataset provenance.
+        chunk_size = extract_text.DEFAULT_CHUNK_SIZE
         # extract_text
         extract_text.extract_text(CHUNK_SIZE=chunk_size, SOURCE_FOLDER=path.source_data, DB_PATH=path.chunk_database_path, DEST_FOLDER=path.dest_data)
     
@@ -85,6 +92,14 @@ def app():
                 TOPICS.update(word_freq.get_related_topics(SeedTopics, limit=50))
 
         word_freq.tokenize_topics(TOPIC_LIST=TOPICS)
+
+    # Read-mostly stage: joins file_info / file_token / tags_full with the real titles
+    # from _original_names.json. Runs last because it consumes the topic tags.
+    if args.buildCatalog:
+        catalog.build_catalog(probe=not args.noProbe)
+
+    if args.catalogStats:
+        catalog.catalog_stats()
 
 if __name__ == "__main__":
     app()

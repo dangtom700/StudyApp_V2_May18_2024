@@ -82,21 +82,59 @@ namespace UTILITIES_HPP
             return filtered_files;
         }
 
+        // std::ofstream does not create missing parent directories, so a fresh checkout
+        // (where data/processed_data does not exist yet) fails every dump silently.
+        bool ensure_parent_dir(const std::filesystem::path &path)
+        {
+            const std::filesystem::path parent = path.parent_path();
+            std::error_code ec;
+            if (parent.empty() || std::filesystem::exists(parent, ec))
+                return true;
+
+            std::filesystem::create_directories(parent, ec);
+            if (ec)
+            {
+                std::cout << "Could not create directory " << parent << ": " << ec.message() << std::endl;
+                return false;
+            }
+            return true;
+        }
+
+        // Create the directories the C++ stages write into. sqlite3_open() will not create a
+        // missing parent either, so a full restart (deleting data/) needs these in place
+        // before any stage runs, not just before the first dump.
+        void ensure_data_directories()
+        {
+            for (const std::filesystem::path &dir : {ENV_HPP::data_root, ENV_HPP::processed_data_path})
+            {
+                std::error_code ec;
+                std::filesystem::create_directories(dir, ec);
+                if (ec)
+                    std::cout << "Could not create directory " << dir << ": " << ec.message() << std::endl;
+            }
+        }
+
         // Reset data dumper
         void reset_data_dumper(const std::filesystem::path &path)
         {
+            if (!ensure_parent_dir(path))
+                return;
+
             std::ofstream file(path);
             if (!file.is_open())
             {
-                std::cout << "Could not open file" << std::endl;
+                std::cout << "Could not open file " << path << std::endl;
                 return;
             }
             file << "Path, Sum, Unique Tokens, Relational Distance" << std::endl;
 
+            if (!ensure_parent_dir(ENV_HPP::filtered_data_path))
+                return;
+
             std::ofstream filtered_file(ENV_HPP::filtered_data_path.string());
             if (!filtered_file.is_open())
             {
-                std::cout << "Could not open filtered file" << std::endl;
+                std::cout << "Could not open filtered file " << ENV_HPP::filtered_data_path << std::endl;
                 return;
             }
 
@@ -106,10 +144,13 @@ namespace UTILITIES_HPP
         // reset file info dumper
         void reset_file_info_dumper(const std::filesystem::path &path)
         {
+            if (!ensure_parent_dir(path))
+                return;
+
             std::ofstream file(path);
             if (!file.is_open())
             {
-                std::cout << "Could not open file" << std::endl;
+                std::cout << "Could not open file " << path << std::endl;
                 return;
             }
             file << "ID, File Name, File Path, Epoch Time, Chunk Count" << std::endl;
@@ -118,19 +159,25 @@ namespace UTILITIES_HPP
         // Dump the contents of a DataEntry to a file
         void data_entry_dump(const DataEntry &entry)
         {
+            if (!ensure_parent_dir(ENV_HPP::data_dumper_path))
+                return;
+
             std::ofstream main_file(ENV_HPP::data_dumper_path.string(), std::ios::app); // Append to file
             if (!main_file.is_open())
             {
-                std::cout << "Could not open main file" << std::endl;
+                std::cout << "Could not open main file " << ENV_HPP::data_dumper_path << std::endl;
                 return;
             }
             main_file << entry.path << ", " << entry.sum << ", " << entry.num_unique_tokens << ", " << entry.relational_distance << std::endl;
 
             // Construct the path for the filtered file
+            if (!ensure_parent_dir(ENV_HPP::filtered_data_path))
+                return;
+
             std::ofstream filtered_file(ENV_HPP::filtered_data_path.string(), std::ios::app); // Append to file
             if (!filtered_file.is_open())
             {
-                std::cout << "Could not open filtered file" << std::endl;
+                std::cout << "Could not open filtered file " << ENV_HPP::filtered_data_path << std::endl;
                 return;
             }
 
@@ -147,10 +194,13 @@ namespace UTILITIES_HPP
         // Dump the contents of a DataInfo to a file
         void data_info_dump(const DataInfo &info)
         {
+            if (!ensure_parent_dir(ENV_HPP::data_info_path))
+                return;
+
             std::ofstream file(ENV_HPP::data_info_path.string(), std::ios::app | std::ios::binary);
             if (!file.is_open())
             {
-                std::cout << "Could not open file" << std::endl;
+                std::cout << "Could not open file " << ENV_HPP::data_info_path << std::endl;
                 return;
             }
             file << info.id << ", "

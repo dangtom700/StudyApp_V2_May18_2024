@@ -21,22 +21,23 @@ rem Function to execute tasks based on flags
 
 rem Every stage is off by default: the arguments decide what runs.
 set "showComponents=0"
-set "renameFile=0"
-set "pdfToText=0"
-set "extractText=0"
-set "updateDatabaseInformation=0"
-set "processWordFreq=0"
-set "computeRelationalDistance=0"
-set "computeTFIDF=0"
+set "renameFile=1"
+set "pdfToText=1"
+set "extractText=1"
+set "updateDatabaseInformation=1"
+set "processWordFreq=1"
+set "computeRelationalDistance=1"
+set "computeTFIDF=1"
 set "runCutoffAnalysis=0"
 set "ideation=0"
-set "promptReference=0"
-set "fastMappingItemMatrix=0"
-set "mappingItemMatrix=0"
-set "topicTokenize=0"
-set "labelTopics=0"
+set "promptReference=1"
+set "fastMappingItemMatrix=1"
+set "mappingItemMatrix=1"
+set "topicTokenize=1"
+set "labelTopics=1"
 set "expandTopics=0"
 set "topicSimilarity=0"
+set "buildCatalog=0"
 
 rem With no arguments, run the standard end-to-end pipeline.
 if "%~1"=="" (
@@ -54,6 +55,7 @@ if "%~1"=="" (
     set "topicTokenize=1"
     set "labelTopics=1"
     set "topicSimilarity=1"
+    set "buildCatalog=1"
 )
 
 rem Process flags
@@ -76,6 +78,7 @@ for %%A in (%*) do (
     if "%%A"=="--labelTopics" set labelTopics=1
     if "%%A"=="--expandTopics" set expandTopics=1
     if "%%A"=="--topicSimilarity" set topicSimilarity=1
+    if "%%A"=="--buildCatalog" set buildCatalog=1
 )
 
 rem Show Components
@@ -222,6 +225,14 @@ if %topicSimilarity%==1 (
     word_tokenizer --topicSimilarity
     if %errorlevel% neq 0 (
         echo Error executing Topic Similarity.
+    )
+)
+
+rem Build Catalog - runs last, it consumes the topic tags produced above
+if %buildCatalog%==1 (
+    python src/main.py --buildCatalog
+    if %errorlevel% neq 0 (
+        echo Error executing Build Catalog.
     )
 )
 

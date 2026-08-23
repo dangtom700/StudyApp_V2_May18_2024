@@ -118,6 +118,8 @@ int main(int argc, char *argv[])
         return 1;
     }
 
+    UTILITIES_HPP::Basic::ensure_data_directories();
+
     // Map to store command-line options
     std::map<std::string, std::function<void()>> actions{
         {"--displayhelp", displayHelp},

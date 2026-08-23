@@ -15,36 +15,148 @@ class DatabaseManager:
         self.db_path = db_path
         self.conn = None
         self.cursor = None
+        self._has_catalog = None      # resolved lazily by has_catalog()
         self.connect()
     
     def connect(self):
         """Connect to database"""
         try:
             self.conn = sqlite3.connect(self.db_path)
-            self.cursor = self.conn.cursor()
-            # Enable return of column names as keys
+            # Must be set BEFORE the cursor is created -- a cursor keeps the factory it
+            # was built with, so setting this afterwards left every row a plain tuple.
             self.conn.row_factory = sqlite3.Row
+            self.cursor = self.conn.cursor()
         except sqlite3.Error as e:
             print(f"Database connection error: {e}")
-    
+
     def close(self):
         """Close database connection"""
         if self.conn:
             self.conn.close()
-    
-    def get_all_pdfs(self) -> List[str]:
-        """Get list of all PDF files in database"""
+
+    # ---- Book catalog -------------------------------------------------------
+    # v_book is built by `python src/main.py --buildCatalog`. Everything below
+    # degrades to the old hash-only behaviour when it hasn't been built yet, so the
+    # app still runs on a database that predates the catalog.
+
+    def has_catalog(self) -> bool:
+        """True once --buildCatalog has run. Checked once, then cached."""
+        if self._has_catalog is None:
+            try:
+                self.cursor.execute("SELECT 1 FROM v_book LIMIT 1")
+                self._has_catalog = self.cursor.fetchone() is not None
+            except sqlite3.Error:
+                self._has_catalog = False
+        return self._has_catalog
+
+    def display_name(self, hash_id: str) -> str:
+        """Human-readable label for a hash. Falls back to the hash itself."""
+        if not self.has_catalog():
+            return hash_id
+        try:
+            self.cursor.execute("SELECT title FROM v_book WHERE hash_id = ?", (hash_id,))
+            row = self.cursor.fetchone()
+            return (row[0] or hash_id) if row else hash_id
+        except sqlite3.Error:
+            return hash_id
+
+    def display_names(self, hash_ids: List[str]) -> dict:
+        """Bulk display_name -- one query for a whole result list, not one per row."""
+        labels = {h: h for h in hash_ids}
+        if not hash_ids or not self.has_catalog():
+            return labels
+
+        try:
+            placeholders = ','.join('?' * len(hash_ids))
+            self.cursor.execute(
+                f"SELECT hash_id, title FROM v_book WHERE hash_id IN ({placeholders})",
+                hash_ids)
+            for row in self.cursor.fetchall():
+                if row[1]:
+                    labels[row[0]] = row[1]
+        except sqlite3.Error as e:
+            print(f"Error fetching titles: {e}")
+        return labels
+
+    def get_catalog_row(self, hash_id: str) -> Optional[dict]:
+        """Every catalog field for one book, or None if the catalog isn't built."""
+        if not self.has_catalog():
+            return None
+        try:
+            self.cursor.execute("SELECT * FROM v_book WHERE hash_id = ?", (hash_id,))
+            row = self.cursor.fetchone()
+            return dict(row) if row else None
+        except sqlite3.Error as e:
+            print(f"Error fetching catalog row: {e}")
+            return None
+
+    def get_domains(self) -> List[str]:
+        """Subject domains present in the library, most populated first."""
+        if not self.has_catalog():
+            return []
         try:
             self.cursor.execute("""
-                SELECT DISTINCT file_name FROM file_info 
-                ORDER BY file_name
+                SELECT domain, COUNT(*) AS n FROM v_book
+                WHERE domain IS NOT NULL
+                GROUP BY domain ORDER BY n DESC
             """)
-            results = self.cursor.fetchall()
-            return [row[0] for row in results]
+            return [row[0] for row in self.cursor.fetchall()]
+        except sqlite3.Error as e:
+            print(f"Error fetching domains: {e}")
+            return []
+
+    def search_catalog(self, text: str = "", domain: Optional[str] = None,
+                       max_results: int = 200) -> List[Tuple[str, str]]:
+        """
+        Search books by title/topic and/or domain -- metadata only, not chunk text.
+        Returns [(hash_id, title), ...].
+        """
+        if not self.has_catalog():
+            return []
+
+        clauses, params = [], []
+        if text:
+            clauses.append("(title LIKE ? OR topics LIKE ?)")
+            params += [f"%{text}%", f"%{text}%"]
+        if domain:
+            clauses.append("domain = ?")
+            params.append(domain)
+
+        where = f"WHERE {' AND '.join(clauses)}" if clauses else ""
+        params.append(max_results)
+
+        try:
+            self.cursor.execute(
+                f"SELECT hash_id, title FROM v_book {where} "
+                f"ORDER BY title LIMIT ?", params)
+            return [(row[0], row[1] or row[0]) for row in self.cursor.fetchall()]
+        except sqlite3.Error as e:
+            print(f"Error searching catalog: {e}")
+            return []
+
+    def get_all_pdfs(self) -> List[Tuple[str, str]]:
+        """
+        Every book in the library as [(hash_id, label), ...].
+
+        Reads the catalog when it exists -- which orders by title and includes books
+        that were never text-extracted -- and falls back to file_info otherwise.
+        """
+        try:
+            if self.has_catalog():
+                self.cursor.execute("""
+                    SELECT hash_id, COALESCE(NULLIF(title, ''), hash_id) AS label
+                    FROM v_book ORDER BY label COLLATE NOCASE
+                """)
+            else:
+                self.cursor.execute("""
+                    SELECT DISTINCT file_name, file_name FROM file_info
+                    ORDER BY file_name
+                """)
+            return [(row[0], row[1]) for row in self.cursor.fetchall()]
         except sqlite3.Error as e:
             print(f"Error fetching PDFs: {e}")
             return []
-    
+
     def get_pdf_info(self, file_name: str) -> Optional[Tuple[str, int]]:
         """Get PDF information: (file_path, chunk_count)"""
         try:
