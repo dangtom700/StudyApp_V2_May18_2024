@@ -152,6 +152,16 @@ Safety properties, since there is no second copy to fall back on:
 
 After compressing, re-run `--buildCatalog` to refresh the recorded file sizes.
 
+`compress_pdfs.ps1` in the repo root does the same job from plain PowerShell 7, without the conda environment:
+
+```powershell
+.\compress_pdfs.ps1                    # compress READING_LIST_PATH in place
+.\compress_pdfs.ps1 -WhatIf            # dry run
+.\compress_pdfs.ps1 -Preset screen -Jobs 8
+```
+
+It reads `READING_LIST_PATH` and `GHOSTSCRIPT_PATH` from `.env`, writes the same `<name>.pdf.gstmp` temps, and shares `data/compression_log.csv`, so the two can be run interchangeably — either one skips what the other already compressed. The one difference: it verifies the `%PDF` header and the `%%EOF` trailer but cannot compare page counts (no PyMuPDF), so prefer `--compressPDF` for a first pass over an unfamiliar library.
+
 ### 2. Using the Interactive Desktop App
 Once your PDFs are extracted and processed, utilize the PyQt5 interface to browse your database.
 
