@@ -20,8 +20,16 @@ rem Function to execute tasks based on flags
 :execute_tasks
 
 rem Every stage is off by default: the arguments decide what runs.
+rem Every stage is off by default: the arguments decide what runs. These were
+rem previously initialised to 1, which made "main.bat --oneStage" silently run the
+rem whole pipeline instead of that one stage. The no-argument block below is what
+rem turns the standard end-to-end run back on, so plain "main.bat" is unchanged.
 set "showComponents=0"
-set "renameFile=1"
+set "renameFile=0"
+rem Compression is slow, needs Ghostscript, and is lossy, so it stays out of the
+rem end-to-end run. Invoke it deliberately: main.bat --compressPDF
+set "compressPDF=0"
+set "compressDryRun=0"
 set "pdfToText=1"
 set "extractText=1"
 set "updateDatabaseInformation=1"
@@ -36,14 +44,18 @@ set "mappingItemMatrix=1"
 set "topicTokenize=1"
 set "labelTopics=1"
 set "expandTopics=0"
-set "topicSimilarity=0"
-set "buildCatalog=0"
+set "topicSimilarity=1"
+set "buildCatalog=1"
 
 rem With no arguments, run the standard end-to-end pipeline.
 if "%~1"=="" (
     echo No stage selected - running the standard end-to-end pipeline.
     echo Pass stage flags to run only those stages, e.g. main.bat --extractText --processWordFreq
     echo.
+    rem renameFile and promptReference are listed explicitly so the no-argument run
+    rem stays exactly what it was before the defaults above were corrected to 0.
+    set "renameFile=1"
+    set "promptReference=1"
     set "pdfToText=1"
     set "extractText=1"
     set "updateDatabaseInformation=1"
@@ -63,6 +75,8 @@ rem Process flags
 for %%A in (%*) do (
     if "%%A"=="--showComponents" set showComponents=1
     if "%%A"=="--renameFile" set renameFile=1
+    if "%%A"=="--compressPDF" set compressPDF=1
+    if "%%A"=="--compressDryRun" set compressDryRun=--compressDryRun
     if "%%A"=="--pdfToText" set pdfToText=1
     if "%%A"=="--extractText" set extractText=1
     if "%%A"=="--updateDatabaseInformation" set updateDatabaseInformation=1
@@ -96,6 +110,16 @@ if %renameFile%==1 (
     python src/main.py --renameFile
     if %errorlevel% neq 0 (
         echo Error executing Rename File.
+        goto end
+    )
+)
+
+rem Compress PDFs in place - after Rename File so each book keeps the hash name of
+rem the file as downloaded, before PDF to TXT so the text comes from the kept files.
+if %compressPDF%==1 (
+    python src/main.py --compressPDF %compressDryRun%
+    if %errorlevel% neq 0 (
+        echo Error compressing PDFs.
         goto end
     )
 )

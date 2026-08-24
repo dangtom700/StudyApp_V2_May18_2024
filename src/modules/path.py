@@ -21,6 +21,9 @@ chunk_database_path = os.path.join(data_folder, "pdf_text.db")
 token_json_path = os.path.join(data_folder, "token_json")
 
 log_file_path = os.path.join(data_folder, "process.log")
+# Ledger of every PDF the --compressPDF stage has touched. It is what stops a file
+# being compressed twice; deleting it makes the next run re-compress the library.
+compression_log_path = os.path.join(data_folder, "compression_log.csv")
 buffer_json_path = os.path.join(data_folder, "buffer.json")
 dataset_path = os.path.join(data_folder, "dataset.txt")
 

@@ -7,6 +7,7 @@ import modules.tf_idf as tf_idf
 import modules.extract_text as extract_text
 import modules.pdf_to_txt as pdf_to_txt
 import modules.catalog as catalog
+import modules.compress_pdf as compress_pdf
 from random import choice
 from os import listdir
 
@@ -19,6 +20,11 @@ def app():
     
     parser.add_argument("--displayHelp", action= 'store_true', help= 'Display help message')
     parser.add_argument("--renameFile", action= 'store_true', help= 'Encode the file name with hashing algorithm')
+    parser.add_argument("--compressPDF", action= 'store_true', help= 'Compress the PDFs in READING_LIST_PATH in place with Ghostscript (run after --renameFile, before --pdfToText)')
+    parser.add_argument("--compressPreset", default= compress_pdf.DEFAULT_PRESET, choices= compress_pdf.PRESETS, help= 'Ghostscript quality preset for --compressPDF (default: %(default)s)')
+    parser.add_argument("--compressJobs", type= int, default= 0, help= 'Parallel Ghostscript processes for --compressPDF (default: CPU count - 2)')
+    parser.add_argument("--compressDryRun", action= 'store_true', help= 'With --compressPDF, list what would be compressed and write nothing')
+    parser.add_argument("--compressForce", action= 'store_true', help= 'With --compressPDF, ignore the log and re-compress files that were already compressed (lossy -- each pass degrades image quality)')
     parser.add_argument("--pdfToText", action= 'store_true', help= 'Convert PDFs in READING_LIST_PATH to .txt files in RAW_DATA_PATH')
     parser.add_argument("--extractText", action= 'store_true', help= 'Chunk .txt files from RAW_DATA_PATH and store in database')
     parser.add_argument("--processWordFreq", action= 'store_true', help="Create index tables and analyze word frequencies all in one")
@@ -38,6 +44,16 @@ def app():
 
     if args.renameFile:
         extract_text.rename_files(path.pdf_path)
+
+    # Runs before --pdfToText so the text pipeline reads the files it will keep, and
+    # after --renameFile so each book's <sha256>.pdf name is the hash of the file as
+    # it was downloaded. Compression rewrites content in place without renaming --
+    # see modules/compress_pdf.py for why the stem must not change.
+    if args.compressPDF:
+        compress_pdf.compress_all(preset=args.compressPreset,
+                                  jobs=args.compressJobs,
+                                  dry_run=args.compressDryRun,
+                                  force=args.compressForce)
 
     if args.pdfToText:
         pdf_to_txt.convert_all()

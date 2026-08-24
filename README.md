@@ -106,7 +106,51 @@ bash config/main.sh --extractText --processWordFreq --computeRelationalDistance
     - *Default behavior*: Fetches 50 random topics and articles related to "topology".
     - *Override*: Use `--randomTopics <N>` or `--seedTopics "<seed>"` to customize the expansion.
 - `--topicSimilarity`: Compute relational distances directly between topic pairs and store bidirectional similarity scores.
+- `--compressPDF`: Shrink the reading list with Ghostscript — see below.
 *(Refer to `config/main.bat` or `main.sh` for the full list of supported flags).*
+
+> **Note:** passing any flag runs *only* the stages you named. Running the orchestrator with no arguments runs the standard end-to-end pipeline.
+
+### 1a. Compressing the PDF library
+
+`--compressPDF` re-encodes every PDF in `READING_LIST_PATH` with Ghostscript and **replaces each file in place**. It is off by default — run it deliberately, then run the pipeline as usual.
+
+```cmd
+config\main.bat --compressPDF --compressDryRun   :: list what would be done, write nothing
+config\main.bat --compressPDF                    :: compress
+```
+```bash
+bash config/main.sh --compressPDF
+```
+
+Finer control is available on the module directly:
+
+```cmd
+python src/main.py --compressPDF --compressPreset screen --compressJobs 8
+```
+
+| Option | Meaning |
+| --- | --- |
+| `--compressPreset` | `screen` / `ebook` (default) / `printer` / `prepress` — lower = smaller and blurrier |
+| `--compressJobs` | Parallel Ghostscript processes (default: CPU count − 2) |
+| `--compressDryRun` | List candidates and write nothing |
+| `--compressForce` | Re-compress files already in the log (lossy — each pass degrades images further) |
+
+**Requires Ghostscript.** Install it from [ghostscript.com](https://ghostscript.com/releases/gsdnld.html) (Windows) or `apt install ghostscript` (Linux). The Windows installer does not add itself to `PATH`, so the stage also looks in `C:\Program Files\gs\*\bin\`; set `GHOSTSCRIPT_PATH` in `.env` to point at a specific binary.
+
+Why in place rather than an output folder:
+
+- `file_info.id` is an md5 of each file's **absolute path** (`create_unique_id` in `src/lib/env.hpp`'s companion `updateDB.hpp`), and `book_catalog` joins everything through the file's stem. Compressing into a second folder and repointing `READING_LIST_PATH` would re-key `file_token`, `tags_full`, `comparison` and `item_matrix` and orphan the lot. Replacing each file at its own path keeps every key valid — no downstream stage changes, nothing to re-index.
+- **Run it after `--renameFile`, before `--pdfToText`.** `--renameFile` names each book `<sha256 of its content>.pdf`; renaming first records a new download under the hash of the file as downloaded, which is what makes duplicate detection work later. Compression deliberately does *not* re-hash or rename afterwards — the stem is the library's primary key, not a live checksum.
+
+Safety properties, since there is no second copy to fall back on:
+
+- Ghostscript writes to `<name>.pdf.gstmp`, a suffix no other stage's `*.pdf` glob matches, so an interrupted run cannot leave a half-written file that `--pdfToText` would read as a book. Stale temps are swept at the start of the next run.
+- The original is replaced only after the output is verified: Ghostscript exited 0, the file starts with `%PDF`, and (with PyMuPDF installed) it opens with **exactly the same page count** as the input. Any failure — or an output that is not smaller — leaves the original untouched and logs why.
+- The replace itself is `os.replace`, atomic within a filesystem: a file is either the original or the compressed version, never a mix.
+- Every file is recorded in `data/compression_log.csv` as it completes, so an interrupted run resumes where it stopped. A file whose current size still matches its logged `out_bytes` is skipped — this is what stops a book being compressed twice, since each pass re-downsamples its images permanently.
+
+After compressing, re-run `--buildCatalog` to refresh the recorded file sizes.
 
 ### 2. Using the Interactive Desktop App
 Once your PDFs are extracted and processed, utilize the PyQt5 interface to browse your database.

@@ -13,6 +13,10 @@ fi
 # Every stage is off by default: the arguments decide what runs.
 showComponents=0
 renameFile=0
+# Off by default: compression is slow, needs Ghostscript, and is lossy. Run it
+# deliberately -- main.sh --compressPDF -- then run the pipeline as usual.
+compressPDF=0
+compressDryRun=""
 pdfToText=0
 extractText=0
 updateDatabaseInformation=0
@@ -54,6 +58,8 @@ for arg in "$@"; do
     case $arg in
         --showComponents) showComponents=1 ;;
         --renameFile) renameFile=1 ;;
+        --compressPDF) compressPDF=1 ;;
+        --compressDryRun) compressDryRun="--compressDryRun" ;;
         --pdfToText) pdfToText=1 ;;
         --extractText) extractText=1 ;;
         --updateDatabaseInformation) updateDatabaseInformation=1 ;;
@@ -80,6 +86,11 @@ if [ $showComponents -eq 1 ]; then
 fi
 
 if [ $renameFile -eq 1 ]; then python src/main.py --renameFile; fi
+
+# In place, after --renameFile so each book keeps the hash name of the file as
+# downloaded, before --pdfToText so the text comes from the files being kept.
+if [ $compressPDF -eq 1 ]; then python src/main.py --compressPDF $compressDryRun; fi
+
 if [ $pdfToText -eq 1 ]; then python src/main.py --pdfToText; fi
 if [ $extractText -eq 1 ]; then python src/main.py --extractText; fi
 if [ $updateDatabaseInformation -eq 1 ]; then ./word_tokenizer --updateDatabaseInformation; fi
