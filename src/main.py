@@ -8,6 +8,7 @@ import modules.extract_text as extract_text
 import modules.pdf_to_txt as pdf_to_txt
 import modules.catalog as catalog
 import modules.compress_pdf as compress_pdf
+import modules.dedupe_pdf as dedupe_pdf
 from random import choice
 from os import listdir
 
@@ -20,6 +21,14 @@ def app():
     
     parser.add_argument("--displayHelp", action= 'store_true', help= 'Display help message')
     parser.add_argument("--renameFile", action= 'store_true', help= 'Encode the file name with hashing algorithm')
+    parser.add_argument("--dedupePDF", action= 'store_true', help= 'Screen not-yet-renamed PDFs against the library by content, catching a re-download whose copy on disk was already compressed (run before --renameFile)')
+    parser.add_argument("--dedupeIncoming", default= None, help= 'With --dedupePDF, the folder of new downloads to screen (default: READING_LIST_PATH itself)')
+    parser.add_argument("--dedupeSweep", action= 'store_true', help= 'With --dedupePDF, compare the library against itself instead of screening new files -- for duplicates that are already in it')
+    parser.add_argument("--dedupeDryRun", action= 'store_true', help= 'With --dedupePDF, report what would happen and write nothing')
+    parser.add_argument("--dedupeDelete", action= 'store_true', help= 'With --dedupePDF, delete duplicates instead of moving them to _duplicates/')
+    parser.add_argument("--dedupePreferIncoming", action= 'store_true', help= 'With --dedupePDF, keep the larger copy\'s bytes under the library copy\'s name (upgrades a compressed copy back to the original)')
+    parser.add_argument("--dedupeStructural", action= 'store_true', help= 'With --dedupePDF, also act on scans matched by page count and page size alone (reported but not acted on by default)')
+    parser.add_argument("--dedupeThreshold", type= float, default= dedupe_pdf.FUZZY_THRESHOLD, help= 'With --dedupePDF, the Jaccard threshold for the fuzzy text tier (default: %(default)s)')
     parser.add_argument("--compressPDF", action= 'store_true', help= 'Compress the PDFs in READING_LIST_PATH in place with Ghostscript (run after --renameFile, before --pdfToText)')
     parser.add_argument("--compressPreset", default= compress_pdf.DEFAULT_PRESET, choices= compress_pdf.PRESETS, help= 'Ghostscript quality preset for --compressPDF (default: %(default)s)')
     parser.add_argument("--compressJobs", type= int, default= 0, help= 'Parallel Ghostscript processes for --compressPDF (default: CPU count - 2)')
@@ -41,6 +50,23 @@ def app():
 
     if args.displayHelp:
         print("This project is to meant to store record of learning activities. The files and record of activities are then transfer into database that show user the timeline and activities done in that day. Python is used to extract text from PDF files and store in database. Python also offers a few useful modules to process Natural Language Processing and word processing modules to conviniently analyze word frequencies and word stems to clean up textual data for processing cosine similarity search.")
+
+    # Runs before --renameFile: that is the last moment at which an incoming file is
+    # distinguishable from a library file, because it still has its download name
+    # rather than a <sha256>.pdf one. Whatever this stage lets through, rename_files
+    # then handles exactly as it always did.
+    if args.dedupePDF:
+        if args.dedupeSweep:
+            dedupe_pdf.sweep(dry_run=args.dedupeDryRun,
+                             delete=args.dedupeDelete,
+                             structural=args.dedupeStructural)
+        else:
+            dedupe_pdf.dedupe_all(incoming=args.dedupeIncoming,
+                                  dry_run=args.dedupeDryRun,
+                                  delete=args.dedupeDelete,
+                                  prefer_incoming=args.dedupePreferIncoming,
+                                  structural=args.dedupeStructural,
+                                  threshold=args.dedupeThreshold)
 
     if args.renameFile:
         extract_text.rename_files(path.pdf_path)

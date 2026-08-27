@@ -51,6 +51,36 @@ namespace FEATURE
     }
 
     /**
+     * Create one of this pipeline's tables, optionally rebuilding it from scratch.
+     *
+     * Every stage here follows the same contract: reset_table means "start this
+     * stage's output over", otherwise the table is kept and the stage resumes into
+     * it. Both halves belong together -- a stage that drops without creating, or
+     * that drops one table and creates another, only shows up as a failure several
+     * statements later. Routing every table through one call keeps the pair honest.
+     *
+     * Derived tables that are always rebuilt (the cutoff analysis) pass
+     * reset_table = true and a CREATE TABLE IF NOT EXISTS ... AS SELECT body.
+     *
+     * @param db          Open database handle.
+     * @param table_name  The table create_sql defines; dropped first when reset_table.
+     * @param create_sql  A complete CREATE TABLE IF NOT EXISTS statement.
+     * @param reset_table If true, drop the existing table before creating it.
+     *
+     * @throws std::runtime_error if either statement fails.
+     */
+    void ensure_table(sqlite3 *db,
+                      const std::string &table_name,
+                      const std::string &create_sql,
+                      const bool reset_table = false)
+    {
+        if (reset_table)
+            execute_sql(db, "DROP TABLE IF EXISTS " + table_name + ";");
+
+        execute_sql(db, create_sql);
+    }
+
+    /**
      * Prepare an SQL statement for execution.
      *
      * @param db The SQLite database connection.
@@ -106,29 +136,18 @@ namespace FEATURE
             // Disable synchronous mode to speed up inserts (optional)
             execute_sql(db, "PRAGMA synchronous = OFF;");
 
-            // Create tables if reset_table is true
-            if (reset_table)
-            {
-                // Only drop tables
-                std::string drop_sql = R"(
-                    DROP TABLE IF EXISTS file_token;
-                    DROP TABLE IF EXISTS relation_distance_filtered;
-                )";
-                execute_sql(db, drop_sql);
-            }
-
-            // Only create tables if they do not exist
-            std::string create_sql = R"(
+            // Dropped and recreated when reset_table, otherwise reused as-is
+            ensure_table(db, "file_token", R"(
                 CREATE TABLE IF NOT EXISTS file_token (
                     file_name           TEXT    NOT NULL PRIMARY KEY,
                     total_tokens        INTEGER NOT NULL DEFAULT 0,
                     unique_tokens       INTEGER NOT NULL DEFAULT 0,
                     relational_distance REAL    NOT NULL DEFAULT 0.0
                 ) WITHOUT ROWID;
-            )";
-            execute_sql(db, create_sql);
+            )",
+                         reset_table);
 
-            create_sql = R"(
+            ensure_table(db, "relation_distance_filtered", R"(
                 CREATE TABLE IF NOT EXISTS relation_distance_filtered (
                     file_name           TEXT    NOT NULL,
                     token               TEXT    NOT NULL,
@@ -136,8 +155,8 @@ namespace FEATURE
                     relational_distance REAL    NOT NULL DEFAULT 0.0,
                     PRIMARY KEY (file_name, token)
                 ) WITHOUT ROWID;
-            )";
-            execute_sql(db, create_sql);
+            )",
+                         reset_table);
 
             // // Covering index: token -> (file_name, relational_distance) lookup
             // // used by processPrompt and load_related_tokens JOIN.
@@ -279,13 +298,9 @@ namespace FEATURE
         // Disable synchronous mode for faster inserts
         execute_sql(db, "PRAGMA synchronous = OFF;");
 
-        // Create or reset the table if required
-        if (reset_table)
-            execute_sql(db, "DROP TABLE IF EXISTS file_info");
-
         // WITHOUT ROWID: file_name is the PK, making point-lookups single B-tree ops.
         // UNIQUE(id) enforces id uniqueness used by collect_unique_id().
-        std::string create_table_sql = R"(
+        ensure_table(db, "file_info", R"(
             CREATE TABLE IF NOT EXISTS file_info (
                 id          TEXT    NOT NULL UNIQUE,
                 file_name   TEXT    NOT NULL PRIMARY KEY,
@@ -293,8 +308,8 @@ namespace FEATURE
                 epoch_time  INTEGER NOT NULL DEFAULT 0,
                 chunk_count INTEGER NOT NULL DEFAULT 0
             );
-        )";
-        execute_sql(db, create_table_sql);
+        )",
+                     reset_table);
 
         // INSERT OR IGNORE handles uniqueness at DB level — no separate SELECT check needed.
         const std::string insert_sql = R"(
@@ -657,13 +672,15 @@ namespace FEATURE
 
         // WITHOUT ROWID: word IS the PK B-tree key, so WHERE word=? is a single
         // B-tree lookup — no separate secondary index is needed.
-        execute_sql(db,
-                    "CREATE TABLE IF NOT EXISTS tf_idf ("
-                    "word      TEXT    NOT NULL PRIMARY KEY, "
-                    "freq      INTEGER NOT NULL DEFAULT 0, "
-                    "doc_count INTEGER NOT NULL DEFAULT 0, "
-                    "tf_idf    REAL    NOT NULL DEFAULT 0.0"
-                    ") WITHOUT ROWID;");
+        // This stage has no reset flag: it always accumulates into the existing table.
+        ensure_table(db, "tf_idf", R"(
+            CREATE TABLE IF NOT EXISTS tf_idf (
+                word      TEXT    NOT NULL PRIMARY KEY,
+                freq      INTEGER NOT NULL DEFAULT 0,
+                doc_count INTEGER NOT NULL DEFAULT 0,
+                tf_idf    REAL    NOT NULL DEFAULT 0.0
+            ) WITHOUT ROWID;
+        )");
 
         std::unordered_map<std::string, int> global_freq;
 
@@ -827,22 +844,22 @@ namespace FEATURE
         execute_sql(db, "PRAGMA synchronous=OFF;");
         execute_sql(db, "PRAGMA temp_store=MEMORY;");
 
+        // Clear low similarity files if we are resetting the matrix
         if (reset_table)
         {
-            execute_sql(db, "DROP TABLE IF EXISTS comparison;");
-
-            // Clear low similarity files if we are resetting the matrix
             std::ofstream clear_file(ENV_HPP::low_similarity_files.string().c_str(), std::ofstream::trunc);
             clear_file.close();
         }
 
-        execute_sql(db,
-                    "CREATE TABLE IF NOT EXISTS comparison ("
-                    "source_id   TEXT NOT NULL, "
-                    "target_id   TEXT NOT NULL, "
-                    "distance    REAL NOT NULL DEFAULT 0.0 CHECK(distance > 0.0), "
-                    "PRIMARY KEY (source_id, target_id)"
-                    ") WITHOUT ROWID;");
+        ensure_table(db, "comparison", R"(
+            CREATE TABLE IF NOT EXISTS comparison (
+                source_id   TEXT NOT NULL,
+                target_id   TEXT NOT NULL,
+                distance    REAL NOT NULL DEFAULT 0.0 CHECK(distance > 0.0),
+                PRIMARY KEY (source_id, target_id)
+            ) WITHOUT ROWID;
+        )",
+                     reset_table);
 
         std::map<std::string, std::string> unique_ids = RECOMMEND::collect_unique_id(db);
         std::map<std::string, std::string> processing_ids = RECOMMEND::collect_processing_id(db, reset_table, unique_ids, "SELECT DISTINCT source_id FROM comparison");
@@ -934,21 +951,15 @@ namespace FEATURE
             execute_sql(db, "PRAGMA synchronous=OFF;");
             execute_sql(db, "PRAGMA temp_store=MEMORY;");
 
-            // Create or reset the tags table
-            if (reset_table)
-            {
-                execute_sql(db, "DROP TABLE IF EXISTS tags_full");
-            }
-
-            std::string create_full_table_sql = R"(
+            ensure_table(db, "tags_full", R"(
                 CREATE TABLE IF NOT EXISTS tags_full (
                     ID       TEXT NOT NULL,
                     distance REAL NOT NULL DEFAULT 0.0 CHECK(distance > 0.0),
                     topic    TEXT NOT NULL,
                     PRIMARY KEY (ID, topic)
                 ) WITHOUT ROWID;
-            )";
-            execute_sql(db, create_full_table_sql);
+            )",
+                         reset_table);
 
             std::map<std::string, std::string> unique_ids = RECOMMEND::collect_unique_id(db);
             std::vector<std::string> unique_topics = RECOMMEND::collect_unique_topic(db);
@@ -1049,20 +1060,15 @@ namespace FEATURE
         execute_sql(db, "PRAGMA synchronous=OFF;");
         execute_sql(db, "PRAGMA temp_store=MEMORY;");
 
-        if (reset_table)
-        {
-            execute_sql(db, "DROP TABLE IF EXISTS topic_similarity");
-        }
-
-        std::string create_table_sql = R"(
+        ensure_table(db, "topic_similarity", R"(
             CREATE TABLE IF NOT EXISTS topic_similarity (
                 source_topic TEXT NOT NULL,
                 target_topic TEXT NOT NULL,
                 distance     REAL NOT NULL DEFAULT 0.0 CHECK(distance > 0.0),
                 PRIMARY KEY (source_topic, target_topic)
             ) WITHOUT ROWID;
-        )";
-        execute_sql(db, create_table_sql);
+        )",
+                     reset_table);
 
         std::vector<std::string> unique_topics = RECOMMEND::collect_unique_topic(db);
 
@@ -1174,23 +1180,19 @@ namespace FEATURE
         execute_sql(db, "PRAGMA temp_store=MEMORY;");
         execute_sql(db, "PRAGMA cache_size=-200000;"); // ~200MB cache if available
 
-        if (reset_table)
-            execute_sql(db, "DROP TABLE IF EXISTS tags;");
-
         // -------------------------------------------------
         // Create optimized tags table
         // -------------------------------------------------
-        std::string create_table_sql = R"(
-        CREATE TABLE IF NOT EXISTS tags (
-            ID     TEXT NOT NULL,
-            distance REAL NOT NULL CHECK(distance > 0 AND distance <= 1),
-            topic    TEXT NOT NULL,
-            degree   INTEGER NOT NULL CHECK(degree >= 1),
-            PRIMARY KEY (ID, topic)
-        ) WITHOUT ROWID;
-        )";
-
-        execute_sql(db, create_table_sql);
+        ensure_table(db, "tags", R"(
+            CREATE TABLE IF NOT EXISTS tags (
+                ID       TEXT NOT NULL,
+                distance REAL NOT NULL CHECK(distance > 0 AND distance <= 1),
+                topic    TEXT NOT NULL,
+                degree   INTEGER NOT NULL CHECK(degree >= 1),
+                PRIMARY KEY (ID, topic)
+            ) WITHOUT ROWID;
+        )",
+                     reset_table);
 
         // -------------------------------------------------
         // Required indexes
@@ -1199,13 +1201,14 @@ namespace FEATURE
                     "CREATE INDEX IF NOT EXISTS idx_tags_degree "
                     "ON tags(degree);");
 
+        // expand_degree joins item_matrix on (source_id = tags.ID OR target_id = tags.ID).
+        // item_matrix is WITHOUT ROWID with PRIMARY KEY (source_id, target_id), so the
+        // source side is already served by the table's own b-tree; only the target side
+        // needs an index. Carrying distance in it also covers the `im.distance >= ?`
+        // filter without a table lookup.
         execute_sql(db,
-                    "CREATE INDEX IF NOT EXISTS idx_imf_source "
-                    "ON item_matrix_filtered(source_name);");
-
-        execute_sql(db,
-                    "CREATE INDEX IF NOT EXISTS idx_imf_target "
-                    "ON item_matrix_filtered(target_name);");
+                    "CREATE INDEX IF NOT EXISTS idx_im_target "
+                    "ON item_matrix(target_id, distance);");
 
         execute_sql(db,
                     "CREATE INDEX IF NOT EXISTS idx_tf_id_topic "
@@ -1284,64 +1287,65 @@ namespace FEATURE
 
         execute_sql(db, "BEGIN;");
 
+        // STEPS 2-7 are derived tables: each one is a snapshot of the tables above it,
+        // so every run rebuilds them from scratch -- hence reset = true throughout.
+
         // STEP 2: Frequency distribution (direct)
         std::cout << "[STEP 2] Building freq_dist...\n";
-        execute_sql(db, R"(
-            DROP TABLE IF EXISTS freq_dist;
-            CREATE TABLE freq_dist AS
+        ensure_table(db, "freq_dist", R"(
+            CREATE TABLE IF NOT EXISTS freq_dist AS
             SELECT frequency AS freq, COUNT(*) AS cnt, SUM(frequency) AS total_freq
             FROM relation_distance_filtered
             GROUP BY frequency;
-        )");
+        )",
+                     true);
 
         // STEP 3: Token distribution
         std::cout << "[STEP 3] Building token_dist...\n";
-        execute_sql(db, R"(
-            DROP TABLE IF EXISTS token_dist;
-            CREATE TABLE token_dist AS
+        ensure_table(db, "token_dist", R"(
+            CREATE TABLE IF NOT EXISTS token_dist AS
             SELECT MAX(frequency) AS freq, COUNT(*) AS cnt
             FROM relation_distance_filtered
             GROUP BY token;
-        )");
+        )",
+                     true);
 
         // STEP 4: File distribution
         std::cout << "[STEP 4] Building file_dist...\n";
-        execute_sql(db, R"(
-            DROP TABLE IF EXISTS file_dist;
-            CREATE TABLE file_dist AS
+        ensure_table(db, "file_dist", R"(
+            CREATE TABLE IF NOT EXISTS file_dist AS
             SELECT MAX(frequency) AS freq, COUNT(*) AS cnt
             FROM relation_distance_filtered
             GROUP BY file_name;
-        )");
+        )",
+                     true);
 
         // STEP 5: Word distribution (simplified due to PK(word))
         std::cout << "[STEP 5] Building word_dist...\n";
-        execute_sql(db, R"(
-            DROP TABLE IF EXISTS word_dist;
-            CREATE TABLE word_dist AS
+        ensure_table(db, "word_dist", R"(
+            CREATE TABLE IF NOT EXISTS word_dist AS
             SELECT freq, COUNT(*) AS cnt
             FROM tf_idf
             GROUP BY freq;
-        )");
+        )",
+                     true);
 
         // STEP 6: Totals
         std::cout << "[STEP 6] Computing totals...\n";
-        execute_sql(db, R"(
-            DROP TABLE IF EXISTS totals;
-            CREATE TABLE totals AS
-            SELECT 
+        ensure_table(db, "totals", R"(
+            CREATE TABLE IF NOT EXISTS totals AS
+            SELECT
                 (SELECT SUM(total_freq) FROM freq_dist) AS total_freq,
                 (SELECT SUM(cnt) FROM token_dist) AS total_tokens,
                 (SELECT SUM(cnt) FROM file_dist) AS total_files,
                 (SELECT SUM(cnt) FROM word_dist) AS total_words;
-        )");
+        )",
+                     true);
 
         // STEP 7: Final cutoff table
         std::cout << "[STEP 7] Computing cutoff_analysis...\n";
-        execute_sql(db, R"(
-            DROP TABLE IF EXISTS cutoff_analysis;
-
-            CREATE TABLE cutoff_analysis AS
+        ensure_table(db, "cutoff_analysis", R"(
+            CREATE TABLE IF NOT EXISTS cutoff_analysis AS
             WITH RECURSIVE targets(t) AS (
                 SELECT 1
                 UNION ALL
@@ -1366,7 +1370,8 @@ namespace FEATURE
 
             FROM targets, totals
             ORDER BY target;
-        )");
+        )",
+                     true);
 
         execute_sql(db, "COMMIT;");
 

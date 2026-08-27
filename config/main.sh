@@ -12,6 +12,10 @@ fi
 
 # Every stage is off by default: the arguments decide what runs.
 showComponents=0
+# Content-level de-duplication. Off by default: it reads every incoming PDF and can
+# move files. Run it deliberately -- main.sh --dedupePDF --dedupeDryRun -- first.
+dedupePDF=0
+dedupeArgs=""
 renameFile=0
 # Off by default: compression is slow, needs Ghostscript, and is lossy. Run it
 # deliberately -- main.sh --compressPDF -- then run the pipeline as usual.
@@ -57,6 +61,9 @@ fi
 for arg in "$@"; do
     case $arg in
         --showComponents) showComponents=1 ;;
+        --dedupePDF) dedupePDF=1 ;;
+        --dedupeSweep|--dedupeDryRun|--dedupeDelete|--dedupePreferIncoming|--dedupeStructural)
+            dedupeArgs="$dedupeArgs $arg" ;;
         --renameFile) renameFile=1 ;;
         --compressPDF) compressPDF=1 ;;
         --compressDryRun) compressDryRun="--compressDryRun" ;;
@@ -84,6 +91,10 @@ if [ $showComponents -eq 1 ]; then
     python src/main.py --displayHelp
     ./word_tokenizer --displayHelp
 fi
+
+# Before --renameFile, while incoming files still carry their download names and so
+# are still distinguishable from the library's <sha256>.pdf ones.
+if [ $dedupePDF -eq 1 ]; then python src/main.py --dedupePDF $dedupeArgs; fi
 
 if [ $renameFile -eq 1 ]; then python src/main.py --renameFile; fi
 

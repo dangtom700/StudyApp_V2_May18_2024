@@ -25,27 +25,38 @@ rem previously initialised to 1, which made "main.bat --oneStage" silently run t
 rem whole pipeline instead of that one stage. The no-argument block below is what
 rem turns the standard end-to-end run back on, so plain "main.bat" is unchanged.
 set "showComponents=0"
+rem Content-level de-duplication. Off by default: it reads every incoming PDF and
+rem can move files. Invoke it deliberately: main.bat --dedupePDF --dedupeDryRun
+rem Each modifier gets its own variable rather than one accumulated string --
+rem appending inside the flag loop below would need delayed expansion, which the
+rem loop does not enable.
+set "dedupePDF=0"
+set "dedupeSweep="
+set "dedupeDryRun="
+set "dedupeDelete="
+set "dedupePreferIncoming="
+set "dedupeStructural="
 set "renameFile=0"
 rem Compression is slow, needs Ghostscript, and is lossy, so it stays out of the
 rem end-to-end run. Invoke it deliberately: main.bat --compressPDF
 set "compressPDF=0"
-set "compressDryRun=0"
-set "pdfToText=1"
-set "extractText=1"
-set "updateDatabaseInformation=1"
-set "processWordFreq=1"
-set "computeRelationalDistance=1"
-set "computeTFIDF=1"
+set "compressDryRun="
+set "pdfToText=0"
+set "extractText=0"
+set "updateDatabaseInformation=0"
+set "processWordFreq=0"
+set "computeRelationalDistance=0"
+set "computeTFIDF=0"
 set "runCutoffAnalysis=0"
 set "ideation=0"
-set "promptReference=1"
-set "fastMappingItemMatrix=1"
-set "mappingItemMatrix=1"
-set "topicTokenize=1"
-set "labelTopics=1"
+set "promptReference=0"
+set "fastMappingItemMatrix=0"
+set "mappingItemMatrix=0"
+set "topicTokenize=0"
+set "labelTopics=0"
 set "expandTopics=0"
-set "topicSimilarity=1"
-set "buildCatalog=1"
+set "topicSimilarity=0"
+set "buildCatalog=0"
 
 rem With no arguments, run the standard end-to-end pipeline.
 if "%~1"=="" (
@@ -74,6 +85,12 @@ rem Process flags
 :process_flags
 for %%A in (%*) do (
     if "%%A"=="--showComponents" set showComponents=1
+    if "%%A"=="--dedupePDF" set dedupePDF=1
+    if "%%A"=="--dedupeSweep" set dedupeSweep=--dedupeSweep
+    if "%%A"=="--dedupeDryRun" set dedupeDryRun=--dedupeDryRun
+    if "%%A"=="--dedupeDelete" set dedupeDelete=--dedupeDelete
+    if "%%A"=="--dedupePreferIncoming" set dedupePreferIncoming=--dedupePreferIncoming
+    if "%%A"=="--dedupeStructural" set dedupeStructural=--dedupeStructural
     if "%%A"=="--renameFile" set renameFile=1
     if "%%A"=="--compressPDF" set compressPDF=1
     if "%%A"=="--compressDryRun" set compressDryRun=--compressDryRun
@@ -101,6 +118,16 @@ if %showComponents%==1 (
     word_tokenizer --displayHelp
     if %errorlevel% neq 0 (
         echo Error executing Show Components.
+        goto end
+    )
+)
+
+rem Deduplicate PDFs by content - before Rename File, while incoming files still
+rem carry their download names and so are still distinguishable from the library.
+if %dedupePDF%==1 (
+    python src/main.py --dedupePDF %dedupeSweep% %dedupeDryRun% %dedupeDelete% %dedupePreferIncoming% %dedupeStructural%
+    if %errorlevel% neq 0 (
+        echo Error deduplicating PDFs.
         goto end
     )
 )

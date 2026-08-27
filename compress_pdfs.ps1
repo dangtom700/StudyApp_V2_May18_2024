@@ -23,6 +23,11 @@
     comparison and item_matrix and orphan the lot. Replacing each file at its own
     path keeps every key valid. The stem is never changed for the same reason.
 
+    Files are processed largest first. The parallel loop pulls from the queue in
+    order, so that ordering is the schedule: it keeps every worker busy to the end
+    of the run instead of leaving one huge file for last, and it reclaims the most
+    space soonest if the run is stopped part way.
+
     Run order:  --renameFile  ->  this script  ->  --pdfToText  ->  ...
 
 .NOTES
@@ -30,6 +35,10 @@
     compares page counts with PyMuPDF, which catches a readable-but-truncated
     output that the trailer check would accept -- prefer it for a first pass over
     an unfamiliar library.
+
+    src/modules/compress_pdf.py still walks its queue in name order. The two
+    produce identical results either way -- the ledger is keyed on filename, not
+    position -- so they remain interchangeable and resumable across each other.
 
 .EXAMPLE
     .\compress_pdfs.ps1                             # compress READING_LIST_PATH
@@ -53,7 +62,7 @@ $ErrorActionPreference = 'Stop'
 $TmpSuffix       = '.gstmp'   # deliberately not *.pdf -- other stages glob for that
 $MinOutputBytes  = 1024       # anything smaller than this is not a real PDF
 $GsTimeoutMs     = 1800 * 1000
-$DefaultJobs     = 3          # this runs for hours in the background; leave the box usable
+$DefaultJobs     = 5          # this runs for hours in the background; leave the box usable
 $LogFields       = @('timestamp','file','status','in_bytes','out_bytes','pct_saved','preset','pages')
 
 # --- Helpers -----------------------------------------------------------------
@@ -187,12 +196,23 @@ if (Test-Path -LiteralPath $legacyDir -PathType Container) {
     Write-Warning ("Leftover folder from the old copy-to-a-folder version: {0} ({1:N1} GB). This script writes in place and never reads or updates it -- delete it when you are ready." -f $legacyDir, ($legacySize/1GB))
 }
 
-$pdfs   = Get-ChildItem -LiteralPath $Source -Filter *.pdf -File | Sort-Object Name
+$pdfs   = Get-ChildItem -LiteralPath $Source -Filter *.pdf -File
 $ledger = if ($Force) { @{} } else { Import-Ledger $LogPath }
 
 # Size still matching what we logged means this is the file we produced; a
 # different size means it was replaced on disk, so compress it again.
-$todo    = @($pdfs | Where-Object { -not ($ledger.ContainsKey($_.Name) -and $_.Length -eq $ledger[$_.Name]) })
+#
+# Largest first. ForEach-Object -Parallel pulls from this pipeline in order, so
+# the sort IS the schedule, and longest-job-first is the standard greedy answer
+# to packing uneven work onto a fixed number of workers: starting the 2 GB atlas
+# last leaves $Jobs-1 cores idle for however long it takes, while starting it
+# first lets the small files fill in around it. It also front-loads the savings,
+# so a run stopped half way has already reclaimed most of the recoverable space.
+# Name breaks ties only to keep the order reproducible between runs.
+$todo    = @($pdfs |
+    Where-Object { -not ($ledger.ContainsKey($_.Name) -and $_.Length -eq $ledger[$_.Name]) } |
+    Sort-Object -Property @{Expression = 'Length'; Descending = $true},
+                          @{Expression = 'Name';   Descending = $false})
 $skipped = $pdfs.Count - $todo.Count
 $totalIn = ($todo | Measure-Object Length -Sum).Sum
 
@@ -201,14 +221,20 @@ Write-Host ("Source      : {0}   (in place)" -f $Source)
 Write-Host ("Preset      : /{0}   Parallel jobs: {1}" -f $Preset, $Jobs)
 Write-Host ("Verify      : %PDF header + %%EOF trailer  (run --compressPDF for page-count verification)")
 Write-Host ("To process  : {0} files, {1:N1} GB  ({2} already compressed, skipped)" -f $todo.Count, ($totalIn/1GB), $skipped)
+if ($todo.Count) {
+    Write-Host ("Order       : largest first  ({0:N1} MB -> {1:N1} MB)" -f ($todo[0].Length/1MB), ($todo[-1].Length/1MB))
+}
 
-# In place needs room for one temp file per job, not for the whole set.
+# In place needs room for one temp file per job, not for the whole set. Because
+# the queue is largest-first, the peak is not a hypothetical worst case: the first
+# $Jobs files ARE the $Jobs biggest, so if this run is going to run out of disk it
+# does so in the first few minutes rather than three hours in.
 try {
     $free    = [System.IO.DriveInfo]::new($Source).AvailableFreeSpace
-    $largest = ($todo | Measure-Object Length -Maximum).Maximum
+    $peak    = ($todo | Select-Object -First $Jobs | Measure-Object Length -Sum).Sum
     Write-Host ("Free space  : {0:N1} GB" -f ($free/1GB))
-    if ($largest -and $free -lt ($largest * $Jobs)) {
-        Write-Warning ("Free space ({0:N1} GB) is tight for {1} parallel temp files of up to {2:N1} GB each." -f ($free/1GB), $Jobs, ($largest/1GB))
+    if ($peak -and $free -lt $peak) {
+        Write-Warning ("Free space ({0:N1} GB) is below the {1:N1} GB the first {2} files need as temp copies, and those run first." -f ($free/1GB), ($peak/1GB), $Jobs)
     }
 } catch {}
 

@@ -24,6 +24,11 @@ log_file_path = os.path.join(data_folder, "process.log")
 # Ledger of every PDF the --compressPDF stage has touched. It is what stops a file
 # being compressed twice; deleting it makes the next run re-compress the library.
 compression_log_path = os.path.join(data_folder, "compression_log.csv")
+# Content fingerprints of the library, so --dedupePDF can spot a re-download whose
+# copy on disk has already been compressed (bytes differ, text does not). The cache
+# is keyed on file size + mtime and is safe to delete -- it just gets rebuilt.
+dedupe_cache_path = os.path.join(data_folder, "dedupe_fingerprints.json")
+dedupe_log_path = os.path.join(data_folder, "dedupe_log.csv")
 buffer_json_path = os.path.join(data_folder, "buffer.json")
 dataset_path = os.path.join(data_folder, "dataset.txt")
 
