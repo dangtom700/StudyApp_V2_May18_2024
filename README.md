@@ -140,7 +140,7 @@ python src/main.py --compressPDF --compressPreset screen --compressJobs 8
 
 Why in place rather than an output folder:
 
-- `file_info.id` is an md5 of each file's **absolute path** (`create_unique_id` in `src/lib/env.hpp`'s companion `updateDB.hpp`), and `book_catalog` joins everything through the file's stem. Compressing into a second folder and repointing `READING_LIST_PATH` would re-key `file_token`, `tags_full`, `comparison` and `item_matrix` and orphan the lot. Replacing each file at its own path keeps every key valid — no downstream stage changes, nothing to re-index.
+- `file_info.id` is an md5 of each file's **stem** (`create_unique_id` in `src/lib/updateDB.hpp`), and `book_catalog` joins everything through that same stem. The library can therefore be moved or `READING_LIST_PATH` edited freely — but **renaming** a book re-keys `file_token`, `tags`, `tags_full`, `comparison` and `item_matrix` and orphans the lot. Compressing each file under its existing name keeps every key valid; `python src/main.py --dbDoctor` reports it if one ever does not.
 - **Run it after `--renameFile`, before `--pdfToText`.** `--renameFile` names each book `<sha256 of its content>.pdf`; renaming first records a new download under the hash of the file as downloaded, which is what makes duplicate detection work later. Compression deliberately does *not* re-hash or rename afterwards — the stem is the library's primary key, not a live checksum.
 
 Safety properties, since there is no second copy to fall back on:

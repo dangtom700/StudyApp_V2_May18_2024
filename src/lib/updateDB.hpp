@@ -69,15 +69,37 @@ namespace UPDATE_INFO {
         return oss.str();
     }
     
+    /**
+     * @brief The stable identity of a document: md5 of its filename stem.
+     *
+     * Every derived table keys off 'title_' || file_info.id, so whatever this hashes
+     * is what the whole pipeline is joined on.
+     *
+     * It used to hash the file's ABSOLUTE PATH. That made the key depend on where the
+     * library happened to sit: moving it or editing READING_LIST_PATH re-keyed
+     * file_info and silently orphaned every row in file_token, tags, tags_full,
+     * comparison, item_matrix and relation_distance_filtered, with no error anywhere.
+     * It is also what forced --compressPDF to rewrite each PDF at its own path and
+     * --dedupePDF to always keep the library copy.
+     *
+     * The stem is already the sha256 of the file's contents (extract_text.rename_files),
+     * so hashing it gives a key that is content-derived and path-independent: the
+     * library can move anywhere. The one remaining rule is that a file's NAME must not
+     * change once it has been recorded -- renaming still re-keys it.
+     *
+     * md5 of the stem, not the stem itself, keeps ids at 32 hex characters, which is
+     * what every existing title_<id> value, index and consumer already expects.
+     * scripts/migrate_ids.py reproduces this exactly; the two must not diverge.
+     */
     std::string create_unique_id(const std::filesystem::path& path) {
         if (!std::filesystem::exists(path)) {
             throw std::runtime_error("File does not exist: " + path.string());
         }
-        
-        std::ostringstream input_stream;
-        input_stream << "XOX - Path Name: " << path.u8string() << " End of File Path.";
-    
-        return md5_hash(input_stream.str());
+
+        // u8string() rather than string(): the hash must be over the same UTF-8 bytes
+        // on every platform, and it is what scripts/migrate_ids.py hashes in Python.
+        // In C++17 this returns a std::string; in C++20 it would need converting.
+        return md5_hash(path.stem().u8string());
     }
 
     /**

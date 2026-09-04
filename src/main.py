@@ -1,4 +1,6 @@
 import argparse
+import sys
+from pathlib import Path
 from random import random
 import modules.path as path
 import modules.word_freq as word_freq
@@ -44,6 +46,7 @@ def app():
     parser.add_argument("--expandTopicSeeds", action= 'store_true', help="With --topicTokenize, grow the topic list with ~50 Datamuse related words (off by default)")
     parser.add_argument("--buildCatalog", action= 'store_true', help="Build the book_catalog table + export catalog.csv/json")
     parser.add_argument("--catalogStats", action= 'store_true', help="Print book_catalog coverage without rebuilding it")
+    parser.add_argument("--dbDoctor", action= 'store_true', help="Check the database against config/schema.sql and report drift, orphaned rows and stale ids")
     parser.add_argument("--noProbe", action= 'store_true', help="With --buildCatalog, skip reading page counts from the PDFs (fast metadata-only rebuild)")
 
     args = parser.parse_args()
@@ -143,5 +146,14 @@ def app():
     if args.catalogStats:
         catalog.catalog_stats()
 
+    # Read-only health check. Lives in scripts/ because it is also useful standalone,
+    # before or after a migration, without going through the pipeline entry point.
+    if args.dbDoctor:
+        sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "scripts"))
+        import check_schema
+        return 1 if check_schema.doctor() else 0
+
+    return 0
+
 if __name__ == "__main__":
-    app()
+    raise SystemExit(app())

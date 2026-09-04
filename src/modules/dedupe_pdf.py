@@ -42,10 +42,11 @@ no text at all.
 Which copy is kept
 ------------------
 Always the one already in the library, under its existing stem. file_info.id is
-an md5 of the absolute path and modules/catalog.py joins everything through the
-stem, so re-keying the survivor would orphan file_token, tags_full, comparison
-and item_matrix -- the same constraint that forces compression to happen in
-place.
+md5 of that stem and modules/catalog.py joins everything through it, so renaming
+the survivor would orphan file_token, tags, tags_full, comparison and
+item_matrix -- the same constraint that keeps compression under each file's
+existing name. Where the library sits does not matter; what it calls each book
+does.
 
 The incoming file's original name is recorded in _original_names.json *before*
 the file is touched, which is what keeps catalog.py's download_copies a measured

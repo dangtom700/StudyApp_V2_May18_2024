@@ -10,7 +10,7 @@ except ImportError:
 # __file__ gets the location of THIS script (src/modules/path.py).
 module_dir = os.path.dirname(os.path.abspath(__file__)) # src/modules
 src_dir = os.path.dirname(module_dir) # src
-StudyApp_root_path = os.path.dirname(src_dir) + "\\" # project root with trailing slash
+StudyApp_root_path = os.path.dirname(src_dir) # project root
 data_folder = os.path.join(StudyApp_root_path, "data")
 
 pdf_path    = os.getenv("READING_LIST_PATH", "D:\\READING LIST")
@@ -19,6 +19,10 @@ dest_data   = os.getenv("REFINED_DATA_PATH",  os.path.join(data_folder, "refined
 
 chunk_database_path = os.path.join(data_folder, "pdf_text.db")
 token_json_path = os.path.join(data_folder, "token_json")
+
+# Canonical DDL for every pipeline table, shared with the C++ side
+# (src/lib/schema.hpp reads the same file). See src/modules/schema.py.
+schema_sql_path = os.path.join(StudyApp_root_path, "config", "schema.sql")
 
 log_file_path = os.path.join(data_folder, "process.log")
 # Ledger of every PDF the --compressPDF stage has touched. It is what stops a file

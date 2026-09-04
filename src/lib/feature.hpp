@@ -22,6 +22,7 @@ using json = nlohmann::json;
 
 #include "utilities.hpp"
 #include "env.hpp"
+#include "schema.hpp"
 #include "transform.hpp"
 #include "updateDB.hpp"
 #include "recommend.hpp"
@@ -39,44 +40,46 @@ namespace FEATURE
      */
     void execute_sql(sqlite3 *db, const std::string &sql)
     {
-        char *error_message = nullptr;
-        int exit = sqlite3_exec(db, sql.c_str(), nullptr, nullptr, &error_message);
-        if (exit != SQLITE_OK)
-        {
-            std::cerr << "Error executing SQL: " << error_message << std::endl
-                      << "SQL: " << sql << std::endl;
-            sqlite3_free(error_message);
-            throw std::runtime_error("SQL execution failed");
-        }
+        SQL::execute(db, sql);
     }
 
     /**
-     * Create one of this pipeline's tables, optionally rebuilding it from scratch.
+     * Prepare the tables a stage owns.
      *
-     * Every stage here follows the same contract: reset_table means "start this
-     * stage's output over", otherwise the table is kept and the stage resumes into
-     * it. Both halves belong together -- a stage that drops without creating, or
-     * that drops one table and creates another, only shows up as a failure several
-     * statements later. Routing every table through one call keeps the pair honest.
-     *
-     * Derived tables that are always rebuilt (the cutoff analysis) pass
-     * reset_table = true and a CREATE TABLE IF NOT EXISTS ... AS SELECT body.
+     * The DDL itself lives in config/schema.sql -- see src/lib/schema.hpp. This
+     * only expresses the stage's intent: reset_table means "start this stage's
+     * output over", otherwise the tables are kept and the stage resumes into them.
      *
      * @param db          Open database handle.
-     * @param table_name  The table create_sql defines; dropped first when reset_table.
-     * @param create_sql  A complete CREATE TABLE IF NOT EXISTS statement.
-     * @param reset_table If true, drop the existing table before creating it.
+     * @param owned       The tables this stage writes; dropped when reset_table.
+     * @param reset_table If true, drop them before recreating from the schema.
+     *
+     * @throws std::runtime_error if the schema cannot be applied.
+     */
+    void prepare_tables(sqlite3 *db,
+                        std::initializer_list<std::string> owned,
+                        const bool reset_table = false)
+    {
+        if (reset_table)
+            SCHEMA::reset(db, owned);
+        else
+            SCHEMA::apply(db);
+    }
+
+    /**
+     * Rebuild a derived table from a query.
+     *
+     * Only for the --runCutoffAnalysis snapshots: their columns come from their
+     * SELECT rather than from a declaration, so config/schema.sql cannot hold
+     * them and every run recomputes them from scratch.
      *
      * @throws std::runtime_error if either statement fails.
      */
-    void ensure_table(sqlite3 *db,
-                      const std::string &table_name,
-                      const std::string &create_sql,
-                      const bool reset_table = false)
+    void rebuild_derived(sqlite3 *db,
+                         const std::string &table_name,
+                         const std::string &create_sql)
     {
-        if (reset_table)
-            execute_sql(db, "DROP TABLE IF EXISTS " + table_name + ";");
-
+        execute_sql(db, "DROP TABLE IF EXISTS " + table_name + ";");
         execute_sql(db, create_sql);
     }
 
@@ -136,33 +139,9 @@ namespace FEATURE
             // Disable synchronous mode to speed up inserts (optional)
             execute_sql(db, "PRAGMA synchronous = OFF;");
 
-            // Dropped and recreated when reset_table, otherwise reused as-is
-            ensure_table(db, "file_token", R"(
-                CREATE TABLE IF NOT EXISTS file_token (
-                    file_name           TEXT    NOT NULL PRIMARY KEY,
-                    total_tokens        INTEGER NOT NULL DEFAULT 0,
-                    unique_tokens       INTEGER NOT NULL DEFAULT 0,
-                    relational_distance REAL    NOT NULL DEFAULT 0.0
-                ) WITHOUT ROWID;
-            )",
-                         reset_table);
-
-            ensure_table(db, "relation_distance_filtered", R"(
-                CREATE TABLE IF NOT EXISTS relation_distance_filtered (
-                    file_name           TEXT    NOT NULL,
-                    token               TEXT    NOT NULL,
-                    frequency           INTEGER NOT NULL DEFAULT 0,
-                    relational_distance REAL    NOT NULL DEFAULT 0.0,
-                    PRIMARY KEY (file_name, token)
-                ) WITHOUT ROWID;
-            )",
-                         reset_table);
-
-            // // Covering index: token -> (file_name, relational_distance) lookup
-            // // used by processPrompt and load_related_tokens JOIN.
-            // execute_sql(db,
-            //             "CREATE INDEX IF NOT EXISTS idx_rd_token_covering "
-            //             "ON relation_distance(token, file_name, relational_distance);");
+            // This stage reads JSON produced by --processWordFreq, not the database,
+            // so it has no table inputs to check -- only its own outputs to prepare.
+            prepare_tables(db, {"file_token", "relation_distance_filtered"}, reset_table);
 
             // Hoist prepared statements OUTSIDE the loop.
             // Re-calling sqlite3_prepare_v2 on every iteration re-compiles the query
@@ -259,9 +238,12 @@ namespace FEATURE
             sqlite3_close(db);
             std::cout << "Computing relational distance data finished" << std::endl;
         }
-        catch (const std::exception &e)
+        catch (const std::exception &)
         {
-            std::cerr << "Error: " << e.what() << std::endl;
+            // Re-thrown so main() names the stage and exits non-zero. Swallowing it here
+            // meant a SCHEMA::require failure printed an error and still finished with
+            // "Finished: ..." and status 0. main() prints the message, so none here.
+            throw;
         }
     }
 
@@ -298,26 +280,47 @@ namespace FEATURE
         // Disable synchronous mode for faster inserts
         execute_sql(db, "PRAGMA synchronous = OFF;");
 
-        // WITHOUT ROWID: file_name is the PK, making point-lookups single B-tree ops.
-        // UNIQUE(id) enforces id uniqueness used by collect_unique_id().
-        ensure_table(db, "file_info", R"(
-            CREATE TABLE IF NOT EXISTS file_info (
-                id          TEXT    NOT NULL UNIQUE,
-                file_name   TEXT    NOT NULL PRIMARY KEY,
-                file_path   TEXT    NOT NULL DEFAULT '',
-                epoch_time  INTEGER NOT NULL DEFAULT 0,
-                chunk_count INTEGER NOT NULL DEFAULT 0
-            );
-        )",
-                     reset_table);
+        prepare_tables(db, {"file_info"}, reset_table);
 
-        // INSERT OR IGNORE handles uniqueness at DB level — no separate SELECT check needed.
+        // chunk_count is read straight out of pdf_chunks below, so a run before the
+        // text is in the database would record 0 for every file -- and every
+        // downstream stage filters on chunk_count > 0.
+        SCHEMA::require(db, {{"pdf_chunks", "python src/main.py --extractText"}},
+                        "--updateDatabaseInformation");
+
+        // Upsert rather than INSERT OR IGNORE: file_name (the content hash stem) is the
+        // identity, and the rest are facts about the file as it is now. Ignoring a
+        // conflict froze file_path, epoch_time and chunk_count at whatever the first run
+        // saw -- a file first seen before its text was extracted kept chunk_count = 0 and
+        // stayed invisible to every later stage, silently and permanently.
         const std::string insert_sql = R"(
-            INSERT OR IGNORE INTO file_info (id, file_name, file_path, epoch_time, chunk_count)
-            VALUES (?, ?, ?, ?, ?);
+            INSERT INTO file_info (id, file_name, file_path, epoch_time, chunk_count)
+            VALUES (?, ?, ?, ?, ?)
+            ON CONFLICT(file_name) DO UPDATE SET
+                id          = excluded.id,
+                file_path   = excluded.file_path,
+                epoch_time  = excluded.epoch_time,
+                chunk_count = excluded.chunk_count;
         )";
         sqlite3_stmt *stmt;
         sqlite3_prepare_v2(db, insert_sql.c_str(), -1, &stmt, nullptr);
+
+        // Which files were already recorded, so the log can still distinguish a new book
+        // from a refreshed one. sqlite3_changes() cannot: an upsert always reports a change.
+        std::unordered_set<std::string> known_files;
+        {
+            sqlite3_stmt *known_stmt = prepareStatement(db, "SELECT file_name FROM file_info;", "");
+            if (known_stmt)
+            {
+                while (sqlite3_step(known_stmt) == SQLITE_ROW)
+                {
+                    const unsigned char *name = sqlite3_column_text(known_stmt, 0);
+                    if (name)
+                        known_files.insert(reinterpret_cast<const char *>(name));
+                }
+                sqlite3_finalize(known_stmt);
+            }
+        }
 
         // Start a transaction for batch processing
         execute_sql(db, "BEGIN TRANSACTION;");
@@ -326,13 +329,14 @@ namespace FEATURE
         for (const std::filesystem::path &file : filtered_files)
         {
             // Process the file
+            const std::string stem = file.stem().generic_string();
             DataInfo entry = {
-                .file_name = file.stem().generic_string(),
+                .file_name = stem,
                 .file_path = file.generic_string(),
                 .epoch_time = UPDATE_INFO::get_epoch_time(file),
-                .chunk_count = UPDATE_INFO::count_chunk_for_each_title(db, entry.file_name + ".txt")};
+                .chunk_count = UPDATE_INFO::count_chunk_for_each_title(db, stem + ".txt")};
 
-            entry.id = UPDATE_INFO::create_unique_id(entry.file_path);
+            entry.id = UPDATE_INFO::create_unique_id(file);
 
             // Bind the values to the statement
             sqlite3_bind_text(stmt, 1, entry.id.c_str(), -1, SQLITE_STATIC);
@@ -346,24 +350,16 @@ namespace FEATURE
 
             sqlite3_reset(stmt);
 
-            // sqlite3_changes() == 0 means the row was a duplicate and was skipped
-            const bool inserted = (sqlite3_changes(db) > 0);
-            if (inserted)
+            if (trigger_once && is_dumped)
             {
-                if (trigger_once && is_dumped)
-                {
-                    UTILITIES_HPP::Basic::reset_file_info_dumper(ENV_HPP::data_info_path);
-                    trigger_once = false;
-                }
-                if (is_dumped)
-                    UTILITIES_HPP::Basic::data_info_dump(entry);
-                if (show_progress)
-                    std::cout << "Processed: " << file << std::endl;
+                UTILITIES_HPP::Basic::reset_file_info_dumper(ENV_HPP::data_info_path);
+                trigger_once = false;
             }
-            else if (show_progress)
-            {
-                std::cout << "Skipped (file_name exists): " << entry.file_name << std::endl;
-            }
+            if (is_dumped)
+                UTILITIES_HPP::Basic::data_info_dump(entry);
+            if (show_progress)
+                std::cout << (known_files.count(entry.file_name) ? "Refreshed: " : "Processed: ")
+                          << file << std::endl;
         }
 
         // Finalize the prepared statement
@@ -413,6 +409,11 @@ namespace FEATURE
                 std::cerr << "Error opening database: " << sqlite3_errmsg(db) << std::endl;
                 return;
             }
+
+            SCHEMA::require(db,
+                            {{"file_info", "word_tokenizer --updateDatabaseInformation"},
+                             {"relation_distance_filtered", "word_tokenizer --computeRelationalDistance"}},
+                            "--processPrompt");
 
             // SQLite PRAGMAs
             sqlite3_exec(db, "PRAGMA journal_mode=WAL;", nullptr, nullptr, nullptr);
@@ -538,9 +539,12 @@ namespace FEATURE
                             << "-----------------------------------------------------------------\n";
             }
         }
-        catch (const std::exception &e)
+        catch (const std::exception &)
         {
-            std::cerr << "Error: " << e.what() << std::endl;
+            // Re-thrown so main() names the stage and exits non-zero. Swallowing it here
+            // meant a SCHEMA::require failure printed an error and still finished with
+            // "Finished: ..." and status 0. main() prints the message, so none here.
+            throw;
         }
     }
 
@@ -670,17 +674,12 @@ namespace FEATURE
         execute_sql(db, "PRAGMA journal_mode=WAL;");
         execute_sql(db, "PRAGMA synchronous = OFF;");
 
-        // WITHOUT ROWID: word IS the PK B-tree key, so WHERE word=? is a single
-        // B-tree lookup — no separate secondary index is needed.
         // This stage has no reset flag: it always accumulates into the existing table.
-        ensure_table(db, "tf_idf", R"(
-            CREATE TABLE IF NOT EXISTS tf_idf (
-                word      TEXT    NOT NULL PRIMARY KEY,
-                freq      INTEGER NOT NULL DEFAULT 0,
-                doc_count INTEGER NOT NULL DEFAULT 0,
-                tf_idf    REAL    NOT NULL DEFAULT 0.0
-            ) WITHOUT ROWID;
-        )");
+        prepare_tables(db, {"tf_idf"});
+
+        SCHEMA::require(db,
+                        {{"relation_distance_filtered", "word_tokenizer --computeRelationalDistance"}},
+                        "--computeTFIDF");
 
         std::unordered_map<std::string, int> global_freq;
 
@@ -851,15 +850,13 @@ namespace FEATURE
             clear_file.close();
         }
 
-        ensure_table(db, "comparison", R"(
-            CREATE TABLE IF NOT EXISTS comparison (
-                source_id   TEXT NOT NULL,
-                target_id   TEXT NOT NULL,
-                distance    REAL NOT NULL DEFAULT 0.0 CHECK(distance > 0.0),
-                PRIMARY KEY (source_id, target_id)
-            ) WITHOUT ROWID;
-        )",
-                     reset_table);
+        prepare_tables(db, {"comparison"}, reset_table);
+
+        SCHEMA::require(db,
+                        {{"file_info", "word_tokenizer --updateDatabaseInformation"},
+                         {"relation_distance_filtered", "word_tokenizer --computeRelationalDistance"},
+                         {"tf_idf", "word_tokenizer --computeTFIDF"}},
+                        "--mappingItemMatrix");
 
         std::map<std::string, std::string> unique_ids = RECOMMEND::collect_unique_id(db);
         std::map<std::string, std::string> processing_ids = RECOMMEND::collect_processing_id(db, reset_table, unique_ids, "SELECT DISTINCT source_id FROM comparison");
@@ -951,15 +948,14 @@ namespace FEATURE
             execute_sql(db, "PRAGMA synchronous=OFF;");
             execute_sql(db, "PRAGMA temp_store=MEMORY;");
 
-            ensure_table(db, "tags_full", R"(
-                CREATE TABLE IF NOT EXISTS tags_full (
-                    ID       TEXT NOT NULL,
-                    distance REAL NOT NULL DEFAULT 0.0 CHECK(distance > 0.0),
-                    topic    TEXT NOT NULL,
-                    PRIMARY KEY (ID, topic)
-                ) WITHOUT ROWID;
-            )",
-                         reset_table);
+            prepare_tables(db, {"tags_full"}, reset_table);
+
+            SCHEMA::require(db,
+                            {{"topic_token", "python src/main.py --topicTokenize"},
+                             {"file_info", "word_tokenizer --updateDatabaseInformation"},
+                             {"relation_distance_filtered", "word_tokenizer --computeRelationalDistance"},
+                             {"tf_idf", "word_tokenizer --computeTFIDF"}},
+                            "--labelTopics");
 
             std::map<std::string, std::string> unique_ids = RECOMMEND::collect_unique_id(db);
             std::vector<std::string> unique_topics = RECOMMEND::collect_unique_topic(db);
@@ -1037,11 +1033,14 @@ namespace FEATURE
             std::ofstream clear_buffer(ENV_HPP::processed_topics_buffer.string(), std::ofstream::trunc);
             clear_buffer.close();
         }
-        catch (const std::exception &e)
+        catch (const std::exception &)
         {
-            std::cerr << "Error: " << e.what() << std::endl;
+            // Re-thrown so main() names the stage and exits non-zero. Swallowing it here
+            // meant a SCHEMA::require failure printed an error and still finished with
+            // "Finished: ..." and status 0. main() prints the message, so none here.
             if (db)
                 sqlite3_close(db);
+            throw;
         }
     }
 
@@ -1060,15 +1059,10 @@ namespace FEATURE
         execute_sql(db, "PRAGMA synchronous=OFF;");
         execute_sql(db, "PRAGMA temp_store=MEMORY;");
 
-        ensure_table(db, "topic_similarity", R"(
-            CREATE TABLE IF NOT EXISTS topic_similarity (
-                source_topic TEXT NOT NULL,
-                target_topic TEXT NOT NULL,
-                distance     REAL NOT NULL DEFAULT 0.0 CHECK(distance > 0.0),
-                PRIMARY KEY (source_topic, target_topic)
-            ) WITHOUT ROWID;
-        )",
-                     reset_table);
+        prepare_tables(db, {"topic_similarity"}, reset_table);
+
+        SCHEMA::require(db, {{"topic_token", "python src/main.py --topicTokenize"}},
+                        "--topicSimilarity");
 
         std::vector<std::string> unique_topics = RECOMMEND::collect_unique_topic(db);
 
@@ -1180,45 +1174,20 @@ namespace FEATURE
         execute_sql(db, "PRAGMA temp_store=MEMORY;");
         execute_sql(db, "PRAGMA cache_size=-200000;"); // ~200MB cache if available
 
-        // -------------------------------------------------
-        // Create optimized tags table
-        // -------------------------------------------------
-        ensure_table(db, "tags", R"(
-            CREATE TABLE IF NOT EXISTS tags (
-                ID       TEXT NOT NULL,
-                distance REAL NOT NULL CHECK(distance > 0 AND distance <= 1),
-                topic    TEXT NOT NULL,
-                degree   INTEGER NOT NULL CHECK(degree >= 1),
-                PRIMARY KEY (ID, topic)
-            ) WITHOUT ROWID;
-        )",
-                     reset_table);
+        // tags is this stage's own output; idx_tags_degree and idx_cmp_target -- the two
+        // indexes expand_degree relies on -- come from config/schema.sql with it.
+        prepare_tables(db, {"tags"}, reset_table);
 
-        // -------------------------------------------------
-        // Required indexes
-        // -------------------------------------------------
-        execute_sql(db,
-                    "CREATE INDEX IF NOT EXISTS idx_tags_degree "
-                    "ON tags(degree);");
-
-        // expand_degree joins item_matrix on (source_id = tags.ID OR target_id = tags.ID).
-        // item_matrix is WITHOUT ROWID with PRIMARY KEY (source_id, target_id), so the
-        // source side is already served by the table's own b-tree; only the target side
-        // needs an index. Carrying distance in it also covers the `im.distance >= ?`
-        // filter without a table lookup.
-        execute_sql(db,
-                    "CREATE INDEX IF NOT EXISTS idx_im_target "
-                    "ON item_matrix(target_id, distance);");
-
-        execute_sql(db,
-                    "CREATE INDEX IF NOT EXISTS idx_tf_id_topic "
-                    "ON tags_full(ID, topic);");
+        SCHEMA::require(db,
+                        {{"tags_full", "word_tokenizer --labelTopics"},
+                         {"comparison", "word_tokenizer --mappingItemMatrix"}},
+                        "--expandTopics");
 
         std::cout << "Database setup completed. Starting iterative topic expansion..." << std::endl;
         // -------------------------------------------------
         // Degree 1 (seed)
         // -------------------------------------------------
-        const char *insert_degree1_sql = R"(
+        const std::string insert_degree1_sql = R"(
             INSERT OR IGNORE INTO tags (ID, distance, topic, degree)
             SELECT ID, distance, topic, 1
             FROM tags_full
@@ -1226,15 +1195,10 @@ namespace FEATURE
         )";
 
         execute_sql(db, "BEGIN;");
-
-        sqlite3_stmt *stmt = nullptr;
-        sqlite3_prepare_v2(db, insert_degree1_sql, -1, &stmt, nullptr);
-        sqlite3_bind_double(stmt, 1, threshold_degree1);
-        sqlite3_step(stmt);
-        sqlite3_finalize(stmt);
-
+        const int seeded = SQL::execute_prepared(db, insert_degree1_sql, [&](sqlite3_stmt *stmt)
+                                                 { sqlite3_bind_double(stmt, 1, threshold_degree1); });
         execute_sql(db, "COMMIT;");
-        std::cout << "Completed expanding to degree 1 (seed)" << std::endl;
+        std::cout << "Completed expanding to degree 1 (seed): " << seeded << " tags" << std::endl;
 
         // -------------------------------------------------
         // Iterative Expansion
@@ -1242,10 +1206,11 @@ namespace FEATURE
         for (int degree = 1; degree <= max_degree; ++degree)
         {
             execute_sql(db, "BEGIN;");
-            RECOMMEND::expand_degree(db, degree, degree + 1, threshold);
+            const int added = RECOMMEND::expand_degree(db, degree, degree + 1, threshold);
             execute_sql(db, "COMMIT;");
 
-            std::cout << "Completed expanding to degree " << degree + 1 << std::endl;
+            std::cout << "Completed expanding to degree " << degree + 1
+                      << ": " << added << " tags" << std::endl;
         }
 
         sqlite3_close(db);
@@ -1269,82 +1234,84 @@ namespace FEATURE
             PRAGMA cache_size=-200000;
         )");
 
-        // STEP 1: Indexes (optimized for your workload)
+        SCHEMA::require(db,
+                        {{"relation_distance_filtered", "word_tokenizer --computeRelationalDistance"},
+                         {"tf_idf", "word_tokenizer --computeTFIDF"}},
+                        "--runCutoffAnalysis");
+
+        // STEP 1: Indexes. Scoped to this stage rather than declared in
+        // config/schema.sql: they exist only to group ~1.9M rows four ways, and every
+        // other stage would pay to maintain them. STEP 8 drops them again.
+        // idx_rd_file_freq is not among them -- the table's own PRIMARY KEY
+        // (file_name, token) already orders by file_name.
         std::cout << "[STEP 1] Creating indexes...\n";
         execute_sql(db, R"(
-            CREATE INDEX IF NOT EXISTS idx_rd_token_freq 
+            CREATE INDEX IF NOT EXISTS idx_rd_token_freq
             ON relation_distance_filtered(token, frequency);
 
-            CREATE INDEX IF NOT EXISTS idx_rd_file_freq 
-            ON relation_distance_filtered(file_name, frequency);
-
-            CREATE INDEX IF NOT EXISTS idx_rd_freq 
+            CREATE INDEX IF NOT EXISTS idx_rd_freq
             ON relation_distance_filtered(frequency);
 
-            CREATE INDEX IF NOT EXISTS idx_tfidf_freq 
+            CREATE INDEX IF NOT EXISTS idx_tfidf_freq
             ON tf_idf(freq);
         )");
 
         execute_sql(db, "BEGIN;");
 
-        // STEPS 2-7 are derived tables: each one is a snapshot of the tables above it,
-        // so every run rebuilds them from scratch -- hence reset = true throughout.
+        // STEPS 2-7 are derived tables: each is a snapshot of the tables above it, so
+        // every run rebuilds them from scratch. Their columns come from their SELECT,
+        // which is why config/schema.sql cannot declare them.
 
         // STEP 2: Frequency distribution (direct)
         std::cout << "[STEP 2] Building freq_dist...\n";
-        ensure_table(db, "freq_dist", R"(
+        rebuild_derived(db, "freq_dist", R"(
             CREATE TABLE IF NOT EXISTS freq_dist AS
             SELECT frequency AS freq, COUNT(*) AS cnt, SUM(frequency) AS total_freq
             FROM relation_distance_filtered
             GROUP BY frequency;
-        )",
-                     true);
+        )");
 
         // STEP 3: Token distribution
         std::cout << "[STEP 3] Building token_dist...\n";
-        ensure_table(db, "token_dist", R"(
+        rebuild_derived(db, "token_dist", R"(
             CREATE TABLE IF NOT EXISTS token_dist AS
             SELECT MAX(frequency) AS freq, COUNT(*) AS cnt
             FROM relation_distance_filtered
             GROUP BY token;
-        )",
-                     true);
+        )");
 
         // STEP 4: File distribution
         std::cout << "[STEP 4] Building file_dist...\n";
-        ensure_table(db, "file_dist", R"(
+        rebuild_derived(db, "file_dist", R"(
             CREATE TABLE IF NOT EXISTS file_dist AS
             SELECT MAX(frequency) AS freq, COUNT(*) AS cnt
             FROM relation_distance_filtered
             GROUP BY file_name;
-        )",
-                     true);
+        )");
 
         // STEP 5: Word distribution (simplified due to PK(word))
         std::cout << "[STEP 5] Building word_dist...\n";
-        ensure_table(db, "word_dist", R"(
+        rebuild_derived(db, "word_dist", R"(
             CREATE TABLE IF NOT EXISTS word_dist AS
             SELECT freq, COUNT(*) AS cnt
             FROM tf_idf
             GROUP BY freq;
-        )",
-                     true);
+        )");
 
         // STEP 6: Totals
         std::cout << "[STEP 6] Computing totals...\n";
-        ensure_table(db, "totals", R"(
+        rebuild_derived(db, "totals", R"(
             CREATE TABLE IF NOT EXISTS totals AS
             SELECT
                 (SELECT SUM(total_freq) FROM freq_dist) AS total_freq,
                 (SELECT SUM(cnt) FROM token_dist) AS total_tokens,
                 (SELECT SUM(cnt) FROM file_dist) AS total_files,
                 (SELECT SUM(cnt) FROM word_dist) AS total_words;
-        )",
-                     true);
+        )");
 
         // STEP 7: Final cutoff table
         std::cout << "[STEP 7] Computing cutoff_analysis...\n";
-        ensure_table(db, "cutoff_analysis", R"(
+        rebuild_derived(db, "cutoff_analysis", R"(
             CREATE TABLE IF NOT EXISTS cutoff_analysis AS
             WITH RECURSIVE targets(t) AS (
                 SELECT 1
@@ -1370,10 +1337,18 @@ namespace FEATURE
 
             FROM targets, totals
             ORDER BY target;
-        )",
-                     true);
+        )");
 
         execute_sql(db, "COMMIT;");
+
+        // STEP 8: hand the database back the way it was found. These indexes cost write
+        // time on every later --computeRelationalDistance run and nothing else reads them.
+        std::cout << "[STEP 8] Dropping analysis indexes...\n";
+        execute_sql(db, R"(
+            DROP INDEX IF EXISTS idx_rd_token_freq;
+            DROP INDEX IF EXISTS idx_rd_freq;
+            DROP INDEX IF EXISTS idx_tfidf_freq;
+        )");
 
         std::cout << "[DONE] cutoff_analysis ready.\n";
 

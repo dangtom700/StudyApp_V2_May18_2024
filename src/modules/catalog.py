@@ -24,15 +24,18 @@ Design notes
   instead of rebuilding `'title_' || id` at each call site:
 
       hash_id  == <sha256> == disk stem == file_info.file_name == _original_names key
-      title_id == "title_" + file_info.id (an md5)
-                  -> file_token, tags_full, comparison, item_matrix,
+      title_id == "title_" + file_info.id == "title_" + md5(hash_id)
+                  -> file_token, tags, tags_full, comparison, item_matrix,
                      relation_distance_filtered
       txt_name == <sha256>.txt  -> pdf_chunks.file_name
 
-* file_info.id is an md5 of the file's ABSOLUTE PATH (src/lib/updateDB.hpp), so moving
-  the library or editing READING_LIST_PATH silently orphans every derived table.
-  `orphan_title_id` flags rows whose title_id has no matching file_token row, and the
-  build prints the total -- a nonzero count means the key chain has broken.
+* Every key above is derived from the file's name, so the library can be moved or
+  READING_LIST_PATH edited without re-keying anything. Renaming a book still orphans
+  its derived rows. `orphan_title_id` flags rows whose title_id has no matching
+  file_token row and the build prints the total; `python src/main.py --dbDoctor`
+  checks the same thing across every derived table.
+  (file_info.id was md5 of the file's ABSOLUTE PATH until 2026-08-27, when
+  scripts/migrate_ids.py re-keyed the database onto the stem.)
 
 * The build is non-destructive: rows are upserted, rows for deleted files are removed,
   and user-owned fields live in a separate `book_user_meta` table this never touches.
@@ -51,6 +54,7 @@ import sqlite3
 import subprocess
 from collections import Counter
 
+from modules import schema
 from modules.path import pdf_path, chunk_database_path, data_folder, source_data
 from modules.extract_text import (
     load_name_map,
@@ -481,6 +485,15 @@ def build_catalog(export=True, probe=None):
 
     conn = sqlite3.connect(chunk_database_path)
     cur = conn.cursor()
+
+    if not schema.require(conn, {
+        'file_info': 'word_tokenizer --updateDatabaseInformation',
+        'file_token': 'word_tokenizer --computeRelationalDistance',
+        'tags_full': 'word_tokenizer --labelTopics',
+    }, '--buildCatalog'):
+        conn.close()
+        return
+
     _ensure_schema(conn)
 
     info = {}          # sha256 -> {id, path, epoch, chunk_count}
@@ -653,8 +666,9 @@ def catalog_stats(conn=None):
     orphans = count("orphan_title_id = 1")
     if orphans:
         print(f"\n  !! {orphans:,} rows have a title_id with no file_token row.\n"
-              f"     file_info.id is an md5 of the file's absolute path, so this usually\n"
-              f"     means the library moved. Re-run --updateDatabaseInformation.")
+              f"     file_info.id is md5 of the file's stem, so this means books were\n"
+              f"     renamed, or the text pipeline has not run for them yet. Run\n"
+              f"     `python src/main.py --dbDoctor` for the full picture.")
     else:
         print(f"  key chain intact     {'':>6} (0 orphaned title_ids)")
 

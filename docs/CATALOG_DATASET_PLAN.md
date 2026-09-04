@@ -50,7 +50,7 @@ hand. `book_catalog` is now the one place they meet:
 | Column | Value | Joins to |
 |---|---|---|
 | `hash_id` (PK) | SHA-256, the disk filename stem | `file_info.file_name`, `_original_names.json` |
-| `title_id` | `'title_' \|\| file_info.id` (an md5) | `file_token`, `tags_full`, `comparison`, `item_matrix`, `relation_distance_filtered` |
+| `title_id` | `'title_' \|\| file_info.id`, where `id` = `md5(hash_id)` | `file_token`, `tags`, `tags_full`, `comparison`, `item_matrix`, `relation_distance_filtered` |
 | `txt_name` | `<hash>.txt` | `pdf_chunks.file_name` |
 
 ### Bibliographic
@@ -194,20 +194,28 @@ derived, so this costs only a re-probe — while `book_user_meta` is left untouc
 
 ---
 
-## 6. Known hazard: `file_info.id` is an md5 of the file's *path*
+## 6. Resolved: `file_info.id` is now derived from the file's *name*
 
-`create_unique_id` in `src/lib/updateDB.hpp` hashes the absolute path string, and
-`--updateDatabaseInformation` drops and rebuilds `file_info` on every run. So **moving the
-library or editing `READING_LIST_PATH` silently re-keys every derived table** — `file_token`,
-`tags_full`, `comparison`, `item_matrix`, `relation_distance_filtered` — with no error.
+`create_unique_id` in `src/lib/updateDB.hpp` used to hash the **absolute path**, so moving
+the library or editing `READING_LIST_PATH` silently re-keyed every derived table —
+`file_token`, `tags`, `tags_full`, `comparison`, `item_matrix`,
+`relation_distance_filtered` — with no error anywhere. It also forced `--compressPDF` to
+rewrite each PDF at its own path and `--dedupePDF` to always keep the library copy.
 
-The catalog cannot fix this without a full recompute of those tables, so instead it makes the
-breakage loud: `orphan_title_id` flags any row whose `title_id` has no `file_token` row, and
-`--catalogStats` prints the total. A nonzero count means the key chain has broken; re-run
-`--updateDatabaseInformation` and the downstream stages.
+It now hashes the **stem**, which `--renameFile` has already set to the sha256 of the file's
+contents. The id is `md5(stem)`, still 32 hex characters, so every `title_<id>` value kept
+its shape and no consumer changed. `scripts/migrate_ids.py` performed the one-time re-key
+(2026-08-27): it rebuilds each keyed table through a mapping of old id to new, renames
+`data/token_json/title_<id>.json`, rewrites `data/low_similarity.txt`, and records
+`pipeline_meta.id_scheme = 'content-md5'`. It is idempotent and refuses to run twice.
 
-Making `create_unique_id` hash the SHA-256 stem instead of the path would fix this
-permanently, at the cost of recomputing every derived table once.
+What remains true: **renaming a book still orphans its derived rows.** Where the library
+sits does not matter; what it calls each file does.
+
+Two checks make any breakage loud. `orphan_title_id` flags a row whose `title_id` has no
+`file_token` row and `--catalogStats` prints the total; `python src/main.py --dbDoctor`
+checks the same across every derived table, plus schema drift against `config/schema.sql`,
+ids that predate the migration, and `file_info` rows whose PDF is gone from disk.
 
 ---
 

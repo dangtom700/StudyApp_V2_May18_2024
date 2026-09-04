@@ -1,11 +1,19 @@
 #!/bin/bash
 
+# Fail fast. Without this every stage ran unconditionally, so a run in which all of
+# them failed still ended with "Program finished." and exit status 0.
+set -euo pipefail
+trap 'echo "Pipeline aborted - see the error above."; exit 1' ERR
+
+# Every path on the C++ side resolves against the project root, so run from there no
+# matter where this script was invoked from.
+cd "$(dirname "$0")/.."
+
 # Record start time
 start_time=$(date +%s)
 
 # Compile C++ code (Linux uses word_tokenizer without .exe)
-g++ -std=c++17 src/main.cpp -o word_tokenizer -I./src -lm -lsqlite3 -lssl -lcrypto -Wall -Werror
-if [ $? -ne 0 ]; then
+if ! g++ -std=c++17 src/main.cpp -o word_tokenizer -I./src -lm -lsqlite3 -lssl -lcrypto -Wall -Werror; then
     echo "C++ compilation failed."
     exit 1
 fi
@@ -37,6 +45,8 @@ labelTopics=0
 expandTopics=0
 topicSimilarity=0
 buildCatalog=0
+# Read-only health check; never part of the end-to-end run.
+dbDoctor=0
 
 # With no arguments, run the standard end-to-end pipeline.
 if [ $# -eq 0 ]; then
@@ -83,7 +93,11 @@ for arg in "$@"; do
         --expandTopics) expandTopics=1 ;;
         --topicSimilarity) topicSimilarity=1 ;;
         --buildCatalog) buildCatalog=1 ;;
-        *) echo "Unknown option: $arg" ;;
+        --dbDoctor) dbDoctor=1 ;;
+        *)
+            echo "Unknown option: $arg"
+            echo "Use --showComponents to list the available stages."
+            exit 1 ;;
     esac
 done
 
@@ -125,6 +139,9 @@ if [ $topicSimilarity -eq 1 ]; then ./word_tokenizer --topicSimilarity; fi
 
 # Runs last: the catalog consumes the topic tags produced above.
 if [ $buildCatalog -eq 1 ]; then python src/main.py --buildCatalog; fi
+
+# Reports schema drift, orphaned rows and stale ids. Exits non-zero if it finds any.
+if [ $dbDoctor -eq 1 ]; then python src/main.py --dbDoctor; fi
 
 # Print elapsed time
 end_time=$(date +%s)

@@ -16,12 +16,11 @@
     verified AND strictly smaller; otherwise the original is left exactly as it
     was and the log says why.
 
-    Why in place rather than an output folder: file_info.id is an md5 of the
-    file's ABSOLUTE PATH (create_unique_id in src/lib/updateDB.hpp) and
-    modules/catalog.py joins through hash_id == the file's stem on disk.
-    Compressed copies in a second folder would re-key file_token, tags_full,
-    comparison and item_matrix and orphan the lot. Replacing each file at its own
-    path keeps every key valid. The stem is never changed for the same reason.
+    Why each file keeps its name: file_info.id is md5 of the file's STEM
+    (create_unique_id in src/lib/updateDB.hpp) and modules/catalog.py joins
+    through hash_id == that same stem. Renaming a book re-keys file_token, tags,
+    tags_full, comparison and item_matrix and orphans the lot, so the stem is
+    never changed. Where the library lives does not matter -- it can be moved.
 
     Files are processed largest first. The parallel loop pulls from the queue in
     order, so that ordering is the schedule: it keeps every worker busy to the end

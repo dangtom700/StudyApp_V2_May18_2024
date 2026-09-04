@@ -52,9 +52,12 @@ void updateDatabaseInformation()
         std::cout << "No PDF files found in the specified directory." << std::endl;
         return;
     }
-    if (!reset_table)
-        filtered_files = FEATURE::skim_files(filtered_files, ".pdf");
 
+    // Deliberately not skimmed against file_info. Updating what is already recorded is
+    // this stage's job: file_path, epoch_time and chunk_count are facts about the file as
+    // it is now, and computeResourceData upserts them. Skipping known files is what let a
+    // row keep chunk_count = 0 forever. Re-reading all of them costs one stat and one
+    // indexed COUNT per file.
     std::cout << "Updating database information..." << std::endl;
     FEATURE::computeResourceData(filtered_files, show_progress, reset_table, is_dumped);
     std::cout << "Finished: Database information updated." << std::endl;
@@ -141,11 +144,26 @@ int main(int argc, char *argv[])
 
         if (actions.find(arg) != actions.end())
         {
-            actions[arg](); // Execute the corresponding function
+            // A stage that throws reports what failed and stops the run with a non-zero
+            // status, which config/main.bat already checks. Letting the exception escape
+            // main() instead aborts the process -- "terminate called after throwing an
+            // instance of 'std::runtime_error'" with no indication of which stage died.
+            try
+            {
+                actions[arg]();
+            }
+            catch (const std::exception &e)
+            {
+                std::cerr << "Stage " << arg << " failed: " << e.what() << std::endl;
+                return 1;
+            }
         }
         else
         {
-            std::cout << "Invalid option: " << arg << ". Please try again." << std::endl;
+            // Exit non-zero: a typo'd flag used to run no stage and still report success,
+            // which reads exactly like a stage that had nothing to do.
+            std::cerr << "Invalid option: " << arg << ". Use --displayHelp for available options." << std::endl;
+            return 1;
         }
     }
 

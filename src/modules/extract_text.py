@@ -5,6 +5,7 @@ import re
 import json
 import hashlib
 
+from modules import schema
 from modules.path import chunk_database_path
 
 # --- Config ---
@@ -158,18 +159,11 @@ def extract_text(SOURCE_FOLDER, DEST_FOLDER, CHUNK_SIZE=DEFAULT_CHUNK_SIZE, DB_P
     """
     os.makedirs(DEST_FOLDER, exist_ok=True)
 
-    # Step 1: Setup Database
+    # Step 1: Setup Database. The DDL for pdf_chunks lives in config/schema.sql --
+    # see src/modules/schema.py.
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
-    cursor.execute("""
-        CREATE TABLE IF NOT EXISTS pdf_chunks (
-            file_name TEXT,
-            chunk_id INTEGER,
-            chunk_text TEXT NOT NULL,
-            PRIMARY KEY (file_name, chunk_id)
-        )
-    """)
-    conn.commit()
+    schema.apply(conn)
 
     # Step 2: Process new files
     raw_files = set([f for f in os.listdir(SOURCE_FOLDER) if f.endswith(".txt")])

@@ -7,6 +7,7 @@
 #include <thread>
 #include "lib/utilities.hpp"
 #include "lib/env.hpp" // Include ENV_HPP definition
+#include "lib/sql.hpp"
 #include "lib/transform.hpp"
 
 namespace RECOMMEND
@@ -277,20 +278,6 @@ namespace RECOMMEND
         }
     }
 
-    bool has_any_similarity(sqlite3 *db, const std::string &id)
-    {
-        std::string sql = "SELECT 1 FROM item_matrix WHERE source_id = ? LIMIT 1";
-        sqlite3_stmt *stmt = prepareStatement(db, sql);
-        if (!stmt)
-            return false;
-
-        sqlite3_bind_text(stmt, 1, id.c_str(), -1, SQLITE_TRANSIENT);
-        sqlite3_bind_text(stmt, 2, id.c_str(), -1, SQLITE_TRANSIENT);
-        bool exists = (sqlite3_step(stmt) == SQLITE_ROW);
-        sqlite3_finalize(stmt);
-        return exists;
-    }
-
     void eliminate_low_similarity_processed_files(std::map<std::string, std::string> &processing_ids)
     {
         std::ifstream file(ENV_HPP::low_similarity_files.string().c_str());
@@ -316,15 +303,22 @@ namespace RECOMMEND
 
         // SQLITE_STATIC: strings are refs into the RESULT vector which
         // outlives every step call inside this loop — no copy needed.
+        size_t failed = 0;
         for (const auto &[target_id, source_id, distance] : RESULT)
         {
             sqlite3_bind_text(stmt, 1, target_id.c_str(), -1, SQLITE_STATIC);
             sqlite3_bind_text(stmt, 2, source_id.c_str(), -1, SQLITE_STATIC);
             sqlite3_bind_double(stmt, 3, distance);
-            sqlite3_step(stmt);
+            if (sqlite3_step(stmt) != SQLITE_DONE)
+                ++failed;
             sqlite3_reset(stmt);
         }
         sqlite3_finalize(stmt);
+
+        // OR IGNORE still reports SQLITE_DONE, so this counts real errors only.
+        if (failed)
+            std::cerr << "insert_comparison: " << failed << " of " << RESULT.size()
+                      << " rows failed: " << sqlite3_errmsg(db) << std::endl;
     }
 
     void insert_tags_full(
@@ -337,15 +331,21 @@ namespace RECOMMEND
             return;
 
         // SQLITE_STATIC: all strings live in RESULT / topic param for the loop duration.
+        size_t failed = 0;
         for (const auto &[target_id, topic, distance] : RESULT)
         {
             sqlite3_bind_text(stmt, 1, target_id.c_str(), -1, SQLITE_STATIC);
             sqlite3_bind_double(stmt, 2, distance);
             sqlite3_bind_text(stmt, 3, topic.c_str(), -1, SQLITE_STATIC);
-            sqlite3_step(stmt);
+            if (sqlite3_step(stmt) != SQLITE_DONE)
+                ++failed;
             sqlite3_reset(stmt);
         }
         sqlite3_finalize(stmt);
+
+        if (failed)
+            std::cerr << "insert_tags_full: " << failed << " of " << RESULT.size()
+                      << " rows failed: " << sqlite3_errmsg(db) << std::endl;
     }
 
     void insert_topic_similarity(
@@ -357,26 +357,42 @@ namespace RECOMMEND
         if (!stmt)
             return;
 
+        size_t failed = 0;
         for (const auto &[source, target, distance] : RESULT)
         {
             sqlite3_bind_text(stmt, 1, source.c_str(), -1, SQLITE_STATIC);
             sqlite3_bind_text(stmt, 2, target.c_str(), -1, SQLITE_STATIC);
             sqlite3_bind_double(stmt, 3, distance);
-            sqlite3_step(stmt);
+            if (sqlite3_step(stmt) != SQLITE_DONE)
+                ++failed;
             sqlite3_reset(stmt);
         }
         sqlite3_finalize(stmt);
+
+        if (failed)
+            std::cerr << "insert_topic_similarity: " << failed << " of " << RESULT.size()
+                      << " rows failed: " << sqlite3_errmsg(db) << std::endl;
     }
 
-    void expand_degree(sqlite3 *db, int from_degree, int to_degree, double threshold)
+    /**
+     * Widen the tag set by one degree along document-similarity edges.
+     *
+     * Expands over `comparison` -- the C++ --mappingItemMatrix output, which is the
+     * pipeline's default similarity table. `item_matrix` holds the same relation from
+     * the faster Python path with a lower cutoff and different weighting; the two are
+     * described side by side in config/schema.sql.
+     *
+     * @return How many tags this degree added.
+     */
+    int expand_degree(sqlite3 *db, int from_degree, int to_degree, double threshold)
     {
-        const char *expand_sql = R"(
+        const std::string expand_sql = R"(
             INSERT OR IGNORE INTO tags (ID, distance, topic, degree)
 
             SELECT
                 CASE
-                    WHEN im.source_id = t.ID THEN im.target_id
-                    ELSE im.source_id
+                    WHEN cm.source_id = t.ID THEN cm.target_id
+                    ELSE cm.source_id
                 END AS new_id,
 
                 tf.distance,
@@ -385,31 +401,28 @@ namespace RECOMMEND
 
             FROM tags t
 
-            JOIN item_matrix im
-                ON (im.source_id = t.ID
-                 OR im.target_id = t.ID)
+            JOIN comparison cm
+                ON (cm.source_id = t.ID
+                 OR cm.target_id = t.ID)
 
             JOIN tags_full tf
                 ON tf.ID =
                     CASE
-                        WHEN im.source_id = t.ID THEN im.target_id
-                        ELSE im.source_id
+                        WHEN cm.source_id = t.ID THEN cm.target_id
+                        ELSE cm.source_id
                     END
                 AND tf.topic = t.topic
 
             WHERE t.degree = ?
-              AND im.distance >= ?;
+              AND cm.distance >= ?;
         )";
 
-        sqlite3_stmt *stmt = nullptr;
-        sqlite3_prepare_v2(db, expand_sql, -1, &stmt, nullptr);
-
-        sqlite3_bind_int(stmt, 1, to_degree);    // new degree
-        sqlite3_bind_int(stmt, 2, from_degree);  // current degree
-        sqlite3_bind_double(stmt, 3, threshold); // similarity threshold
-
-        sqlite3_step(stmt);
-        sqlite3_finalize(stmt);
+        return SQL::execute_prepared(db, expand_sql, [&](sqlite3_stmt *stmt)
+                                     {
+            sqlite3_bind_int(stmt, 1, to_degree);    // new degree
+            sqlite3_bind_int(stmt, 2, from_degree);  // current degree
+            sqlite3_bind_double(stmt, 3, threshold); // similarity threshold
+        });
     }
 
     std::vector<std::tuple<std::string, std::string, double>> compute_recommendations(

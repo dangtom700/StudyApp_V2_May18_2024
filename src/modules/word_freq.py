@@ -4,6 +4,7 @@ import re
 import nltk
 from collections import defaultdict
 from shutil import rmtree
+from modules import schema
 from modules.path import chunk_database_path, token_json_path, buffer_json_path, pdf_path, data_folder
 from nltk.stem import PorterStemmer
 from nltk.corpus import stopwords
@@ -31,10 +32,6 @@ CONFIG = {
     "DB_PATH": Path(chunk_database_path),
     "SOURCE_FOLDER": Path(pdf_path),
     "NOTES_FOLDER_NAME": "notes",
-    "DISTANCE_THRESHOLD": 0.5,
-    "RECOMMEND_LIMIT": 150,
-    "CHUNK_SAMPLE_SIZE": 3,
-    "BATCH_SIZE": 200_000
 }
 not_found_topics_csv = Path(data_folder) / "not_found_topics.txt"
 CONFIG["DESTINATION_FOLDER"] = CONFIG["SOURCE_FOLDER"] / CONFIG["NOTES_FOLDER_NAME"]
@@ -309,27 +306,14 @@ def process_word_frequencies_in_batches(reset_state=False, folder_path=token_jso
     conn.commit()
     conn.close()
 
-def get_connection():
-    conn = sqlite3.connect(CONFIG["DB_PATH"])
-    conn.execute("PRAGMA foreign_keys = ON;")
-    return conn
-
 def setup_database(conn, reset = False):
-    cursor = conn.cursor()
+    """Prepare topic_token, the table --topicTokenize owns.
 
+    The DDL lives in config/schema.sql; see src/modules/schema.py."""
     if reset:
-        cursor.execute("DROP TABLE IF EXISTS topic_token;")
-
-    cursor.execute("""
-        CREATE TABLE IF NOT EXISTS topic_token(
-            topic TEXT,
-            token TEXT,
-            frequency INTEGER,
-            relational_distance REAL,
-            PRIMARY KEY (topic, token)
-        )
-    """)
-    conn.commit()
+        schema.reset(conn, ["topic_token"])
+    else:
+        schema.apply(conn)
 
 def clean_filename(name: str) -> str:
     return re.sub(r"[^\w\-. ]", "_", name)
@@ -476,76 +460,6 @@ def get_related_topics(seed: str, limit=50):
     except Exception as e:
         print(f"Error fetching related topics from Datamuse: {e}")
         return set()
-
-def prepare_filtered_table(reset=True):
-    with get_connection() as db:
-
-        if reset:
-            db.execute("DROP TABLE IF EXISTS item_matrix_filtered;")
-
-        db.execute("PRAGMA journal_mode=WAL;")
-        db.execute("PRAGMA synchronous=NORMAL;")
-
-        db.execute("""
-            CREATE TABLE IF NOT EXISTS item_matrix_filtered (
-                source_name TEXT NOT NULL,
-                target_name TEXT NOT NULL,
-                distance REAL NOT NULL,
-                PRIMARY KEY (source_name, target_name)
-            ) WITHOUT ROWID;
-        """)
-
-        db.execute("""
-            CREATE INDEX IF NOT EXISTS idx_imf_source_distance
-            ON item_matrix_filtered(source_name, distance DESC);
-        """)
-
-        db.execute("""
-            CREATE INDEX IF NOT EXISTS idx_imf_target_distance
-            ON item_matrix_filtered(target_name, distance DESC);
-        """)
-
-        last_source = ""
-        last_target = ""
-
-        while True:
-            rows = db.execute(
-                """
-                SELECT source_id, target_id, distance
-                FROM item_matrix
-                WHERE (source_id > ?)
-                   OR (source_id = ? AND target_id > ?)
-                  AND distance > ?
-                ORDER BY source_id, target_id
-                LIMIT ?;
-                """,
-                (
-                    last_source,
-                    last_source,
-                    last_target,
-                    CONFIG["DISTANCE_THRESHOLD"],
-                    CONFIG["BATCH_SIZE"]
-                )
-            ).fetchall()
-
-            if not rows:
-                break
-
-            db.executemany(
-                """
-                INSERT OR IGNORE INTO item_matrix_filtered
-                (source_name, target_name, distance)
-                VALUES (?, ?, ?);
-                """,
-                rows
-            )
-
-            last_source, last_target = rows[-1][0], rows[-1][1]
-            db.commit()
-
-            print(f"Processed up to ({last_source}, {last_target})")
-
-    print("Filtered table prepared.")
 
 # _________________________________________________________________________________
 # _________________________________________________________________________________

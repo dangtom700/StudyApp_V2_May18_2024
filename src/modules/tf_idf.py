@@ -1,8 +1,19 @@
+"""
+The fast document-similarity path: one sparse matrix product over the top-k
+TF-IDF tokens, writing `item_matrix`.
+
+`comparison` -- word_tokenizer --mappingItemMatrix -- is the pipeline's default
+similarity table and what --expandTopics expands over. This one uses a lower
+cutoff and different weighting, and is the only table carrying distance_mod.
+config/schema.sql describes both side by side.
+"""
+
 import sqlite3
 import ujson as json  # Much faster
 import math
 import numpy as np
 from scipy.sparse import csr_matrix
+from modules import schema
 from modules.path import chunk_database_path, token_json_path
 from os import listdir, path
 
@@ -10,109 +21,16 @@ GLOBAL_JSON_PATH = "data/global_word_freq.json"
 MIN_THRES_FREQ = 4
 BUFFER_SIZE = 1000
 
-def computeTFIDF():
-    """
-    Legacy Python TF-IDF. NOT wired into main.py: it reads a `_filtered` table
-    that no current pipeline stage creates, so it raises OperationalError.
-    The maintained implementation is the C++ one -- `word_tokenizer --computeTFIDF`
-    -- which is what config/main.bat and config/main.sh invoke.
-    """
-    conn = sqlite3.connect(chunk_database_path, timeout=60.0)
-    cursor = conn.cursor()
-
-    # Speed-boosting pragmas
-    cursor.execute("PRAGMA journal_mode=WAL;")
-    cursor.execute("PRAGMA synchronous = OFF;")
-
-    cursor.execute("""
-        CREATE TABLE IF NOT EXISTS tf_idf (
-            word TEXT PRIMARY KEY,
-            freq INTEGER,
-            doc_count INTEGER,
-            tf_idf REAL
-        )
-    """)
-
-    # Open every JSON file in the data/token_json folder and build a global word frequency dictionary
-    global_word_freq = {}
-    for file in listdir(token_json_path):
-        with open(path.join(token_json_path, file), "r", encoding="utf-8") as f:
-            data = json.load(f)
-            for word, freq in data.items():
-                global_word_freq[word] = global_word_freq.get(word, 0) + freq # Add up frequencies across all files
-
-    # Save the global word frequency dictionary to a JSON file for reference
-    with open(GLOBAL_JSON_PATH, "w", encoding="utf-8") as f:
-        json.dump(global_word_freq, f, ensure_ascii=False, indent=2)
-    
-    filtered_words = {
-        word: freq for word, freq in global_word_freq.items()
-        if freq >= MIN_THRES_FREQ or len(word.strip()) > 1
-    }
-
-    sum_freq = sum(filtered_words.values())
-
-    cursor.execute("""
-        SELECT token, COUNT(DISTINCT file_name)
-        FROM _filtered
-        GROUP BY token
-    """)
-    word_doc_counts = dict(cursor.fetchall())
-
-    total_docs = cursor.execute("SELECT COUNT(DISTINCT file_name) FROM _filtered").fetchone()[0]
-
-    buffer = []
-    conn.execute("BEGIN TRANSACTION;")  # Wrap all insertions
-
-    for i, (word, freq) in enumerate(filtered_words.items(), 1):
-        doc_count = word_doc_counts.get(word, 0)
-        tf = freq / sum_freq
-        idf = math.log10((total_docs + 1) / (doc_count + 1)) + 1
-        tf_idf = tf * idf
-
-        buffer.append((word, freq, doc_count, tf_idf))
-
-        if len(buffer) == BUFFER_SIZE:
-            cursor.executemany("""
-                INSERT INTO tf_idf (word, freq, doc_count, tf_idf)
-                VALUES (?, ?, ?, ?)
-                ON CONFLICT(word) DO UPDATE SET
-                    freq=excluded.freq,
-                    doc_count=excluded.doc_count,
-                    tf_idf=excluded.tf_idf
-            """, buffer)
-            buffer.clear()
-
-    if buffer:
-        cursor.executemany("""
-            INSERT INTO tf_idf (word, freq, doc_count, tf_idf)
-            VALUES (?, ?, ?, ?)
-            ON CONFLICT(word) DO UPDATE SET
-                freq=excluded.freq,
-                doc_count=excluded.doc_count,
-                tf_idf=excluded.tf_idf
-        """, buffer)
-
-    conn.commit()
-    conn.close()
-    print("TF-IDF computation completed.")
-
 def compute_item_matrix(top_k=1000, batch_size=20000, similarity_cutoff = 0.3):
     conn = sqlite3.connect(chunk_database_path, timeout=60.0)
     cursor = conn.cursor()
 
-    # Guard: these tables are populated by the C++ pipeline steps.
-    # Run `word_tokenizer --computeRelationalDistance` before this function.
-    required = ["file_token", "relation_distance_filtered", "tf_idf"]
-    missing = [t for t in required
-               if not cursor.execute(
-                   "SELECT 1 FROM sqlite_master WHERE type='table' AND name=?", (t,)
-               ).fetchone()]
-    if missing:
+    if not schema.require(conn, {
+        'file_token': 'word_tokenizer --computeRelationalDistance',
+        'relation_distance_filtered': 'word_tokenizer --computeRelationalDistance',
+        'tf_idf': 'word_tokenizer --computeTFIDF',
+    }, '--computeItemMatrix'):
         conn.close()
-        print(f"[ERROR] compute_item_matrix: missing tables: {missing}")
-        print("  Run the C++ pipeline first:")
-        print("    word_tokenizer --computeRelationalDistance --computeTFIDF")
         return
 
     # --- Aggressive write optimization ---
@@ -124,16 +42,8 @@ def compute_item_matrix(top_k=1000, batch_size=20000, similarity_cutoff = 0.3):
     """)
 
     # --- Target table ---
-    cursor.executescript("""
-    DROP TABLE IF EXISTS item_matrix;
-    CREATE TABLE IF NOT EXISTS item_matrix(
-        source_id TEXT NOT NULL,
-        target_id TEXT NOT NULL,
-        distance  REAL NOT NULL DEFAULT 0.0,
-        distance_mod REAL NOT NULL DEFAULT 0.0,
-        PRIMARY KEY (source_id, target_id)
-    ) WITHOUT ROWID;
-    """)
+    # Every run recomputes the whole matrix, so this stage always resets its output.
+    schema.reset(conn, ['item_matrix'])
 
     print(f"Processing item matrix with top_k={top_k}...")
 

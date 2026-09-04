@@ -12,14 +12,21 @@ Wire-up (already done in src/main.py)
     python src/main.py --compressPDF --compressDryRun   # list what would be done
     python src/main.py --compressPDF --compressPreset screen --compressJobs 8
 
-Why in place
-------------
-`file_info.id` is an md5 of the file's ABSOLUTE PATH (create_unique_id in
+Why the name must not change
+----------------------------
+`file_info.id` is md5 of the file's STEM (create_unique_id in
 src/lib/updateDB.hpp), and modules/catalog.py joins everything through
-`hash_id` == the file's stem on disk. Writing compressed copies into a second
-folder and repointing READING_LIST_PATH would re-key file_token, tags_full,
-comparison and item_matrix and orphan the lot. Replacing each file at its own
-path keeps every key valid: no downstream stage changes, nothing to re-index.
+`hash_id` == that same stem. So the whole key chain -- file_token, tags,
+tags_full, comparison, item_matrix, relation_distance_filtered -- follows the
+filename and nothing else.
+
+Compression may therefore write wherever it likes as long as each book keeps its
+name; the library as a whole can be moved to another folder without re-keying
+anything. Renaming a file is what breaks the chain, which is why this stage
+rewrites each PDF under its existing stem and never re-hashes the compressed
+bytes. (Until 2026-08-27 the id was md5 of the file's ABSOLUTE PATH, and moving
+the library orphaned every derived table; scripts/migrate_ids.py did the one-time
+re-key.)
 
 Run order
 ---------
@@ -32,6 +39,9 @@ lets rename_files recognise the same book as a duplicate if it is downloaded
 again later. Compression deliberately does NOT re-hash or rename afterwards --
 the stem is the library's primary key, not a live checksum, and changing it
 would break the key chain described above.
+
+`python src/main.py --dbDoctor` reports any row whose key no longer resolves, so
+a mistake here is visible rather than silent.
 
 Safety
 ------

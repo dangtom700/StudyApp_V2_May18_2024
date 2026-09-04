@@ -68,21 +68,50 @@ namespace ENV_HPP
         return std::filesystem::path(fallback);
     }
 
+    // Anchoring on the current directory alone meant that running a stage from a
+    // subdirectory opened a second, empty database beside wherever you happened to be --
+    // sqlite3_open creates on miss, so every stage then reported success against no data.
+    // Walk up to the checkout instead, using the one file that must exist inside it.
+    //
+    // This deliberately does not throw: it runs during static initialisation, where an
+    // exception is std::terminate with no usable message. Falling back to the current
+    // directory keeps the clear error SCHEMA::apply already raises for a missing schema.
+    inline std::filesystem::path find_project_root()
+    {
+        std::filesystem::path dir = std::filesystem::current_path();
+
+        for (int depth = 0; depth < 32; ++depth)
+        {
+            if (std::filesystem::exists(dir / "config" / "schema.sql"))
+                return dir;
+
+            if (!dir.has_parent_path() || dir.parent_path() == dir)
+                break;
+
+            dir = dir.parent_path();
+        }
+
+        return std::filesystem::current_path();
+    }
+
+    inline const std::filesystem::path project_root = find_project_root();
+
     // Load .env variables once at the start of the program
-    inline const std::map<std::string, std::string> env_vars = load_env_file(std::filesystem::current_path() / ".env");
+    inline const std::map<std::string, std::string> env_vars = load_env_file(project_root / ".env");
 
     // Use inline const to prevent Multiple Definition Linker Errors
     inline const std::filesystem::path resource_path = get_env_path("READING_LIST_PATH", "pdfs", env_vars);
 
-    // Ideally, pass the executable path via argv[0] in main(), but current_path can work
-    // IF you strictly guarantee you'll always run the terminal command from the project root.
-    inline const std::filesystem::path data_root = std::filesystem::current_path() / "data";
+    inline const std::filesystem::path data_root = project_root / "data";
 
     inline const std::filesystem::path raw_data_path     = get_env_path("RAW_DATA_PATH",     (data_root / "raw_text").string().c_str(),     env_vars);
     inline const std::filesystem::path refined_data_path = get_env_path("REFINED_DATA_PATH",  (data_root / "refined_text").string().c_str(), env_vars);
 
     inline const std::filesystem::path json_path = data_root / "token_json";
     inline const std::filesystem::path database_path = data_root / "pdf_text.db";
+    // Canonical DDL for every pipeline table, shared with the Python side.
+    // Version-controlled next to the code, so a missing file is a broken checkout.
+    inline const std::filesystem::path schema_path = project_root / "config" / "schema.sql";
     inline const std::filesystem::path output_path = data_root / "processed_data";
     inline const std::filesystem::path logging_path = data_root / "progress.log";
     inline const std::filesystem::path processed_data_path = data_root / "processed_data";
@@ -91,7 +120,7 @@ namespace ENV_HPP
     inline const std::filesystem::path data_info_path = processed_data_path / "data_info.csv";
     inline const std::filesystem::path buffer_json_path = data_root / "buffer.json";
     inline const std::filesystem::path global_terms_path = data_root / "global_word_freq.json";
-    inline const std::filesystem::path outputPrompt = std::filesystem::current_path() / "outputPrompt.txt";
+    inline const std::filesystem::path outputPrompt = project_root / "outputPrompt.txt";
     inline const std::filesystem::path item_matrix = data_root / "item_matrix.csv";
     inline const std::filesystem::path route_list = data_root / "route_list.csv";
     inline const std::filesystem::path low_similarity_files = data_root / "low_similarity.txt";
