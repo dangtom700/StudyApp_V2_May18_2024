@@ -61,7 +61,7 @@ $ErrorActionPreference = 'Stop'
 $TmpSuffix       = '.gstmp'   # deliberately not *.pdf -- other stages glob for that
 $MinOutputBytes  = 1024       # anything smaller than this is not a real PDF
 $GsTimeoutMs     = 1800 * 1000
-$DefaultJobs     = 5          # this runs for hours in the background; leave the box usable
+$DefaultJobs     = 3          # this runs for hours in the background; leave the box usable
 $LogFields       = @('timestamp','file','status','in_bytes','out_bytes','pct_saved','preset','pages')
 
 # --- Helpers -----------------------------------------------------------------
@@ -262,6 +262,12 @@ $results = @()
 
 try {
     $results = $todo | ForEach-Object -ThrottleLimit $Jobs -Parallel {
+        # Each item runs in a fresh runspace that inherits none of the parent's
+        # preference variables, so the script-level 'Stop' does not reach here.
+        # Without this a cmdlet failure is non-terminating: it prints to the
+        # error stream and walks straight past the catch blocks below.
+        $ErrorActionPreference = 'Stop'
+
         $gs        = $using:gs
         $preset    = $using:Preset
         $tmpSuffix = $using:TmpSuffix
@@ -273,6 +279,7 @@ try {
         $inBytes  = $_.Length
         $outBytes = $inBytes          # unchanged unless the replace actually happens
         $status   = 'error'
+        $proc     = $null
 
         try {
             # ArgumentList passes each argument to the process verbatim. Do not go
@@ -304,7 +311,10 @@ try {
             $null = $proc.StandardError.ReadToEndAsync()
 
             if (-not $proc.WaitForExit($timeoutMs)) {
-                try { $proc.Kill($true) } catch {}
+                # Kill() only requests termination. Wait for it to actually take
+                # effect, or the cleanup below races a process that still has the
+                # temp file open.
+                try { $proc.Kill($true); $null = $proc.WaitForExit(30000) } catch {}
                 $status = 'timeout'
             }
             elseif ($proc.ExitCode -ne 0 -or -not (Test-Path -LiteralPath $tmp)) {
@@ -358,9 +368,17 @@ try {
         } catch {
             $status = 'error'
         } finally {
+            if ($proc) { try { $proc.Dispose() } catch {} }
+
             # Whatever happened, never leave a temp file behind for the next run.
-            if (Test-Path -LiteralPath $tmp) {
-                try { Remove-Item -LiteralPath $tmp -Force } catch {}
+            # The handle can outlive Ghostscript by a moment -- Defender scans the
+            # file the instant it is closed -- so a first failure here is usually
+            # just early rather than permanent. Back off and try again; anything
+            # still locked after this is swept at the start of the next run.
+            for ($attempt = 1; $attempt -le 5; $attempt++) {
+                if (-not (Test-Path -LiteralPath $tmp)) { break }
+                try { Remove-Item -LiteralPath $tmp -Force; break }
+                catch { Start-Sleep -Milliseconds (200 * $attempt) }
             }
         }
 
