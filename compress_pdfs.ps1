@@ -61,7 +61,7 @@ $ErrorActionPreference = 'Stop'
 $TmpSuffix       = '.gstmp'   # deliberately not *.pdf -- other stages glob for that
 $MinOutputBytes  = 1024       # anything smaller than this is not a real PDF
 $GsTimeoutMs     = 1800 * 1000
-$DefaultJobs     = 3          # this runs for hours in the background; leave the box usable
+$DefaultJobs     = 4          # this runs for hours in the background; leave the box usable
 $LogFields       = @('timestamp','file','status','in_bytes','out_bytes','pct_saved','preset','pages')
 
 # --- Helpers -----------------------------------------------------------------
