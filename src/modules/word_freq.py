@@ -39,6 +39,32 @@ CONFIG["DESTINATION_FOLDER"] = CONFIG["SOURCE_FOLDER"] / CONFIG["NOTES_FOLDER_NA
 # One-time compiled regex pattern
 REPEATED_CHAR_PATTERN = re.compile(r"([a-zA-Z])\1{2,}")
 
+# Prompt-side stem filter (cutoff as a fraction of the indexed corpus).
+# ---------------------------------------------------------------------------------
+# NLTK's stoplist plus banned_word above removes grammar words but nothing above them,
+# so a prose prompt still carries a layer of contentless English -- "use" occurs in
+# 4216 of 4225 indexed documents, "one" in 4145, "time" in 4132. Those stems add score
+# to essentially every document in the library (relation_distance_filtered has a row
+# for them against almost every file) while discriminating between none, and on a long
+# prose prompt they dominated the ranking outright.
+#
+# The cutoff has to be HIGH, and this is the part that is easy to get wrong. doc_count
+# measures in how many documents a stem appears, not how hard it is used there, so a
+# topic's own central term can sit in most of the corpus and still discriminate
+# perfectly well by in-document frequency: "control" is in 82% of documents, but a
+# control textbook uses it hundreds of times and a biology text twice. A 50% cutoff
+# bans "control" and "system" and destroys the control-theory and automation prompts
+# while helping the media-theory one. Measured across four topic prompts, 0.90 keeps
+# every topic-central term and removes only the function-word residue (18 stems).
+# Lower it only with a before/after ranking check on more than one topic.
+#
+# Applied to the PROMPT only, never inside clean_text(): clean_text() also tokenizes
+# the documents themselves, tf_idf is derived from that output, and filtering there
+# would both alter the corpus and require the table it is derived from to exist first.
+#
+# Set to 0 (or pass --promptCutoff 0) to disable.
+PROMPT_STEM_DOC_FRACTION_CUTOFF = 0.90
+
 # Initialize stemmer and stopwords
 stemmer = PorterStemmer()
 stop_words = set(stopwords.words('english'))
@@ -464,11 +490,67 @@ def get_related_topics(seed: str, limit=50):
 # _________________________________________________________________________________
 # _________________________________________________________________________________
 
-def promptFindingReference(is_dumped = True, file="PROMPT.txt") -> Optional[dict]:
+def high_frequency_stems(cutoff=None, database=None) -> set:
+    """Return the stems occurring in more than `cutoff` of the indexed corpus.
+
+    Reads doc_count from the tf_idf table that --computeTFIDF populates, against the
+    document count in file_info. Returns an empty set -- meaning no filtering -- when
+    the database, tf_idf or file_info is not available yet, so a fresh pipeline is
+    never blocked by this stage."""
+    if cutoff is None:
+        cutoff = PROMPT_STEM_DOC_FRACTION_CUTOFF
+    if not cutoff or cutoff <= 0:
+        return set()
+    if database is None:
+        database = chunk_database_path
+    conn = None
+    try:
+        conn = sqlite3.connect(f"file:{database}?mode=ro", uri=True)
+        cursor = conn.cursor()
+        cursor.execute("SELECT COUNT(*) FROM file_info")
+        total_documents = cursor.fetchone()[0]
+        if not total_documents:
+            return set()
+        cursor.execute("SELECT word FROM tf_idf WHERE doc_count > ?", (cutoff * total_documents,))
+        return {row[0] for row in cursor.fetchall()}
+    except sqlite3.Error as error:
+        print(f"[promptFilter] skipped -- could not read tf_idf/file_info ({error}).")
+        return set()
+    finally:
+        if conn is not None:
+            conn.close()
+
+
+def drop_high_frequency_stems(tokens: dict, cutoff=None) -> dict:
+    """Remove non-discriminating stems from an already-cleaned prompt token map.
+
+    The map is returned unchanged when filtering is disabled, when the corpus
+    statistics are unavailable, or when the filter would empty the prompt entirely --
+    an empty prompt would score nothing at all."""
+    if not tokens:
+        return tokens
+    banned = high_frequency_stems(cutoff=cutoff)
+    if not banned:
+        return tokens
+    kept = {stem: count for stem, count in tokens.items() if stem not in banned}
+    removed = [stem for stem in tokens if stem in banned]
+    if not kept:
+        print(f"[promptFilter] every stem is above the cutoff -- keeping all {len(tokens)} unfiltered.")
+        return tokens
+    effective = PROMPT_STEM_DOC_FRACTION_CUTOFF if cutoff is None else cutoff
+    print(f"[promptFilter] cutoff {effective:.0%} of corpus: dropped {len(removed)} stems, kept {len(kept)}.")
+    if removed:
+        heaviest = sorted(removed, key=lambda stem: -tokens[stem])[:12]
+        print(f"[promptFilter] heaviest dropped: {', '.join(heaviest)}")
+    return kept
+
+
+def promptFindingReference(is_dumped = True, file="PROMPT.txt", cutoff=None) -> Optional[dict]:
     """Reads in a prompt from a text file, cleans the text, and stores the cleaned
     prompt in a JSON file. The prompt is cleaned by removing punctuation, converting
     to lowercase, tokenizing, removing stop words, removing words with repeated
-    characters, and stemming. If the cleaned prompt is empty, a message is printed
+    characters, stemming, and finally dropping stems that occur in more than
+    `cutoff` of the indexed corpus (see PROMPT_STEM_DOC_FRACTION_CUTOFF). If the cleaned prompt is empty, a message is printed
     and the function returns early. Otherwise, the cleaned prompt is stored in the
     buffer.json file."""
     # Read in from prompt.txt
@@ -483,6 +565,9 @@ def promptFindingReference(is_dumped = True, file="PROMPT.txt") -> Optional[dict
     # Check if cleaned prompt is empty
     if not cleaned_prompt:
         print("No valid words found in the prompt.")
+
+    # Drop stems that are too common in the library to discriminate between documents
+    cleaned_prompt = drop_high_frequency_stems(cleaned_prompt, cutoff=cutoff)
 
     if is_dumped:
         # Dump the cleaned prompt to the buffer.json file

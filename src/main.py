@@ -40,6 +40,7 @@ def app():
     parser.add_argument("--extractText", action= 'store_true', help= 'Chunk .txt files from RAW_DATA_PATH and store in database')
     parser.add_argument("--processWordFreq", action= 'store_true', help="Create index tables and analyze word frequencies all in one")
     parser.add_argument("--tokenizePrompt", action= 'store_true', help="Prompt to find references in full database based on context of search")
+    parser.add_argument("--promptCutoff", type=float, default=None, help="With --tokenizePrompt: drop prompt stems occurring in more than this fraction of the corpus (default 0.9; 0 disables)")
     # TF-IDF is computed by the C++ side: word_tokenizer --computeTFIDF
     parser.add_argument("--computeItemMatrix", action= 'store_true', help="Compute item matrix similarity and output comparison table based on TF-IDF")
     parser.add_argument("--topicTokenize", action= 'store_true', help="Tokenize topics and store in database")
@@ -116,7 +117,7 @@ def app():
         word_freq.process_word_frequencies_in_batches(reset_state=False)
 
     if args.tokenizePrompt: # function is functioning properly
-        word_freq.promptFindingReference()
+        word_freq.promptFindingReference(cutoff=args.promptCutoff)
 
     if args.computeItemMatrix:
         tf_idf.compute_item_matrix()
