@@ -54,6 +54,7 @@ logs/
 outputPrompt.*
 PROMPT.*
 conversation/
+prompts/
 
 # ---------------------
 # IDE Settings
