@@ -60,7 +60,6 @@ $ErrorActionPreference = 'Stop'
 # --- Config (kept identical to src/modules/compress_pdf.py) ------------------
 $TmpSuffix       = '.gstmp'   # deliberately not *.pdf -- other stages glob for that
 $MinOutputBytes  = 1024       # anything smaller than this is not a real PDF
-$GsTimeoutMs     = 1800 * 1000
 $DefaultJobs     = 4          # this runs for hours in the background; leave the box usable
 $LogFields       = @('timestamp','file','status','in_bytes','out_bytes','pct_saved','preset','pages')
 
@@ -146,6 +145,9 @@ function Import-Ledger {
     try {
         foreach ($row in Import-Csv -LiteralPath $Path) {
             $bytes = 0
+            # A timeout (from before the limit was removed) never finished, so
+            # it is not done -- forget it and let the file be tried again.
+            if ($row.status -eq 'timeout') { $done.Remove($row.file); continue }
             if ([int64]::TryParse($row.out_bytes, [ref]$bytes)) { $done[$row.file] = $bytes }
         }
     } catch {
@@ -272,7 +274,6 @@ try {
         $preset    = $using:Preset
         $tmpSuffix = $using:TmpSuffix
         $minBytes  = $using:MinOutputBytes
-        $timeoutMs = $using:GsTimeoutMs
 
         $src      = $_.FullName
         $tmp      = $src + $tmpSuffix
@@ -310,14 +311,12 @@ try {
             $null = $proc.StandardOutput.ReadToEndAsync()
             $null = $proc.StandardError.ReadToEndAsync()
 
-            if (-not $proc.WaitForExit($timeoutMs)) {
-                # Kill() only requests termination. Wait for it to actually take
-                # effect, or the cleanup below races a process that still has the
-                # temp file open.
-                try { $proc.Kill($true); $null = $proc.WaitForExit(30000) } catch {}
-                $status = 'timeout'
-            }
-            elseif ($proc.ExitCode -ne 0 -or -not (Test-Path -LiteralPath $tmp)) {
+            # No time limit: large scans legitimately take well over 30 minutes,
+            # and a timed-out file used to be logged as done and never retried.
+            # A Ghostscript that truly hangs ties up one worker until you stop
+            # the run -- check Task Manager for a gswin64c stuck at 0% CPU.
+            $proc.WaitForExit()
+            if ($proc.ExitCode -ne 0 -or -not (Test-Path -LiteralPath $tmp)) {
                 $status = 'gs-failed'
             }
             else {

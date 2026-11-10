@@ -24,6 +24,7 @@ build/
 # Database & Large Data
 # ---------------------
 data/
+books/
 models/
 analysis/
 wiki_topics/
